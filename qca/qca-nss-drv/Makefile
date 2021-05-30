@@ -103,6 +103,8 @@ endif
 
 define Build/Configure
 	$(LN) arch/nss_$(SOC).h $(PKG_BUILD_DIR)/exports/nss_arch.h
+	sed -i "s/define NSS_FW_VERSION_MAJOR.*/define NSS_FW_VERSION_MAJOR 11/" $(PKG_BUILD_DIR)/exports/nss_fw_version.h
+	sed -i "s/define NSS_FW_VERSION_MINOR.*/define NSS_FW_VERSION_MINOR 3/" $(PKG_BUILD_DIR)/exports/nss_fw_version.h
 endef
 
 define Build/Compile
