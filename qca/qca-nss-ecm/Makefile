@@ -23,7 +23,7 @@ define KernelPackage/qca-nss-ecm
 	+iptables-mod-extra \
 	+kmod-ipt-conntrack \
 	+kmod-ipt-physdev \
-	+kmod-ipt-physdev \
+	+iptables-mod-physdev \
 	+kmod-pppoe
   TITLE:=QCA NSS Enhanced Connection Manager (ECM)
   FILES:=$(PKG_BUILD_DIR)/*.ko
