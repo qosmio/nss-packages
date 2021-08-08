@@ -26,6 +26,34 @@ define KernelPackage/qca-nss-drv-pppoe/Description
 Kernel modules for NSS connection manager - Support for PPPoE
 endef
 
+define KernelPackage/qca-nss-drv-bridge-mgr
+  SECTION:=kernel
+  CATEGORY:=Kernel modules
+  SUBMENU:=Network Devices
+  TITLE:=Kernel driver for NSS bridge manager
+  DEPENDS:=@TARGET_ipq807x +kmod-qca-nss-drv +kmod-qca-nss-drv-vlan-mgr
+  FILES:=$(PKG_BUILD_DIR)/bridge/qca-nss-bridge-mgr.ko
+  AUTOLOAD:=$(call AutoLoad,51,qca-nss-bridge-mgr)
+endef
+
+define KernelPackage/qca-nss-drv-bridge-mgr/Description
+Kernel modules for NSS bridge manager
+endef
+
+define KernelPackage/qca-nss-drv-vlan-mgr
+  SECTION:=kernel
+  CATEGORY:=Kernel modules
+  SUBMENU:=Network Devices
+  TITLE:=Kernel driver for NSS vlan manager
+  DEPENDS:=@TARGET_ipq807x +kmod-qca-nss-drv
+  FILES:=$(PKG_BUILD_DIR)/vlan/qca-nss-vlan.ko
+  AUTOLOAD:=$(call AutoLoad,51,qca-nss-vlan)
+endef
+
+define KernelPackage/qca-nss-drv-vlan-mgr/Description
+Kernel modules for NSS vlan manager
+endef
+
 EXTRA_CFLAGS+= \
 	-I$(STAGING_DIR)/usr/include/qca-nss-drv \
 	-I$(STAGING_DIR)/usr/include/qca-nss-crypto \
@@ -37,6 +65,19 @@ EXTRA_CFLAGS+= \
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-pppoe),)
 NSS_CLIENTS_MAKE_OPTS+=pppoe=y
+endif
+
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-bridge-mgr),)
+NSS_CLIENTS_MAKE_OPTS+=bridge-mgr=y
+#enable OVS bridge if ovsmgr is enabled
+ifneq ($(CONFIG_PACKAGE_kmod-qca-ovsmgr),)
+NSS_CLIENTS_MAKE_OPTS+= NSS_BRIDGE_MGR_OVS_ENABLE=y
+EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-ovsmgr
+endif
+endif
+
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-vlan-mgr),)
+NSS_CLIENTS_MAKE_OPTS+=vlan-mgr=y
 endif
 
 ifeq ($(CONFIG_TARGET_BOARD), "ipq807x")
@@ -57,3 +98,5 @@ define Build/Compile
 endef
 
 $(eval $(call KernelPackage,qca-nss-drv-pppoe))
+$(eval $(call KernelPackage,qca-nss-drv-bridge-mgr))
+$(eval $(call KernelPackage,qca-nss-drv-vlan-mgr))
