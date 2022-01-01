@@ -15,8 +15,6 @@ Signed-off-by: Dirk Buchwalder <buchwalder@posteo.de>
  src/hsl/phy/hsl_phy.c     | 1 +
  2 files changed, 2 insertions(+)
 
-diff --git a/include/hsl/phy/hsl_phy.h b/include/hsl/phy/hsl_phy.h
-index 4621e725..7551574a 100755
 --- a/include/hsl/phy/hsl_phy.h
 +++ b/include/hsl/phy/hsl_phy.h
 @@ -579,6 +579,7 @@ typedef struct {
@@ -27,11 +25,9 @@ index 4621e725..7551574a 100755
  #define AQUANTIA_PHY_112C       0x03a1b792
  
  #define PHY_805XV2              0x004DD082
-diff --git a/src/hsl/phy/hsl_phy.c b/src/hsl/phy/hsl_phy.c
-index 5866a522..02e6aeea 100755
 --- a/src/hsl/phy/hsl_phy.c
 +++ b/src/hsl/phy/hsl_phy.c
-@@ -235,6 +235,7 @@ phy_type_t hsl_phytype_get_by_phyid(a_uint32_t dev_id, a_uint32_t phy_id)
+@@ -235,6 +235,7 @@ phy_type_t hsl_phytype_get_by_phyid(a_ui
  		case AQUANTIA_PHY_112:
  		case AQUANTIA_PHY_113C_A0:
  		case AQUANTIA_PHY_113C_A1:
@@ -39,6 +35,3 @@ index 5866a522..02e6aeea 100755
  		case AQUANTIA_PHY_112C:
  			phytype = AQUANTIA_PHY_CHIP;
  			break;
--- 
-2.31.1
-

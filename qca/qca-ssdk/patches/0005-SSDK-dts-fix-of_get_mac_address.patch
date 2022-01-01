@@ -13,8 +13,6 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  src/init/ssdk_dts.c | 7 ++++---
  1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/src/init/ssdk_dts.c b/src/init/ssdk_dts.c
-index 21804970..257bbf71 100644
 --- a/src/init/ssdk_dts.c
 +++ b/src/init/ssdk_dts.c
 @@ -779,8 +779,9 @@ static void ssdk_dt_parse_intf_mac(void)
@@ -42,6 +40,3 @@ index 21804970..257bbf71 100644
  #endif
  			ssdk_dt_global.num_intf_mac++;
  			ether_addr_copy(ssdk_dt_global.intf_mac[dp-1].uc, maddr);
--- 
-2.31.1
-
