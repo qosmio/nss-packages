@@ -21,7 +21,7 @@ define KernelPackage/qca-nss-dp
   DEPENDS:=@(TARGET_ipq807x||TARGET_ipq60xx) +kmod-qca-ssdk-nohnat
   TITLE:=Kernel driver for NSS data plane
   FILES:=$(PKG_BUILD_DIR)/qca-nss-dp.ko
-  AUTOLOAD:=$(call AutoLoad,31,qca-nss-dp)
+  AUTOLOAD:=$(call AutoLoad,31,qca-nss-dp,1)
 endef
 
 define KernelPackage/qca-nss-dp/Description
