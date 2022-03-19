@@ -17,7 +17,7 @@ define KernelPackage/qca-nss-drv-pppoe
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (connection manager) - PPPoE
-  DEPENDS:=@TARGET_ipq807x +kmod-qca-nss-drv +kmod-ppp +kmod-pppoe
+  DEPENDS:=@LINUX_5_10 @TARGET_ipq807x +kmod-qca-nss-drv +kmod-ppp +kmod-pppoe
   FILES:=$(PKG_BUILD_DIR)/pppoe/qca-nss-pppoe.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-pppoe)
 endef
@@ -31,7 +31,7 @@ define KernelPackage/qca-nss-drv-bridge-mgr
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS bridge manager
-  DEPENDS:=@TARGET_ipq807x +kmod-qca-nss-drv +kmod-qca-nss-drv-vlan-mgr
+  DEPENDS:=@LINUX_5_10 @TARGET_ipq807x +kmod-qca-nss-drv +kmod-qca-nss-drv-vlan-mgr
   FILES:=$(PKG_BUILD_DIR)/bridge/qca-nss-bridge-mgr.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-bridge-mgr)
 endef
@@ -45,7 +45,7 @@ define KernelPackage/qca-nss-drv-vlan-mgr
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS vlan manager
-  DEPENDS:=@TARGET_ipq807x +kmod-qca-nss-drv
+  DEPENDS:=@LINUX_5_10 @TARGET_ipq807x +kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/vlan/qca-nss-vlan.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-vlan)
 endef
