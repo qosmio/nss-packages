@@ -5,9 +5,9 @@ PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-clients.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2021-07-23
-PKG_SOURCE_VERSION:=ec7a57bed8914adcbd5bf95de1f0b630296489c1
-PKG_MIRROR_HASH:=b7413c5b20a341d3d7ea49c1b86ff92b4a8795aa7c64986ca820ba18205e332d
+PKG_SOURCE_DATE:=2022-03-18
+PKG_SOURCE_VERSION:=a93764b647be71342e588f5e6406fde44f5b9ca4
+PKG_MIRROR_HASH:=f855957345c06f1760a059328e58b78bf1f9559e60aebf44784e0289d11743c2
 
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
@@ -17,7 +17,7 @@ define KernelPackage/qca-nss-drv-pppoe
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (connection manager) - PPPoE
-  DEPENDS:=@LINUX_5_10 @TARGET_ipq807x +kmod-qca-nss-drv +kmod-ppp +kmod-pppoe
+  DEPENDS:=@TARGET_ipq807x +kmod-qca-nss-drv +kmod-ppp +kmod-pppoe +kmod-bonding
   FILES:=$(PKG_BUILD_DIR)/pppoe/qca-nss-pppoe.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-pppoe)
 endef
@@ -45,7 +45,7 @@ define KernelPackage/qca-nss-drv-vlan-mgr
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS vlan manager
-  DEPENDS:=@LINUX_5_10 @TARGET_ipq807x +kmod-qca-nss-drv
+  DEPENDS:=@TARGET_ipq807x +kmod-qca-nss-drv +kmod-bonding
   FILES:=$(PKG_BUILD_DIR)/vlan/qca-nss-vlan.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-vlan)
 endef
