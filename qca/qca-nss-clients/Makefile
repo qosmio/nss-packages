@@ -3,11 +3,11 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=qca-nss-clients
 PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_SOURCE_URL:=https://source.codeaurora.org/quic/cc-qrdk/oss/lklm/nss-clients
+PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-clients.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2021-04-29
-PKG_SOURCE_VERSION:=b93c72c1b72c591c2ddc2f0b24f0e2b457720118
-PKG_MIRROR_HASH:=9fab23da994bfbac9a3cef32cdfec31a87a03ed415f36bc926da32b7b0934259
+PKG_SOURCE_DATE:=2021-07-23
+PKG_SOURCE_VERSION:=ec7a57bed8914adcbd5bf95de1f0b630296489c1
+PKG_MIRROR_HASH:=b7413c5b20a341d3d7ea49c1b86ff92b4a8795aa7c64986ca820ba18205e332d
 
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk

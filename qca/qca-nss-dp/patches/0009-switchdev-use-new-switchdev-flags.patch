@@ -14,8 +14,6 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  nss_dp_switchdev.c   | 2 +-
  2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/include/nss_dp_dev.h b/include/nss_dp_dev.h
-index 7dbacee..df36b69 100644
 --- a/include/nss_dp_dev.h
 +++ b/include/nss_dp_dev.h
 @@ -26,6 +26,9 @@
@@ -40,11 +38,9 @@ index 7dbacee..df36b69 100644
  #endif
  };
  
-diff --git a/nss_dp_switchdev.c b/nss_dp_switchdev.c
-index d85e725..e72cfbc 100644
 --- a/nss_dp_switchdev.c
 +++ b/nss_dp_switchdev.c
-@@ -296,7 +296,7 @@ static int nss_dp_port_attr_set(struct net_device *dev,
+@@ -296,7 +296,7 @@ static int nss_dp_port_attr_set(struct n
  	switch (attr->id) {
  	case SWITCHDEV_ATTR_ID_PORT_BRIDGE_FLAGS:
  		dp_priv->brport_flags = attr->u.brport_flags;
@@ -53,6 +49,3 @@ index d85e725..e72cfbc 100644
  		return 0;
  	case SWITCHDEV_ATTR_ID_PORT_STP_STATE:
  		return nss_dp_stp_state_set(dp_priv, attr->u.stp_state);
--- 
-2.35.1
-

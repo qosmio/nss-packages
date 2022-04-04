@@ -3,7 +3,7 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=qca-nss-crypto
 PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_SOURCE_URL:=https://source.codeaurora.org/quic/qsdk/oss/lklm/nss-crypto
+PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-crypto.git
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_DATE:=2021-03-20
 PKG_SOURCE_VERSION:=2271a3a66f7e8284d42a9e787ddec6f24a1d2e15

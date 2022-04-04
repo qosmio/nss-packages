@@ -20,8 +20,6 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  nss_dp_switchdev.c | 61 ++++++++++++++++++++++++++++++++++++++++++++++
  1 file changed, 61 insertions(+)
 
-diff --git a/nss_dp_switchdev.c b/nss_dp_switchdev.c
-index e72cfbc..48f0244 100644
 --- a/nss_dp_switchdev.c
 +++ b/nss_dp_switchdev.c
 @@ -24,6 +24,8 @@
@@ -33,7 +31,7 @@ index e72cfbc..48f0244 100644
  
  #define NSS_DP_SWITCH_ID		0
  #define NSS_DP_SW_ETHTYPE_PID		0 /* PPE ethtype profile ID for slow protocols */
-@@ -348,10 +350,64 @@ static int nss_dp_switchdev_event(struct notifier_block *unused,
+@@ -348,10 +350,64 @@ static int nss_dp_switchdev_event(struct
  	return NOTIFY_DONE;
  }
  
@@ -98,7 +96,7 @@ index e72cfbc..48f0244 100644
  static bool switch_init_done;
  
  /*
-@@ -366,6 +422,11 @@ void nss_dp_switchdev_setup(struct net_device *dev)
+@@ -366,6 +422,11 @@ void nss_dp_switchdev_setup(struct net_d
  		return;
  	}
  
@@ -110,6 +108,3 @@ index e72cfbc..48f0244 100644
  	err = register_switchdev_blocking_notifier(&nss_dp_switchdev_notifier);
  	if (err) {
  		netdev_dbg(dev, "%px:Failed to register switchdev notifier\n", dev);
--- 
-2.35.1
-

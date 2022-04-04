@@ -3,11 +3,11 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=qca-nss-drv
 PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_SOURCE_URL:=https://source.codeaurora.org/quic/qsdk/oss/lklm/nss-drv
+PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2021-04-26
-PKG_SOURCE_VERSION:=1cf4bf81fd395f61648efeae78cdf1df60e954ff
-PKG_MIRROR_HASH:=86b7455565d28a72da981099c67a89ea9e0ae3874a34be30959dcf48f5e2196c
+PKG_SOURCE_DATE:=2021-06-09
+PKG_SOURCE_VERSION:=22b485ac89a3a1b60f3a6d5b2fe3236d170934b9
+PKG_MIRROR_HASH:=ef94ba959cde4bd56d1bc4ffbbc5d91fb9a7766cd7096dc1538127e73bbae89a
 
 PKG_BUILD_PARALLEL:=1
 
