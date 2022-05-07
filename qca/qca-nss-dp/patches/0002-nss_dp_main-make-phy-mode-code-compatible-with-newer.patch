@@ -15,14 +15,14 @@ Subject: [PATCH 2/3] nss_dp_main: make phy mode code compatible with newer
 --- a/include/nss_dp_dev.h
 +++ b/include/nss_dp_dev.h
 @@ -25,7 +25,7 @@
+ #include <linux/etherdevice.h>
  #include <linux/netdevice.h>
  #include <linux/platform_device.h>
- #include <linux/if_vlan.h>
 -#include <linux/switch.h>
 +#include <linux/phy.h>
+ #include <linux/version.h>
  
  #include "nss_dp_api_if.h"
- #include "nss_dp_hal_if.h"
 @@ -46,7 +46,7 @@ struct nss_dp_dev {
  	/* Phy related stuff */
  	struct phy_device *phydev;	/* Phy device */
