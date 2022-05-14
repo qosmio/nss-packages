@@ -18,7 +18,7 @@
 # openwrt build scripts automatically enable this package starting
 # at boot.
 
-START=19
+START=75
 
 get_front_end_mode() {
 	config_load "ecm"
@@ -31,52 +31,33 @@ get_front_end_mode() {
 	nss)
 		echo '1'
 		;;
-	sfe)
-		echo '2'
-		;;
 	*)
 		echo 'uci_option_acceleration_engine is invalid'
 	esac
 }
 
 support_bridge() {
-	#NSS support bridge acceleration
-	[ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && return 0
-	#SFE doesn't support bridge acceleration
-	[ -d /sys/kernel/debug/ecm/ecm_sfe_ipv4 ] && return 1
-}
-
-load_sfe() {
-	local kernel_version=$(uname -r)
-
-	[ -e "/lib/modules/$kernel_version/shortcut-fe.ko" ] && {
-		[ -d /sys/module/shortcut_fe ] || insmod shortcut-fe
-	}
-
-	[ -e "/lib/modules/$kernel_version/shortcut-fe-ipv6.ko" ] && {
-		[ -d /sys/module/shortcut_fe_ipv6 ] || insmod shortcut-fe-ipv6
-	}
-
-	[ -e "/lib/modules/$kernel_version/shortcut-fe-drv.ko" ] && {
-		[ -d /sys/module/shortcut_fe_drv ] || insmod shortcut-fe-drv
-	}
+	# NSS support bridge acceleration
+	[ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && [ -d /sys/kernel/debug/ecm/ecm_nss_ipv6 ] && return 0
 }
 
 load_ecm() {
 	[ -d /sys/module/ecm ] || {
-		[ ! -e /proc/device-tree/MP_256 ] && load_sfe
 		insmod ecm front_end_selection=$(get_front_end_mode)
+		echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
 	}
 
 	support_bridge && {
-		sysctl -w net.bridge.bridge-nf-call-ip6tables=1
+		sysctl -w net.bridge.bridge-nf-call-arptables=1
 		sysctl -w net.bridge.bridge-nf-call-iptables=1
+		sysctl -w net.bridge.bridge-nf-call-ip6tables=1
 	}
 }
 
 unload_ecm() {
-	sysctl -w net.bridge.bridge-nf-call-ip6tables=0
+	sysctl -w net.bridge.bridge-nf-call-arptables=0
 	sysctl -w net.bridge.bridge-nf-call-iptables=0
+	sysctl -w net.bridge.bridge-nf-call-ip6tables=0
 
 	if [ -d /sys/module/ecm ]; then
 		#
@@ -88,8 +69,8 @@ unload_ecm() {
 		#
 		# Defunct the connections
 		#
-	        echo 1 > /sys/kernel/debug/ecm/ecm_db/defunct_all
-		sleep 5;
+	    echo 1 > /sys/kernel/debug/ecm/ecm_db/defunct_all
+		sleep 5
 
 		rmmod ecm
 		sleep 1
@@ -97,42 +78,36 @@ unload_ecm() {
 }
 
 start() {
-	# If SFE CM is loaded, return.
-	if [ -d /sys/module/shortcut_fe_cm ]; then
-		echo "shortcut_fe CM is loaded, unload it first"
-		echo "cmd: /etc/init.d/shortcut_fe stop"
-		return
-	fi
-
 	load_ecm
 
-	# If the acceleration engine is NSS, enable wifi redirect.
+	# If the acceleration engine is NSS, enable wifi redirect
 	[ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=1
 
 	support_bridge && {
-		if ([ -z "$(grep "net.bridge.bridge-nf-call-ip6tables=1" /etc/sysctl.d/qca-nss-ecm.conf)" ] && [ -z "$(grep "net.bridge.bridge-nf-call-iptables=1" /etc/sysctl.d/qca-nss-ecm.conf)" ]); then
-			echo 'net.bridge.bridge-nf-call-ip6tables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
+		if ([ -z "$(grep "net.bridge.bridge-nf-call-iptables=1" /etc/sysctl.d/qca-nss-ecm.conf)" ] && [ -z "$(grep "net.bridge.bridge-nf-call-ip6tables=1" /etc/sysctl.d/qca-nss-ecm.conf)" ]); then
+			echo 'net.bridge.bridge-nf-call-arptables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
 			echo 'net.bridge.bridge-nf-call-iptables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
+			echo 'net.bridge.bridge-nf-call-ip6tables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
 		fi
 	}
 
 	if [ -d /sys/module/qca_ovsmgr ]; then
 		insmod ecm_ovs
 	fi
-
 }
 
 stop() {
-	# If ECM is already not loaded, just return.
+	# If ECM is already not loaded, just return
 	if [ ! -d /sys/module/ecm ]; then
 		return
 	fi
 
-	# If the acceleration engine is NSS, disable wifi redirect.
+	# If the acceleration engine is NSS, disable wifi redirect
 	[ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=0
 
-	sed '/net.bridge.bridge-nf-call-ip6tables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
+	sed '/net.bridge.bridge-nf-call-arptables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
 	sed '/net.bridge.bridge-nf-call-iptables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
+	sed '/net.bridge.bridge-nf-call-ip6tables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
 
 	if [ -d /sys/module/ecm_ovs ]; then
 		rmmod ecm_ovs

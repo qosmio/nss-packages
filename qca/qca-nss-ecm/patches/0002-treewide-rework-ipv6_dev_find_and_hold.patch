@@ -1,0 +1,52 @@
+--- a/ecm_interface.c
++++ b/ecm_interface.c
+@@ -334,7 +334,7 @@ static struct net_device *ecm_interface_dev_find_by_local_addr_ipv6(ip_addr_t ad
+ 	struct net_device *dev;
+
+ 	ECM_IP_ADDR_TO_NIN6_ADDR(addr6, addr);
+-	dev = (struct net_device *)ipv6_dev_find(&init_net, &addr6, 1);
++	dev = (struct net_device *)ipv6_dev_find_and_hold(&init_net, &addr6, 1);
+ 	return dev;
+ }
+ #endif
+@@ -736,7 +764,7 @@ static bool ecm_interface_mac_addr_get_ipv6_no_route(struct net_device *dev, ip_
+ 	 * Get the MAC address that corresponds to IP address given.
+ 	 */
+ 	ECM_IP_ADDR_TO_NIN6_ADDR(daddr, addr);
+-	local_dev = ipv6_dev_find(&init_net, &daddr, 1);
++	local_dev = ipv6_dev_find_and_hold(&init_net, &daddr, 1);
+ 	if (local_dev) {
+ 		DEBUG_TRACE("%pi6 is a local address\n", &daddr);
+ 		memcpy(mac_addr, dev->dev_addr, ETH_ALEN);
+diff --git a/frontends/ecm_front_end_common.c b/frontends/ecm_front_end_common.c
+index e21ca24..6054685 100644
+--- a/frontends/ecm_front_end_common.c
++++ b/frontends/ecm_front_end_common.c
+@@ -56,6 +56,9 @@
+ #include "ecm_db.h"
+ #include "ecm_front_end_common.h"
+ #include "ecm_interface.h"
++#ifdef ECM_IPV6_ENABLE
++#include "ecm_front_end_ipv6.h"
++#endif
+
+ /*
+  * Sysctl table header
+@@ -315,7 +318,7 @@ bool ecm_front_end_gre_proto_is_accel_allowed(struct net_device *indev,
+ 		}
+ 	} else {
+ #ifdef ECM_IPV6_ENABLE
+-		dev = ipv6_dev_find(&init_net, &(tuple->src.u3.in6), 1);
++		dev = ipv6_dev_find_and_hold(&init_net, &(tuple->src.u3.in6), 1);
+ 		if (dev) {
+ 			/*
+ 			 * Source IP address is local
+@@ -325,7 +328,7 @@ bool ecm_front_end_gre_proto_is_accel_allowed(struct net_device *indev,
+ 			return false;
+ 		}
+
+-		dev = ipv6_dev_find(&init_net, &(tuple->dst.u3.in6), 1);
++		dev = ipv6_dev_find_and_hold(&init_net, &(tuple->dst.u3.in6), 1);
+ 		if (dev) {
+ 			/*
+ 			 * Destination IP address is local

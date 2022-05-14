@@ -1,0 +1,75 @@
+--- a/frontends/nss/ecm_nss_ported_ipv4.c
++++ b/frontends/nss/ecm_nss_ported_ipv4.c
+@@ -335,8 +335,12 @@ static void ecm_nss_ported_ipv4_connecti
+ 	uint8_t dest_mac_xlate[ETH_ALEN];
+ 	ecm_db_direction_t ecm_dir;
+ 	ecm_front_end_acceleration_mode_t result_mode;
+-	struct net *net = nf_ct_net(ct);
+-	struct nf_tcp_net *tn = nf_tcp_pernet(net);
++	struct nf_tcp_net *tn;
++
++	if (ct) {
++		struct net *net = nf_ct_net(ct);
++		tn = nf_tcp_pernet(net);
++	}
+
+ 	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
+
+--- a/frontends/nss/ecm_nss_ported_ipv6.c
++++ b/frontends/nss/ecm_nss_ported_ipv6.c
+@@ -340,8 +340,12 @@ static void ecm_nss_ported_ipv6_connecti
+ 	ip_addr_t src_ip;
+ 	ip_addr_t dest_ip;
+ 	ecm_front_end_acceleration_mode_t result_mode;
+-	struct net *net = nf_ct_net(ct);
+-	struct nf_tcp_net *tn = nf_tcp_pernet(net);
++	struct nf_tcp_net *tn;
++
++	if (ct) {
++		struct net *net = nf_ct_net(ct);
++		tn = nf_tcp_pernet(net);
++	}
+
+ 	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
+
+--- a/frontends/sfe/ecm_sfe_ported_ipv4.c
++++ b/frontends/sfe/ecm_sfe_ported_ipv4.c
+@@ -365,11 +365,15 @@ static void ecm_sfe_ported_ipv4_connecti
+ 	uint8_t dest_mac_xlate[ETH_ALEN];
+ 	ecm_db_direction_t ecm_dir;
+ 	ecm_front_end_acceleration_mode_t result_mode;
+-   struct net *net = nf_ct_net(ct);
+-   struct nf_tcp_net *tn = nf_tcp_pernet(net);
++   struct nf_tcp_net *tn;
+ 	uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
+ 	ecm_sfe_common_l2_accel_check_callback_t l2_accel_check;
+
++	if (ct) {
++		struct net *net = nf_ct_net(ct);
++		tn = nf_tcp_pernet(net);
++	}
++
+ 	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
+
+ 	/*
+
+--- a/frontends/sfe/ecm_sfe_ported_ipv6.c
++++ b/frontends/sfe/ecm_sfe_ported_ipv6.c
+@@ -369,11 +369,15 @@ static void ecm_sfe_ported_ipv6_connecti
+ 	ip_addr_t src_ip;
+ 	ip_addr_t dest_ip;
+ 	ecm_front_end_acceleration_mode_t result_mode;
+-	struct net *net = nf_ct_net(ct);
+-   struct nf_tcp_net *tn = nf_tcp_pernet(net);
++	struct nf_tcp_net *tn;
+    uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
+ 	ecm_sfe_common_l2_accel_check_callback_t l2_accel_check;
+
++	if (ct) {
++		struct net *net = nf_ct_net(ct);
++		tn = nf_tcp_pernet(net);
++	}
++
+ 	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
+
+ 	/*

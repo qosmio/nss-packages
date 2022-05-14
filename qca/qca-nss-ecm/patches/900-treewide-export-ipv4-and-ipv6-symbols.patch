@@ -1,0 +1,146 @@
+--- a/frontends/nss/ecm_nss_ipv4.h
++++ b/frontends/nss/ecm_nss_ipv4.h
+@@ -14,6 +14,9 @@
+  **************************************************************************
+  */
+
++#ifndef __ECM_FRONT_END_NSS_IPV4_H
++#define __ECM_FRONT_END_NSS_IPV4_H
++
+ #include <nss_api_if.h>
+
+ extern int ecm_nss_ipv4_no_action_limit_default;		/* Default no-action limit. */
+@@ -168,3 +171,5 @@ extern void ecm_nss_ipv4_accel_done_time
+ extern void ecm_nss_ipv4_decel_done_time_update(struct ecm_front_end_connection_instance *feci);
+ extern int ecm_nss_ipv4_init(struct dentry *dentry);
+ extern void ecm_nss_ipv4_exit(void);
++
++#endif  /* __ECM_FRONT_END_NSS_IPV4_H */
+--- a/frontends/nss/ecm_nss_ipv6.h
++++ b/frontends/nss/ecm_nss_ipv6.h
+@@ -14,6 +14,9 @@
+  **************************************************************************
+  */
+
++#ifndef __ECM_FRONT_END_NSS_IPV6_H
++#define __ECM_FRONT_END_NSS_IPV6_H
++
+ #include <nss_api_if.h>
+
+ extern int ecm_nss_ipv6_no_action_limit_default;		/* Default no-action limit. */
+@@ -168,3 +171,5 @@ extern void ecm_nss_ipv6_accel_done_time
+ extern void ecm_nss_ipv6_decel_done_time_update(struct ecm_front_end_connection_instance *feci);
+ extern int ecm_nss_ipv6_init(struct dentry *dentry);
+ extern void ecm_nss_ipv6_exit(void);
++
++#endif  /* __ECM_FRONT_END_NSS_IPV6_H */
+--- a/frontends/nss/ecm_nss_common.c
++++ b/frontends/nss/ecm_nss_common.c
+@@ -67,6 +67,7 @@ bool ecm_nss_ipv6_is_conn_limit_reached(
+
+ 	return false;
+ }
++EXPORT_SYMBOL(ecm_nss_ipv6_is_conn_limit_reached);
+ #endif
+
+ /*
+@@ -93,3 +94,4 @@ bool ecm_nss_ipv4_is_conn_limit_reached(
+
+ 	return false;
+ }
++EXPORT_SYMBOL(ecm_nss_ipv4_is_conn_limit_reached);
+--- a/frontends/nss/ecm_nss_non_ported_ipv4.h
++++ b/frontends/nss/ecm_nss_non_ported_ipv4.h
+@@ -19,7 +19,7 @@
+
+ extern bool ecm_nss_non_ported_ipv4_debugfs_init(struct dentry *dentry);
+
+-extern struct ecm_front_end_connection_instance *ecm_nss_non_ported_ipv4_connection_instance_alloc(
+-								bool can_accel, int protocol,
+-								struct ecm_db_connection_instance **nci);
++struct ecm_front_end_connection_instance *ecm_nss_non_ported_ipv4_connection_instance_alloc(
++							bool can_accel, int protocol,
++							struct ecm_db_connection_instance **nci);
+ extern void ecm_nss_non_ported_ipv4_sit_set_peer(struct ecm_front_end_connection_instance *feci, struct sk_buff *skb);
+--- a/frontends/nss/ecm_nss_non_ported_ipv4.c
++++ b/frontends/nss/ecm_nss_non_ported_ipv4.c
+@@ -1822,6 +1822,7 @@ struct ecm_front_end_connection_instance
+
+ 	return feci;
+ }
++EXPORT_SYMBOL(ecm_nss_non_ported_ipv4_connection_instance_alloc);
+
+ /*
+  * ecm_nss_non_ported_ipv4_debugfs_init()
+--- a/frontends/nss/ecm_nss_non_ported_ipv6.h
++++ b/frontends/nss/ecm_nss_non_ported_ipv6.h
+@@ -19,7 +19,7 @@
+
+ extern bool ecm_nss_non_ported_ipv6_debugfs_init(struct dentry *dentry);
+
+-extern struct ecm_front_end_connection_instance *ecm_nss_non_ported_ipv6_connection_instance_alloc(
+-								bool can_accel,
+-								int protocol,
+-								struct ecm_db_connection_instance **nci);
++struct ecm_front_end_connection_instance *ecm_nss_non_ported_ipv6_connection_instance_alloc(
++							bool can_accel,
++							int protocol,
++							struct ecm_db_connection_instance **nci);
+--- a/frontends/nss/ecm_nss_non_ported_ipv6.c
++++ b/frontends/nss/ecm_nss_non_ported_ipv6.c
+@@ -1648,6 +1648,7 @@ struct ecm_front_end_connection_instance
+
+ 	return feci;
+ }
++EXPORT_SYMBOL(ecm_nss_non_ported_ipv6_connection_instance_alloc);
+
+ /*
+  * ecm_nss_non_ported_ipv6_debugfs_init()
+--- a/frontends/nss/ecm_nss_ported_ipv4.h
++++ b/frontends/nss/ecm_nss_ported_ipv4.h
+@@ -19,7 +19,7 @@
+
+ extern bool ecm_nss_ported_ipv4_debugfs_init(struct dentry *dentry);
+
+-extern struct ecm_front_end_connection_instance *ecm_nss_ported_ipv4_connection_instance_alloc(
+-								bool can_accel,
+-								int protocol,
+-								struct ecm_db_connection_instance **nci);
++struct ecm_front_end_connection_instance *ecm_nss_ported_ipv4_connection_instance_alloc(
++							bool can_accel,
++							int protocol,
++							struct ecm_db_connection_instance **nci);
+--- a/frontends/nss/ecm_nss_ported_ipv4.c
++++ b/frontends/nss/ecm_nss_ported_ipv4.c
+@@ -1877,6 +1877,7 @@ struct ecm_front_end_connection_instance
+
+ 	return feci;
+ }
++EXPORT_SYMBOL(ecm_nss_ported_ipv4_connection_instance_alloc);
+
+ /*
+  * ecm_nss_ported_ipv4_debugfs_init()
+--- a/frontends/nss/ecm_nss_ported_ipv6.h
++++ b/frontends/nss/ecm_nss_ported_ipv6.h
+@@ -19,7 +19,7 @@
+
+ extern bool ecm_nss_ported_ipv6_debugfs_init(struct dentry *dentry);
+
+-extern struct ecm_front_end_connection_instance *ecm_nss_ported_ipv6_connection_instance_alloc(
+-								bool can_accel,
+-								int protocol,
+-								struct ecm_db_connection_instance **nci);
++struct ecm_front_end_connection_instance *ecm_nss_ported_ipv6_connection_instance_alloc(
++							bool can_accel,
++							int protocol,
++							struct ecm_db_connection_instance **nci);
+--- a/frontends/nss/ecm_nss_ported_ipv6.c
++++ b/frontends/nss/ecm_nss_ported_ipv6.c
+@@ -1791,6 +1791,7 @@ struct ecm_front_end_connection_instance
+
+ 	return feci;
+ }
++EXPORT_SYMBOL(ecm_nss_ported_ipv6_connection_instance_alloc);
+
+ /*
+  * ecm_nss_ported_ipv6_debugfs_init()
