@@ -20,7 +20,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 
 --- a/hal/dp_ops/edma_dp/edma_v1/edma_data_plane.c
 +++ b/hal/dp_ops/edma_dp/edma_v1/edma_data_plane.c
-@@ -582,7 +582,7 @@ static int edma_register_netdevice(struc
+@@ -837,7 +837,7 @@ static int edma_register_netdevice(struc
  	 */
  	if (!edma_hw.napi_added) {
  		netif_napi_add(netdev, &edma_hw.napi, edma_napi,
@@ -31,7 +31,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		 */
 --- a/hal/dp_ops/edma_dp/edma_v1/edma_data_plane.h
 +++ b/hal/dp_ops/edma_dp/edma_v1/edma_data_plane.h
-@@ -27,7 +27,6 @@
+@@ -26,7 +26,6 @@
  #define EDMA_RX_PREHDR_SIZE		(sizeof(struct edma_rx_preheader))
  #define EDMA_TX_PREHDR_SIZE		(sizeof(struct edma_tx_preheader))
  #define EDMA_RING_SIZE			128
