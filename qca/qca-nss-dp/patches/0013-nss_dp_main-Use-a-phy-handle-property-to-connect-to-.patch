@@ -29,7 +29,7 @@ index 19b3e78..63a857a 100644
 +++ b/include/nss_dp_dev.h
 @@ -100,13 +100,10 @@ struct nss_dp_dev {
  	unsigned long drv_flags;	/* Driver specific feature flags */
- 
+
  	/* Phy related stuff */
 +	struct device_node *phy_node;
  	struct phy_device *phydev;	/* Phy device */
@@ -41,15 +41,15 @@ index 19b3e78..63a857a 100644
 -	uint32_t forced_duplex;		/* Forced duplex? */
  	uint32_t link_state;		/* Current link state */
  	uint32_t pause;			/* Current flow control settings */
- 
+
 diff --git a/nss_dp_main.c b/nss_dp_main.c
 index 441c300..a1e8627 100644
 --- a/nss_dp_main.c
 +++ b/nss_dp_main.c
 @@ -399,7 +399,7 @@ static int nss_dp_open(struct net_device *netdev)
- 
+
  	netif_start_queue(netdev);
- 
+
 -	if (!dp_priv->link_poll) {
 +	if (!dp_priv->phydev) {
  		/* Notify data plane link is up */
@@ -58,7 +58,7 @@ index 441c300..a1e8627 100644
 @@ -576,6 +576,8 @@ static int32_t nss_dp_of_get_pdata(struct device_node *np,
  		return -EFAULT;
  	}
- 
+
 +	dp_priv->phy_node = of_parse_phandle(np, "phy-handle", 0);
 +
  	if (of_property_read_u32(np, "qcom,mactype", &hal_pdata->mactype)) {
@@ -78,13 +78,13 @@ index 441c300..a1e8627 100644
 -
 -	of_property_read_u32(np, "qcom,forced-speed", &dp_priv->forced_speed);
 -	of_property_read_u32(np, "qcom,forced-duplex", &dp_priv->forced_duplex);
- 
+
  	ret = of_get_mac_address(np, maddr);
  	if (!ret && is_valid_ether_addr(maddr)) {
 @@ -636,50 +628,6 @@ static int32_t nss_dp_of_get_pdata(struct device_node *np,
  	return 0;
  }
- 
+
 -/*
 - * nss_dp_mdio_attach()
 - */
@@ -140,10 +140,10 @@ index 441c300..a1e8627 100644
  #if defined(NSS_DP_PPE_SUPPORT)
  	uint32_t vsi_id;
  	fal_port_t port_id;
-@@ -813,37 +760,17 @@ static int32_t nss_dp_probe(struct platform_device *pdev)
- 
+@@ -758,24 +758,18 @@ static int32_t nss_dp_probe(struct platf
+
  	dp_priv->drv_flags |= NSS_DP_PRIV_FLAG(INIT_DONE);
- 
+
 -	if (dp_priv->link_poll) {
 -		dp_priv->miibus = nss_dp_mdio_attach(pdev);
 -		if (!dp_priv->miibus) {
@@ -153,37 +153,26 @@ index 441c300..a1e8627 100644
 -		snprintf(phy_id, MII_BUS_ID_SIZE + 3, PHY_ID_FMT,
 -				dp_priv->miibus->id, dp_priv->phy_mdio_addr);
 -
-+	if (dp_priv->phy_node) {
++   if (dp_priv->phy_node) {
  		SET_NETDEV_DEV(netdev, &pdev->dev);
--
+
 -		dp_priv->phydev = phy_connect(netdev, phy_id,
 -				&nss_dp_adjust_link,
 -				dp_priv->phy_mii_type);
-+		dp_priv->phydev = of_phy_connect(netdev, dp_priv->phy_node,
-+						 &nss_dp_adjust_link, 0,
-+						 dp_priv->phy_mii_type);
- 		if (IS_ERR(dp_priv->phydev)) {
+-		if (IS_ERR(dp_priv->phydev)) {
 -			netdev_dbg(netdev, "failed to connect to phy device\n");
+-			goto phy_setup_fail;
++		dp_priv->phydev = of_phy_connect(netdev, dp_priv->phy_node,
++               						 &nss_dp_adjust_link, 0,
++               						 dp_priv->phy_mii_type);
++       if (IS_ERR(dp_priv->phydev)) {
 +			dev_err(&pdev->dev, "Could not attach to PHY\n");
- 			goto phy_setup_fail;
++           goto phy_setup_fail;
  		}
- 
--#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0))
--		dp_priv->phydev->advertising |=
--			(ADVERTISED_Pause | ADVERTISED_Asym_Pause);
--		dp_priv->phydev->supported |=
--			(SUPPORTED_Pause | SUPPORTED_Asym_Pause);
--#else
--		linkmode_set_bit(ETHTOOL_LINK_MODE_Pause_BIT, dp_priv->phydev->advertising);
--		linkmode_set_bit(ETHTOOL_LINK_MODE_Asym_Pause_BIT, dp_priv->phydev->advertising);
--
--		linkmode_set_bit(ETHTOOL_LINK_MODE_Pause_BIT, dp_priv->phydev->supported);
--		linkmode_set_bit(ETHTOOL_LINK_MODE_Asym_Pause_BIT, dp_priv->phydev->supported);
--#endif
-+		phy_attached_info(dp_priv->phydev);
++
++       phy_attached_info(dp_priv->phydev);
  	}
- 
- #if defined(NSS_DP_PPE_SUPPORT)
--- 
-2.36.1
 
+ #if defined(NSS_DP_PPE_SUPPORT)
+--
+2.36.1
