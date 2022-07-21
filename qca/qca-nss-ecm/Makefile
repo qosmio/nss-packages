@@ -20,18 +20,19 @@ define KernelPackage/qca-nss-ecm
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
   DEPENDS:=@(TARGET_ipq807x||TARGET_ipq60xx) \
-  	+iptables-mod-extra \
-	+iptables-mod-physdev \
-  	+kmod-qca-nss-drv \
-	+kmod-ipt-conntrack \
-	+kmod-ipt-physdev \
-	+kmod-ppp \
-	+kmod-pppoe \
-	+kmod-pptp \
-	+kmod-pppol2tp \
-	+kmod-bonding \
-	+kmod-qca-mcs \
-	+kmod-nat46
+  		   +@NSS_DRV_IPV6_ENABLE \
+		   +@NSS_DRV_PPE_ENABLE \
+		   +@NSS_DRV_TUN6RD_ENABLE \
+		   +@NSS_DRV_PPPOE_ENABLE \
+		   +@NSS_DRV_PPTP_ENABLE \
+		   +@NSS_DRV_VIRT_IF_ENABLE \
+		   +@NSS_DRV_WIFI_ENABLE \
+		   +kmod-qca-nss-drv \
+    	   +kmod-nf-conntrack \
+		   +kmod-ppp +kmod-pppoe +kmod-pptp +kmod-bonding \
+		   +PACKAGE_kmod-pppol2tp:kmod-pppol2tp \
+		   +PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
+		   +PACKAGE_kmod-nat46:kmod-nat46
   TITLE:=QCA NSS Enhanced Connection Manager (ECM)
   FILES:=$(PKG_BUILD_DIR)/ecm.ko
   KCONFIG:=CONFIG_BRIDGE_NETFILTER=y \
@@ -65,7 +66,6 @@ ECM_MAKE_OPTS+=ECM_FRONT_END_NSS_ENABLE=y \
 		ECM_FRONT_END_SFE_ENABLE=n \
 		ECM_NON_PORTED_SUPPORT_ENABLE=y \
 		ECM_INTERFACE_BOND_ENABLE=y \
-		ECM_INTERFACE_RAWIP_ENABLE=y \
 		ECM_INTERFACE_VLAN_ENABLE=y \
 		ECM_CLASSIFIER_MARK_ENABLE=y \
 		ECM_CLASSIFIER_DSCP_ENABLE=y \
@@ -127,10 +127,8 @@ ifneq ($(CONFIG_PACKAGE_kmod-nat46),)
 ECM_MAKE_OPTS+=ECM_INTERFACE_MAP_T_ENABLE=y
 endif
 
-ifneq ($(CONFIG_PACKAGE_kmod-pppoe),)
-ECM_MAKE_OPTS+=ECM_INTERFACE_PPPOE_ENABLE=y \
-			   ECM_INTERFACE_PPTP_ENABLE=y \
-			   ECM_INTERFACE_PPP_ENABLE=y
+ifneq ($(CONFIG_PACKAGE_kmod-ipsec),)
+ECM_MAKE_OPTS+=ECM_INTERFACE_IPSEC_ENABLE=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-pppoe),)
