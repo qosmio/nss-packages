@@ -83,22 +83,17 @@
  		 */
 --- a/ipq806x/nss_gmac_ethtool.c
 +++ b/ipq806x/nss_gmac_ethtool.c
-@@ -143,10 +143,10 @@ static const struct nss_gmac_ethtool_sta
+@@ -143,7 +143,8 @@ static const struct nss_gmac_ethtool_sta
  /**
   * @brief Array of strings describing private flag names
   */
 -static const char *gmac_strings_priv_flags[] = {
--	"linkpoll",
--	"tstamp",
--	"ignore_rx_csum_err",
-+static const char *gmac_strings_priv_flags[][ETH_GSTRING_LEN] = {
-+	{"linkpoll"},
-+	{"tstamp"},
-+	{"ignore_rx_csum_err"},
- };
- 
- #define NSS_GMAC_STATS_LEN	ARRAY_SIZE(gmac_gstrings_stats)
-@@ -290,6 +290,7 @@ static int nss_gmac_set_pauseparam(struc
++
++static const char gmac_strings_priv_flags[][ETH_GSTRING_LEN] = {
+ 	"linkpoll",
+ 	"tstamp",
+ 	"ignore_rx_csum_err",
+@@ -290,6 +291,7 @@ static int nss_gmac_set_pauseparam(struc
  {
  	struct nss_gmac_dev *gmacdev = (struct nss_gmac_dev *)netdev_priv(netdev);
  	struct phy_device *phydev;
@@ -106,7 +101,7 @@
  
  	BUG_ON(gmacdev == NULL);
  	BUG_ON(gmacdev->netdev != netdev);
-@@ -325,14 +326,15 @@ static int nss_gmac_set_pauseparam(struc
+@@ -325,14 +327,15 @@ static int nss_gmac_set_pauseparam(struc
  	phydev = gmacdev->phydev;
  
  	/* Update flow control advertisment */
@@ -125,7 +120,7 @@
  
  	genphy_config_aneg(gmacdev->phydev);
  
-@@ -392,12 +394,13 @@ static uint32_t nss_gmac_get_msglevel(st
+@@ -392,12 +395,13 @@ static uint32_t nss_gmac_get_msglevel(st
   * @param[in] pointer to struct net_device.
   * @param[in] pointer to struct ethtool_cmd.
   */
@@ -141,7 +136,7 @@
  
  	BUG_ON(gmacdev == NULL);
  
-@@ -409,10 +412,10 @@ static int32_t nss_gmac_get_settings(str
+@@ -409,10 +413,10 @@ static int32_t nss_gmac_get_settings(str
  	 */
  	if (!test_bit(__NSS_GMAC_LINKPOLL, &gmacdev->flags)) {
  		if (gmacdev->forced_speed != SPEED_UNKNOWN) {
@@ -156,7 +151,7 @@
  			return 0;
  		} else {
  			/* Non-link polled interfaced must have a forced
-@@ -426,56 +429,59 @@ static int32_t nss_gmac_get_settings(str
+@@ -426,56 +430,59 @@ static int32_t nss_gmac_get_settings(str
  
  	/* update PHY status */
  	if (phydev->is_c45 == true) {
@@ -234,7 +229,7 @@
  
  	return 0;
  }
-@@ -485,8 +491,8 @@ static int32_t nss_gmac_get_settings(str
+@@ -485,8 +492,8 @@ static int32_t nss_gmac_get_settings(str
   * @param[in] pointer to struct net_device.
   * @param[in] pointer to struct ethtool_cmd.
   */
@@ -245,7 +240,7 @@
  {
  	struct nss_gmac_dev *gmacdev = (struct nss_gmac_dev *)netdev_priv(netdev);
  	struct phy_device *phydev = NULL;
-@@ -508,13 +514,13 @@ static int32_t nss_gmac_set_settings(str
+@@ -508,13 +515,13 @@ static int32_t nss_gmac_set_settings(str
  		return -EPERM;
  	}
  
@@ -261,7 +256,7 @@
  }
  
  /**
-@@ -592,8 +598,8 @@ struct ethtool_ops nss_gmac_ethtool_ops
+@@ -592,8 +599,8 @@ struct ethtool_ops nss_gmac_ethtool_ops
  	.set_pauseparam = &nss_gmac_set_pauseparam,
  	.nway_reset = &nss_gmac_nway_reset,
  	.get_wol = &nss_gmac_get_wol,
