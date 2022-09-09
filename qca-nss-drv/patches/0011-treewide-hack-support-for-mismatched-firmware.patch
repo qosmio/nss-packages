@@ -80,26 +80,3 @@
 +#define NSS_FW_VERSION_CODE NSS_FW_VERSION(NSS_FW_VERSION_MAJOR, NSS_FW_VERSION_MINOR)
 +
 +#endif /* __NSS_FW_VERSION_H */
---- a/Makefile
-+++ b/Makefile
-@@ -50,9 +50,6 @@ qca-nss-drv-objs := \
- 			nss_match_log.o \
- 			nss_match_stats.o \
- 			nss_meminfo.o \
--			nss_mirror.o \
--			nss_mirror_log.o \
--			nss_mirror_stats.o \
- 			nss_n2h.o \
- 			nss_n2h_stats.o \
- 			nss_n2h_strings.o \
-@@ -296,7 +293,9 @@ ifneq "$(NSS_DRV_IPSEC_ENABLE)" "n"
- ccflags-y += -DNSS_DRV_IPSEC_ENABLE
- qca-nss-drv-objs += \
- 		    nss_ipsec_log.o \
--		    nss_ipsec.o
-+		    nss_ipsec.o \
-+		    nss_ipsec_cmn_log.o \
-+		    nss_ipsec_cmn.o
- endif
- 
- ifneq "$(NSS_DRV_CRYPTO_ENABLE)" "n"
