@@ -1,0 +1,65 @@
+From 3ae9322a469d2c59449cdcb40a0e21b47a2fced9 Mon Sep 17 00:00:00 2001
+From: Ansuel Smith <ansuelsmth@gmail.com>
+Date: Sat, 14 May 2022 21:11:08 +0200
+Subject: [PATCH 11/12] ecm_interface: rework vlan API to internal function
+
+vlan_real_dev and update_accel_stats API can be reimplemented without
+referring to kernel changes. Everything is already exported by the
+kernel. Rework these 2 function to use standard function instead.
+
+Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
+---
+ ecm_interface.c | 27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
+
+--- a/ecm_interface.c
++++ b/ecm_interface.c
+@@ -304,8 +304,36 @@ EXPORT_SYMBOL(ecm_interface_get_and_hold
+  */
+ static inline struct net_device *ecm_interface_vlan_real_dev(struct net_device *vlan_dev)
+ {
++#ifdef ECM_USE_INTERNAL_FUNC
++	struct vlan_dev_priv *vlan = vlan_dev_priv(vlan_dev);
++	return vlan->real_dev;
++#else
+ 	return vlan_dev_next_dev(vlan_dev);
++#endif
++}
++
++#ifdef ECM_INTERFACE_VLAN_ENABLE
++#ifdef ECM_USE_INTERNAL_FUNC
++static void ecm_interface_vlan_dev_update_accel_stats(struct net_device *dev,
++						      struct rtnl_link_stats64 *nlstats)
++{
++	struct vlan_dev_priv *vlan = vlan_dev_priv(dev);
++	struct vlan_pcpu_stats *stats;
++
++	if (!is_vlan_dev(dev))
++		return;
++
++	stats = per_cpu_ptr(vlan->vlan_pcpu_stats, 0);
++
++	u64_stats_update_begin(&stats->syncp);
++	stats->rx_packets += nlstats->rx_packets;
++	stats->rx_bytes += nlstats->rx_bytes;
++	stats->tx_packets += nlstats->tx_packets;
++	stats->tx_bytes += nlstats->tx_bytes;
++	u64_stats_update_end(&stats->syncp);
+ }
++#endif
++#endif
+ 
+ /*
+  * ecm_interface_dev_find_by_local_addr_ipv4()
+@@ -6442,7 +6470,11 @@ static void ecm_interface_list_stats_upd
+ 				stats.rx_bytes = rx_bytes;
+ 				stats.tx_packets = tx_packets;
+ 				stats.tx_bytes = tx_bytes;
++#ifdef ECM_USE_INTERNAL_FUNC
++				ecm_interface_vlan_dev_update_accel_stats(dev, &stats);
++#else
+ 				__vlan_dev_update_accel_stats(dev, &stats);
++#endif
+ 				break;
+ #endif
+ #ifdef ECM_INTERFACE_OVS_BRIDGE_ENABLE

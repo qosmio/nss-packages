@@ -1,0 +1,22 @@
+--- a/ipq806x/include/nss_gmac_network_interface.h
++++ b/ipq806x/include/nss_gmac_network_interface.h
+@@ -41,7 +41,7 @@ int32_t nss_gmac_xmit_frames(struct sk_b
+ int32_t nss_gmac_close(struct net_device *netdev);
+ int32_t nss_gmac_open(struct net_device *netdev);
+ int32_t nss_gmac_change_mtu(struct net_device *netdev, int32_t newmtu);
+-void nss_gmac_tx_timeout(struct net_device *netdev);
++void nss_gmac_tx_timeout(struct net_device *netdev, unsigned int txqueue);
+ 
+ /* NSS driver interface APIs */
+ void nss_gmac_receive(struct net_device *netdev, struct sk_buff *skb,
+--- a/ipq806x/nss_gmac_tx_rx_offload.c
++++ b/ipq806x/nss_gmac_tx_rx_offload.c
+@@ -1044,7 +1044,7 @@ int nss_gmac_close(struct net_device *ne
+  * @param[in] pointer to net_device structure
+  * @return void.
+  */
+-void nss_gmac_tx_timeout(struct net_device *netdev)
++void nss_gmac_tx_timeout(struct net_device *netdev, unsigned int txqueue)
+ {
+ 	struct nss_gmac_dev *gmacdev = (struct nss_gmac_dev *)netdev_priv(netdev);
+ 	BUG_ON(gmacdev == NULL);
