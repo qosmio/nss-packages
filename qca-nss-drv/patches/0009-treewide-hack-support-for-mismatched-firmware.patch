@@ -1,0 +1,483 @@
+From 76c97f0042daa70160ac5304f3399205a0e45cb5 Mon Sep 17 00:00:00 2001
+From: Ansuel Smith <ansuelsmth@gmail.com>
+Date: Thu, 27 May 2021 03:52:47 +0200
+Subject: [PATCH] treewide: hack support for mismatched firmware
+
+Make new qsdk feature configurable to support old half compatible
+firmware.
+
+Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
+---
+ exports/nss_fw_version.h | 11 +++++++++++
+ exports/nss_ipv4.h       |  8 ++++++++
+ exports/nss_ipv6.h       |  7 +++++++
+ nss_ipv4_stats.c         |  2 ++
+ nss_ipv6_stats.c         |  2 ++
+ 5 files changed, 30 insertions(+)
+ create mode 100644 exports/nss_fw_version.h
+
+--- /dev/null
++++ b/exports/nss_fw_version.h
+@@ -0,0 +1,11 @@
++#ifndef __NSS_FW_VERSION_H
++#define __NSS_FW_VERSION_H
++
++#define NSS_FW_VERSION_MAJOR 11
++#define NSS_FW_VERSION_MINOR 4
++
++#define NSS_FW_VERSION(a,b) (((a) << 8) + (b))
++
++#define NSS_FW_VERSION_CODE NSS_FW_VERSION(NSS_FW_VERSION_MAJOR, NSS_FW_VERSION_MINOR)
++
++#endif /* __NSS_FW_VERSION_H */
+--- a/exports/nss_ipv4.h
++++ b/exports/nss_ipv4.h
+@@ -26,6 +26,8 @@
+ #include "nss_stats_public.h"
+ #endif
+ 
++#include "nss_fw_version.h"
++
+ /**
+  * @addtogroup nss_ipv4_subsystem
+  * @{
+@@ -216,12 +218,14 @@ enum nss_ipv4_stats_types {
+ 		/**< Number of IPv4 multicast connection destroy requests that missed the cache. */
+ 	NSS_IPV4_STATS_MC_CONNECTION_FLUSHES,
+ 		/**< Number of IPv4 multicast connection flushes. */
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ 	NSS_IPV4_STATS_CONNECTION_CREATE_INVALID_MIRROR_IFNUM,
+ 		/**< Number of IPv4 mirror connection requests with an invalid interface number. */
+ 	NSS_IPV4_STATS_CONNECTION_CREATE_INVALID_MIRROR_IFTYPE,
+ 		/**< Number of IPv4 mirror connection requests with an invalid interface type. */
+ 	NSS_IPV4_STATS_MIRROR_FAILURES,
+ 		/**< Number of IPv4 mirror failures. */
++#endif
+ 	NSS_IPV4_STATS_MAX,
+ 		/**< Maximum message type. */
+ };
+@@ -566,8 +570,10 @@ enum nss_ipv4_error_response_types {
+ 	NSS_IPV4_CR_HASH_BITMAP_INVALID,
+ 	NSS_IPV4_DR_HW_DECEL_FAIL_ERROR,
+ 	NSS_IPV4_CR_RETURN_EXIST_ERROR,
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ 	NSS_IPV4_CR_INVALID_IDENTIFIER,
+ 	NSS_IPV4_CR_EMESH_SP_CONFIG_INVALID,
++#endif
+ 	NSS_IPV4_LAST
+ };
+ 
+@@ -609,8 +615,10 @@ struct nss_ipv4_rule_create_msg {
+ 			/**< Ingress shaping related accleration parameters. */
+ 	struct nss_ipv4_identifier_rule identifier;
+ 			/**< Rule for adding identifier. */
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	struct nss_ipv4_mirror_rule mirror_rule;
+ 			/**< Mirror rule parameter. */
++#endif
+ };
+ 
+ /**
+@@ -899,7 +907,9 @@ enum nss_ipv4_exception_events {
+ 	NSS_IPV4_EXCEPTION_EVENT_PPPOE_NO_SESSION,
+ 	NSS_IPV4_EXCEPTION_EVENT_ICMP_IPV4_GRE_HEADER_INCOMPLETE,
+ 	NSS_IPV4_EXCEPTION_EVENT_ICMP_IPV4_ESP_HEADER_INCOMPLETE,
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ 	NSS_IPV4_EXCEPTION_EVENT_EMESH_PRIO_MISMATCH,
++#endif
+ 	NSS_IPV4_EXCEPTION_EVENT_MAX
+ };
+ 
+@@ -955,6 +965,7 @@ struct nss_ipv4_node_sync {
+ 	uint32_t ipv4_mc_connection_flushes;
+ 			/**< Number of multicast connection flushes. */
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	uint32_t ipv4_connection_create_invalid_mirror_ifnum;
+ 			/**< Number of create request failed with an invalid mirror interface number. */
+ 
+@@ -963,6 +974,7 @@ struct nss_ipv4_node_sync {
+ 
+ 	uint32_t ipv4_mirror_failures;
+ 			/**< Mirror packet failed. */
++#endif
+ 
+ 	uint32_t exception_events[NSS_IPV4_EXCEPTION_EVENT_MAX];
+ 			/**< Number of exception events. */
+--- a/exports/nss_ipv6.h
++++ b/exports/nss_ipv6.h
+@@ -195,13 +195,15 @@ enum nss_ipv6_stats_types {
+ 					/**< Number of IPv6 multicast connection destroy requests that missed the cache. */
+ 	NSS_IPV6_STATS_MC_CONNECTION_FLUSHES,
+ 					/**< Number of IPv6 multicast connection flushes. */
++
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	NSS_IPV6_STATS_CONNECTION_CREATE_INVALID_MIRROR_IFNUM,
+ 		/**< Number of IPv6 mirror connection requests with an invalid interface number. */
+ 	NSS_IPV6_STATS_CONNECTION_CREATE_INVALID_MIRROR_IFTYPE,
+ 		/**< Number of IPv6 mirror connection requests with an invalid interface type. */
+-
+ 	NSS_IPV6_STATS_MIRROR_FAILURES,
+ 		/**< Number of IPv6 mirror failures. */
++#endif
+ 
+ 	NSS_IPV6_STATS_MAX,
+ 					/**< Maximum message type. */
+@@ -429,7 +431,9 @@ enum nss_ipv6_exception_events {
+ 	NSS_IPV6_EXCEPTION_EVENT_PPPOE_NO_SESSION,
+ 	NSS_IPV6_EXCEPTION_EVENT_ICMP_IPV6_GRE_HEADER_INCOMPLETE,
+ 	NSS_IPV6_EXCEPTION_EVENT_ICMP_IPV6_ESP_HEADER_INCOMPLETE,
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ 	NSS_IPV6_EXCEPTION_EVENT_EMESH_PRIO_MISMATCH,
++#endif
+ 	NSS_IPV6_EXCEPTION_EVENT_MAX
+ };
+ 
+@@ -658,8 +662,10 @@ enum nss_ipv6_error_response_types {
+ 		/**< Rule creation failed because a 5-tuple return already exists. */
+ 	NSS_IPV6_CR_INVALID_IDENTIFIER,
+ 		/**< Invalid identifier value. */
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ 	NSS_IPV6_CR_EMESH_SP_CONFIG_INVALID,
+ 		/**< Rule creation failed because Qos tag was not set for a Emesh SP rule. */
++#endif
+ 	NSS_IPV6_LAST
+ 		/**< Maximum number of error responses. */
+ };
+@@ -702,8 +708,10 @@ struct nss_ipv6_rule_create_msg {
+ 			/**< Ingress shaping related accleration parameters. */
+ 	struct nss_ipv6_identifier_rule identifier;
+ 			/**< Rule for adding identifier. */
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	struct nss_ipv6_mirror_rule mirror_rule;
+ 			/**< Mirror rule parameter. */
++#endif
+ };
+ 
+ /**
+@@ -950,6 +958,7 @@ struct nss_ipv6_node_sync {
+ 	uint32_t ipv6_mc_connection_flushes;
+ 			/**< Number of multicast connection flushes. */
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	uint32_t ipv6_connection_create_invalid_mirror_ifnum;
+ 			/**< Number of create request failed with an invalid mirror interface number. */
+ 
+@@ -958,6 +967,7 @@ struct nss_ipv6_node_sync {
+ 
+ 	uint32_t ipv6_mirror_failures;
+ 			/**< Mirror packet failed. */
++#endif
+ 
+ 	uint32_t exception_events[NSS_IPV6_EXCEPTION_EVENT_MAX];
+ 			/**< Number of exception events. */
+--- a/nss_ipv4_stats.c
++++ b/nss_ipv4_stats.c
+@@ -177,9 +177,11 @@ void nss_ipv4_stats_node_sync(struct nss
+ 	nss_ipv4_stats[NSS_IPV4_STATS_MC_CONNECTION_DESTROY_REQUESTS] += nins->ipv4_mc_connection_destroy_requests;
+ 	nss_ipv4_stats[NSS_IPV4_STATS_MC_CONNECTION_DESTROY_MISSES] += nins->ipv4_mc_connection_destroy_misses;
+ 	nss_ipv4_stats[NSS_IPV4_STATS_MC_CONNECTION_FLUSHES] += nins->ipv4_mc_connection_flushes;
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	nss_ipv4_stats[NSS_IPV4_STATS_CONNECTION_CREATE_INVALID_MIRROR_IFNUM] += nins->ipv4_connection_create_invalid_mirror_ifnum;
+ 	nss_ipv4_stats[NSS_IPV4_STATS_CONNECTION_CREATE_INVALID_MIRROR_IFTYPE] += nins->ipv4_connection_create_invalid_mirror_iftype;
+ 	nss_ipv4_stats[NSS_IPV4_STATS_MIRROR_FAILURES] += nins->ipv4_mirror_failures;
++#endif
+ 
+ 	for (i = 0; i < NSS_IPV4_EXCEPTION_EVENT_MAX; i++) {
+ 		nss_ipv4_exception_stats[i] += nins->exception_events[i];
+--- a/nss_ipv6_stats.c
++++ b/nss_ipv6_stats.c
+@@ -180,9 +180,11 @@ void nss_ipv6_stats_node_sync(struct nss
+ 	nss_ipv6_stats[NSS_IPV6_STATS_MC_CONNECTION_DESTROY_REQUESTS] += nins->ipv6_mc_connection_destroy_requests;
+ 	nss_ipv6_stats[NSS_IPV6_STATS_MC_CONNECTION_DESTROY_MISSES] += nins->ipv6_mc_connection_destroy_misses;
+ 	nss_ipv6_stats[NSS_IPV6_STATS_MC_CONNECTION_FLUSHES] += nins->ipv6_mc_connection_flushes;
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	nss_ipv6_stats[NSS_IPV6_STATS_CONNECTION_CREATE_INVALID_MIRROR_IFNUM] += nins->ipv6_connection_create_invalid_mirror_ifnum;
+ 	nss_ipv6_stats[NSS_IPV6_STATS_CONNECTION_CREATE_INVALID_MIRROR_IFTYPE] += nins->ipv6_connection_create_invalid_mirror_iftype;
+ 	nss_ipv6_stats[NSS_IPV6_STATS_MIRROR_FAILURES] += nins->ipv6_mirror_failures;
++#endif
+ 
+ 	for (i = 0; i < NSS_IPV6_EXCEPTION_EVENT_MAX; i++) {
+ 		nss_ipv6_exception_stats[i] += nins->exception_events[i];
+--- a/exports/nss_dynamic_interface.h
++++ b/exports/nss_dynamic_interface.h
+@@ -22,6 +22,8 @@
+ #ifndef __NSS_DYNAMIC_INTERFACE_H
+ #define __NSS_DYNAMIC_INTERFACE_H
+ 
++#include "nss_fw_version.h"
++
+ /**
+  * @addtogroup nss_dynamic_interface_subsystem
+  * @{
+@@ -40,10 +42,18 @@
+ enum nss_dynamic_interface_type {
+ 	NSS_DYNAMIC_INTERFACE_TYPE_NONE,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_GRE_REDIR,
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ 	NSS_DYNAMIC_INTERFACE_TYPE_RESERVED_5,
++#else
++	NSS_DYNAMIC_INTERFACE_TYPE_CAPWAP,
++#endif
+ 	NSS_DYNAMIC_INTERFACE_TYPE_TUNIPIP6_INNER,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_TUNIPIP6_OUTER,
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ 	NSS_DYNAMIC_INTERFACE_TYPE_RESERVED,
++#else
++	NSS_DYNAMIC_INTERFACE_TYPE_WIFI,
++#endif
+ 	NSS_DYNAMIC_INTERFACE_TYPE_VAP,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_RESERVED_0,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_PPPOE,
+@@ -103,6 +113,7 @@ enum nss_dynamic_interface_type {
+ 	NSS_DYNAMIC_INTERFACE_TYPE_WIFILI_EXTERNAL1,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_TLS_INNER,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_TLS_OUTER,
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	NSS_DYNAMIC_INTERFACE_TYPE_MIRROR,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_WIFI_EXT_VDEV_WDS,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_CAPWAP_HOST_INNER,
+@@ -110,6 +121,7 @@ enum nss_dynamic_interface_type {
+ 	NSS_DYNAMIC_INTERFACE_TYPE_WIFI_EXT_VDEV_VLAN,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_WIFI_MESH_INNER,
+ 	NSS_DYNAMIC_INTERFACE_TYPE_WIFI_MESH_OUTER,
++#endif
+ 	NSS_DYNAMIC_INTERFACE_TYPE_MAX
+ };
+ 
+--- a/exports/nss_if.h
++++ b/exports/nss_if.h
+@@ -53,8 +53,10 @@ enum nss_if_message_types {
+ 	NSS_IF_SET_IGS_NODE,
+ 	NSS_IF_CLEAR_IGS_NODE,
+ 	NSS_IF_RESET_NEXTHOP,
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ 	NSS_IF_PPE_PORT_CREATE,
+ 	NSS_IF_PPE_PORT_DESTROY,
++#endif
+ 	NSS_IF_MAX_MSG_TYPES = 9999,
+ };
+ 
+@@ -199,6 +201,7 @@ struct nss_if_igs_config {
+ 	int32_t igs_num;	/**< Ingress shaper interface number. */
+ };
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ /**
+  * nss_if_ppe_port_create
+  *	Message to create PPE port.
+@@ -206,6 +209,7 @@ struct nss_if_igs_config {
+ struct nss_if_ppe_port_create {
+ 	int32_t ppe_port_num;	/**< PPE port number returned by NSS. */
+ };
++#endif
+ 
+ /**
+  * nss_if_msgs
+@@ -240,8 +244,10 @@ union nss_if_msgs {
+ 			/**< Set nexthop of interface. */
+ 	struct nss_if_igs_config config_igs;
+ 			/**< Configure an ingress shaper interface. */
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,2))
+ 	struct nss_if_ppe_port_create ppe_port_create;
+ 			/**< Create a PPE port. */
++#endif
+ };
+ 
+ /**
+--- a/nss_ipv4_strings.c
++++ b/nss_ipv4_strings.c
+@@ -108,7 +108,9 @@ struct nss_stats_info nss_ipv4_strings_e
+ 	{"pppoe_no_session"			, NSS_STATS_TYPE_DROP},
+ 	{"icmp_ipv4_gre_hdr_incomplete"		, NSS_STATS_TYPE_EXCEPTION},
+ 	{"icmp_ipv4_esp_hdr_incomplete"		, NSS_STATS_TYPE_EXCEPTION},
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	{"emesh_prio_mismatch"			, NSS_STATS_TYPE_EXCEPTION},
++#endif
+ };
+ 
+ /*
+@@ -137,9 +139,11 @@ struct nss_stats_info nss_ipv4_strings_s
+ 	{"mc_destroy_requests"		, NSS_STATS_TYPE_SPECIAL},
+ 	{"mc_destroy_misses"		, NSS_STATS_TYPE_SPECIAL},
+ 	{"mc_flushes"			, NSS_STATS_TYPE_SPECIAL},
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	{"mirror_invalid_ifnum_conn_create_req"		, NSS_STATS_TYPE_SPECIAL},
+ 	{"mirror_invalid_iftype_conn_create_req"	, NSS_STATS_TYPE_SPECIAL},
+ 	{"mirror_failures"		, NSS_STATS_TYPE_SPECIAL},
++#endif
+ };
+ 
+ /*
+--- a/nss_ipv6_strings.c
++++ b/nss_ipv6_strings.c
+@@ -85,7 +85,9 @@ struct nss_stats_info nss_ipv6_strings_e
+ 	{"pppoe_no_session"				, NSS_STATS_TYPE_DROP},
+ 	{"icmp_gre_header_incomplete"			, NSS_STATS_TYPE_EXCEPTION},
+ 	{"icmp_esp_header_incomplete"			, NSS_STATS_TYPE_EXCEPTION},
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	{"emesh_prio_mismatch"				, NSS_STATS_TYPE_EXCEPTION},
++#endif
+ };
+ 
+ /*
+@@ -115,9 +117,11 @@ struct nss_stats_info nss_ipv6_strings_s
+ 	{"mc_destroy_requests"		,NSS_STATS_TYPE_SPECIAL},
+ 	{"mc_destroy_misses"		,NSS_STATS_TYPE_SPECIAL},
+ 	{"mc_flushes"			,NSS_STATS_TYPE_SPECIAL},
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	{"mirror_invalid_ifnum_conn_create_req"		,NSS_STATS_TYPE_SPECIAL},
+ 	{"mirror_invalid_iftype_conn_create_req"	,NSS_STATS_TYPE_SPECIAL},
+ 	{"mirror_failures"		,NSS_STATS_TYPE_SPECIAL},
++#endif
+ };
+ 
+ /*
+--- a/nss_ipv4_log.c
++++ b/nss_ipv4_log.c
+@@ -89,9 +89,11 @@ static void nss_ipv4_log_rule_create_msg
+ 		"return_qos_tag: %x (%u)\n"
+ 		"flow_dscp: %x\n"
+ 		"return_dscp: %x\n"
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11, 3))
+ 		"flow_mirror_ifnum: %u\n"
+-		"return_mirror_ifnum: %u\n",
+-		nim,
++		"return_mirror_ifnum: %u\n"
++#endif
++		,nim,
+ 		nircm->tuple.protocol,
+ 		nircm->conn_rule.flow_mtu,
+ 		nircm->conn_rule.return_mtu,
+@@ -116,9 +118,12 @@ static void nss_ipv4_log_rule_create_msg
+ 		nircm->qos_rule.flow_qos_tag, nircm->qos_rule.flow_qos_tag,
+ 		nircm->qos_rule.return_qos_tag, nircm->qos_rule.return_qos_tag,
+ 		nircm->dscp_rule.flow_dscp,
+-		nircm->dscp_rule.return_dscp,
+-		nircm->mirror_rule.flow_ifnum,
+-		nircm->mirror_rule.return_ifnum);
++		nircm->dscp_rule.return_dscp
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11, 3))
++		,nircm->mirror_rule.flow_ifnum,
++		nircm->mirror_rule.return_ifnum
++#endif
++	);
+ }
+ 
+ /*
+--- a/nss_ipv6_log.c
++++ b/nss_ipv6_log.c
+@@ -104,9 +104,11 @@ static void nss_ipv6_log_rule_create_msg
+ 		"return_qos_tag: %x (%u)\n"
+ 		"flow_dscp: %x\n"
+ 		"return_dscp: %x\n"
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11, 3))
+ 		"flow_mirror_ifnum: %u\n"
+-		"return_mirror_ifnum: %u\n",
+-		nim,
++		"return_mirror_ifnum: %u\n"
++#endif
++		,nim,
+ 		nircm->tuple.protocol,
+ 		nircm->conn_rule.flow_mtu,
+ 		nircm->conn_rule.return_mtu,
+@@ -129,9 +131,12 @@ static void nss_ipv6_log_rule_create_msg
+ 		nircm->qos_rule.flow_qos_tag, nircm->qos_rule.flow_qos_tag,
+ 		nircm->qos_rule.return_qos_tag, nircm->qos_rule.return_qos_tag,
+ 		nircm->dscp_rule.flow_dscp,
+-		nircm->dscp_rule.return_dscp,
+-		nircm->mirror_rule.flow_ifnum,
+-		nircm->mirror_rule.return_ifnum);
++		nircm->dscp_rule.return_dscp
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11, 3))
++		,nircm->mirror_rule.flow_ifnum,
++		nircm->mirror_rule.return_ifnum
++#endif
++	);
+ }
+ 
+ /*
+--- a/nss_hal/nss_hal.c
++++ b/nss_hal/nss_hal.c
+@@ -383,6 +383,7 @@ int nss_hal_probe(struct platform_device
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_GENERIC_REDIR_H2N] = nss_dev->id;
+ 	}
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ #ifdef NSS_DRV_CAPWAP_ENABLE
+ 	if (npd->capwap_enabled == NSS_FEATURE_ENABLED) {
+ 		nss_top->capwap_handler_id = nss_dev->id;
+@@ -390,7 +391,7 @@ int nss_hal_probe(struct platform_device
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_CAPWAP_HOST_INNER] = nss_dev->id;
+ 	}
+ #endif
+-
++#endif
+ 	if (npd->ipv4_reasm_enabled == NSS_FEATURE_ENABLED) {
+ 		nss_top->ipv4_reasm_handler_id = nss_dev->id;
+ 		nss_ipv4_reasm_register_handler();
+@@ -571,11 +572,12 @@ int nss_hal_probe(struct platform_device
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_WIFILI_INTERNAL] = nss_dev->id;
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_WIFILI_EXTERNAL0] = nss_dev->id;
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_WIFILI_EXTERNAL1] = nss_dev->id;
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_WIFI_EXT_VDEV_WDS] = nss_dev->id;
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_WIFI_EXT_VDEV_VLAN] = nss_dev->id;
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_WIFI_MESH_INNER] = nss_dev->id;
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_WIFI_MESH_OUTER] = nss_dev->id;
+-
++#endif
+ 		/*
+ 		 * Register wifi mac database when offload enabled
+ 		 */
+--- a/nss_wifi_ext_vdev.c
++++ b/nss_wifi_ext_vdev.c
+@@ -42,9 +42,11 @@ static bool nss_wifi_ext_vdev_verify_if_
+ 	uint32_t type = nss_dynamic_interface_get_type(nss_wifi_ext_vdev_get_ctx(), if_num);
+ 
+ 	switch (type) {
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	case NSS_DYNAMIC_INTERFACE_TYPE_WIFI_EXT_VDEV_WDS:
+ 	case NSS_DYNAMIC_INTERFACE_TYPE_WIFI_EXT_VDEV_VLAN:
+ 		return true;
++#endif
+ 	default:
+ 		return false;
+ 	}
+--- a/nss_wifi_mesh.c
++++ b/nss_wifi_mesh.c
+@@ -29,10 +29,14 @@
+  */
+ bool nss_wifi_mesh_verify_if_num(nss_if_num_t if_num)
+ {
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	enum nss_dynamic_interface_type if_type = nss_dynamic_interface_get_type(nss_wifi_mesh_get_context(), if_num);
+ 
+ 	return ((if_type == NSS_DYNAMIC_INTERFACE_TYPE_WIFI_MESH_INNER) ||
+ 				(if_type == NSS_DYNAMIC_INTERFACE_TYPE_WIFI_MESH_OUTER));
++#else
++	return false;
++#endif
+ }
+ EXPORT_SYMBOL(nss_wifi_mesh_verify_if_num);
+ 
+@@ -178,7 +182,9 @@ void nss_unregister_wifi_mesh_if(nss_if_
+ 	nss_core_unregister_subsys_dp(nss_ctx, if_num);
+ 	nss_core_unregister_msg_handler(nss_ctx, if_num);
+ 	nss_core_unregister_handler(nss_ctx, if_num);
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	nss_wifi_mesh_stats_handle_free(if_num);
++#endif
+ }
+ EXPORT_SYMBOL(nss_unregister_wifi_mesh_if);
+ 
+@@ -230,7 +236,9 @@ void nss_wifi_mesh_init(void)
+ 		nss_warning("Unable to create dentry for Wi-Fi mesh strings");
+ 	}
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,3))
+ 	if (!nss_wifi_mesh_stats_dentry_create()) {
+ 		nss_warning("Unable to create dentry for Wi-Fi mesh strings");
+ 	}
++#endif
+ }

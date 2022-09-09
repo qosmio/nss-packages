@@ -1,0 +1,153 @@
+From 15530431f3ce3273b3cfc2da356d7fb71ed48020 Mon Sep 17 00:00:00 2001
+From: Ansuel Smith <ansuelsmth@gmail.com>
+Date: Sun, 8 May 2022 16:16:34 +0200
+Subject: [PATCH 08/12] frontends: drop use of static be_liberal and
+ no_window_check
+
+Implementation changed, check these values indirectly instead of relying
+on an extern EXPORT_SYMBOL.
+
+Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
+---
+ frontends/nss/ecm_nss_ported_ipv4.c | 14 ++++----------
+ frontends/nss/ecm_nss_ported_ipv6.c | 14 ++++----------
+ frontends/sfe/ecm_sfe_ported_ipv4.c |  6 ++++--
+ frontends/sfe/ecm_sfe_ported_ipv6.c |  6 ++++--
+ 4 files changed, 16 insertions(+), 24 deletions(-)
+
+--- a/frontends/nss/ecm_nss_ported_ipv4.c
++++ b/frontends/nss/ecm_nss_ported_ipv4.c
+@@ -102,11 +102,11 @@ static int ecm_nss_ported_ipv4_accelerat
+ /*
+  * Expose what should be a static flag in the TCP connection tracker.
+  */
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 12, 0))
+ #ifdef ECM_OPENWRT_SUPPORT
+ extern int nf_ct_tcp_no_window_check;
+ #endif
+-extern int nf_ct_tcp_be_liberal;
+-
++#endif
+ /*
+  * ecm_nss_ported_ipv4_connection_callback()
+  *	Callback for handling create ack/nack calls.
+@@ -343,6 +343,8 @@ static void ecm_nss_ported_ipv4_connecti
+ 	uint8_t dest_mac_xlate[ETH_ALEN];
+ 	ecm_db_direction_t ecm_dir;
+ 	ecm_front_end_acceleration_mode_t result_mode;
++	struct net *net = nf_ct_net(ct);
++	struct nf_tcp_net *tn = nf_tcp_pernet(net);
+ 
+ 	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
+ 
+@@ -1207,9 +1209,13 @@ static void ecm_nss_ported_ipv4_connecti
+ 			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
+ 			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
+ #ifdef ECM_OPENWRT_SUPPORT
+-			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0))
++			if (tn->tcp_be_liberal || tn->tcp_no_window_check
++#else
++			if (tn->tcp_be_liberal || nf_ct_tcp_no_window_check
++#endif
+ #else
+-			if (nf_ct_tcp_be_liberal
++			if (tn->tcp_be_liberal
+ #endif
+ 					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
+ 					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {
+--- a/frontends/nss/ecm_nss_ported_ipv6.c
++++ b/frontends/nss/ecm_nss_ported_ipv6.c
+@@ -103,11 +103,11 @@ static int ecm_nss_ported_ipv6_accelerat
+ /*
+  * Expose what should be a static flag in the TCP connection tracker.
+  */
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 12, 0))
+ #ifdef ECM_OPENWRT_SUPPORT
+ extern int nf_ct_tcp_no_window_check;
+ #endif
+-extern int nf_ct_tcp_be_liberal;
+-
++#endif
+ /*
+  * ecm_nss_ported_ipv6_connection_callback()
+  *	Callback for handling create ack/nack calls.
+@@ -348,6 +348,8 @@ static void ecm_nss_ported_ipv6_connecti
+ 	ip_addr_t src_ip;
+ 	ip_addr_t dest_ip;
+ 	ecm_front_end_acceleration_mode_t result_mode;
++	struct net *net = nf_ct_net(ct);
++	struct nf_tcp_net *tn = nf_tcp_pernet(net);
+ 
+ 	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
+ 
+@@ -1134,9 +1136,13 @@ static void ecm_nss_ported_ipv6_connecti
+ 			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
+ 			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
+ #ifdef ECM_OPENWRT_SUPPORT
+-			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0))
++			if (tn->tcp_be_liberal || tn->tcp_no_window_check
++#else
++			if (tn->tcp_be_liberal || nf_ct_tcp_no_window_check
++#endif
+ #else
+-			if (nf_ct_tcp_be_liberal
++			if (tn->tcp_be_liberal
+ #endif
+ 					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
+ 					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {
+--- a/frontends/sfe/ecm_sfe_ported_ipv4.c
++++ b/frontends/sfe/ecm_sfe_ported_ipv4.c
+@@ -365,6 +365,8 @@ static void ecm_sfe_ported_ipv4_connecti
+ 	uint8_t dest_mac_xlate[ETH_ALEN];
+ 	ecm_db_direction_t ecm_dir;
+ 	ecm_front_end_acceleration_mode_t result_mode;
++	struct net *net = nf_ct_net(ct);
++	struct nf_tcp_net *tn = nf_tcp_pernet(net);
+ 	uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
+ 	ecm_sfe_common_l2_accel_check_callback_t l2_accel_check;
+ 
+@@ -1291,9 +1293,13 @@ static void ecm_sfe_ported_ipv4_connecti
+ 			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
+ 			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
+ #ifdef ECM_OPENWRT_SUPPORT
+-			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0))
++			if (tn->tcp_be_liberal || tn->tcp_no_window_check
+ #else
+-			if (nf_ct_tcp_be_liberal
++			if (tn->tcp_be_liberal || nf_ct_tcp_no_window_check
++#endif
++#else
++			if (tn->tcp_be_liberal
+ #endif
+ 					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
+ 					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {
+--- a/frontends/sfe/ecm_sfe_ported_ipv6.c
++++ b/frontends/sfe/ecm_sfe_ported_ipv6.c
+@@ -369,6 +369,8 @@ static void ecm_sfe_ported_ipv6_connecti
+ 	ip_addr_t src_ip;
+ 	ip_addr_t dest_ip;
+ 	ecm_front_end_acceleration_mode_t result_mode;
++	struct net *net = nf_ct_net(ct);
++	struct nf_tcp_net *tn = nf_tcp_pernet(net);
+ 	uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
+ 	ecm_sfe_common_l2_accel_check_callback_t l2_accel_check;
+ 
+@@ -1252,9 +1254,13 @@ static void ecm_sfe_ported_ipv6_connecti
+ 			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
+ 			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
+ #ifdef ECM_OPENWRT_SUPPORT
+-			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0))
++			if (tn->tcp_be_liberal || tn->tcp_no_window_check
+ #else
+-			if (nf_ct_tcp_be_liberal
++			if (tn->tcp_be_liberal || nf_ct_tcp_no_window_check
++#endif
++#else
++			if (tn->tcp_be_liberal
+ #endif
+ 					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
+ 					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {

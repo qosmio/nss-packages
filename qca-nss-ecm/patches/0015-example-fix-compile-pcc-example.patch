@@ -1,0 +1,86 @@
+--- a/frontends/nss/ecm_nss_common.h
++++ b/frontends/nss/ecm_nss_common.h
+@@ -365,6 +365,7 @@ static inline bool ecm_nss_common_is_xfr
+ 	return false;
+ }
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,1))
+ #ifdef ECM_CLASSIFIER_PCC_ENABLE
+ /*
+  * ecm_nss_common_fill_mirror_info()
+@@ -418,6 +419,7 @@ static inline bool ecm_nss_common_fill_m
+ 	return true;
+ }
+ #endif
++#endif
+ 
+ bool ecm_nss_ipv6_is_conn_limit_reached(void);
+ bool ecm_nss_ipv4_is_conn_limit_reached(void);
+--- a/frontends/nss/ecm_nss_ported_ipv4.c
++++ b/frontends/nss/ecm_nss_ported_ipv4.c
+@@ -1039,6 +1039,7 @@ static void ecm_nss_ported_ipv4_connecti
+ 	}
+ #endif
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,1))
+ #ifdef ECM_CLASSIFIER_PCC_ENABLE
+ 	/*
+ 	 * Set up the interfaces for mirroring.
+@@ -1063,6 +1064,7 @@ static void ecm_nss_ported_ipv4_connecti
+ 		nircm->valid_flags |= NSS_IPV4_RULE_CREATE_MIRROR_VALID;
+ 	}
+ #endif
++#endif
+ 
+ 	if (ecm_nss_ipv4_vlan_passthrough_enable && !ecm_db_connection_is_routed_get(feci->ci) &&
+ 	   (nircm->vlan_primary_rule.ingress_vlan_tag == ECM_FRONT_END_VLAN_ID_NOT_CONFIGURED) &&
+@@ -1895,14 +1897,8 @@ struct ecm_front_end_connection_instance
+  */
+ bool ecm_nss_ported_ipv4_debugfs_init(struct dentry *dentry)
+ {
+-	struct dentry *udp_dentry;
+-
+-	udp_dentry = debugfs_create_u32("udp_accelerated_count", S_IRUGO, dentry,
++	debugfs_create_u32("udp_accelerated_count", S_IRUGO, dentry,
+ 						&ecm_nss_ported_ipv4_accelerated_count[ECM_FRONT_END_PORTED_PROTO_UDP]);
+-	if (!udp_dentry) {
+-		DEBUG_ERROR("Failed to create ecm nss ipv4 udp_accelerated_count file in debugfs\n");
+-		return false;
+-	}
+ 
+ 	debugfs_create_u32("tcp_accelerated_count", S_IRUGO, dentry,
+ 					&ecm_nss_ported_ipv4_accelerated_count[ECM_FRONT_END_PORTED_PROTO_TCP]);
+--- a/frontends/nss/ecm_nss_ported_ipv6.c
++++ b/frontends/nss/ecm_nss_ported_ipv6.c
+@@ -1009,6 +1009,7 @@ static void ecm_nss_ported_ipv6_connecti
+ 	}
+ #endif
+ 
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,1))
+ #ifdef ECM_CLASSIFIER_PCC_ENABLE
+ 	/*
+ 	 * Set up the interfaces for mirroring.
+@@ -1033,6 +1034,7 @@ static void ecm_nss_ported_ipv6_connecti
+ 		nircm->valid_flags |= NSS_IPV6_RULE_CREATE_MIRROR_VALID;
+ 	}
+ #endif
++#endif
+ 
+ 	if (ecm_nss_ipv6_vlan_passthrough_enable && !ecm_db_connection_is_routed_get(feci->ci) &&
+ 	   (nircm->vlan_primary_rule.ingress_vlan_tag == ECM_FRONT_END_VLAN_ID_NOT_CONFIGURED) &&
+@@ -1809,14 +1811,8 @@ struct ecm_front_end_connection_instance
+  */
+ bool ecm_nss_ported_ipv6_debugfs_init(struct dentry *dentry)
+ {
+-	struct dentry *udp_dentry;
+-
+-	udp_dentry = debugfs_create_u32("udp_accelerated_count", S_IRUGO, dentry,
++	debugfs_create_u32("udp_accelerated_count", S_IRUGO, dentry,
+ 						&ecm_nss_ported_ipv6_accelerated_count[ECM_FRONT_END_PORTED_PROTO_UDP]);
+-	if (!udp_dentry) {
+-		DEBUG_ERROR("Failed to create ecm nss ipv6 udp_accelerated_count file in debugfs\n");
+-		return false;
+-	}
+ 
+ 	debugfs_create_u32("tcp_accelerated_count", S_IRUGO, dentry,
+ 					&ecm_nss_ported_ipv6_accelerated_count[ECM_FRONT_END_PORTED_PROTO_TCP]);

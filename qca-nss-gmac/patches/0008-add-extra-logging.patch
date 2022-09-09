@@ -1,0 +1,69 @@
+--- a/ipq806x/nss_gmac_tx_rx_offload.c
++++ b/ipq806x/nss_gmac_tx_rx_offload.c
+@@ -1069,25 +1069,44 @@ void nss_gmac_tx_timeout(struct net_devi
+ int32_t nss_gmac_change_mtu(struct net_device *netdev, int32_t newmtu)
+ {
+ 	struct nss_gmac_dev *gmacdev = (struct nss_gmac_dev *)netdev_priv(netdev);
+-	if (!gmacdev)
++	if (!gmacdev) {
++		netdev_info(netdev, "%s: Not a GMAC netdevice (%s)\n", __func__, netdev_name(netdev));
+ 		return -EINVAL;
++    }
+ 
+-	if (newmtu > NSS_GMAC_JUMBO_MTU)
++	if (newmtu > NSS_GMAC_JUMBO_MTU) {
++		netdev_info(netdev, "%s: New MTU of %d, for device %s is larger than %d (NSS_GMAC_JUMBO_MTU)\n",
++              __func__, newmtu, netdev_name(netdev), NSS_GMAC_JUMBO_MTU);
+ 		return -EINVAL;
++    }
+ 
+ 	if (gmacdev->data_plane_ops->change_mtu(gmacdev->data_plane_ctx, newmtu)
+-							 != NSS_GMAC_SUCCESS)
++							 != NSS_GMAC_SUCCESS) {
++		netdev_info(netdev, "%s: Unable to change MTU for (%s)\n", __func__, netdev_name(netdev));
+ 		return -EAGAIN;
++    }
+ 
+-	if (newmtu <= NSS_GMAC_NORMAL_FRAME_MTU) {
+-		nss_gmac_jumbo_frame_disable(gmacdev);
+-		nss_gmac_twokpe_frame_disable(gmacdev);
+-	} else if (newmtu <= NSS_GMAC_MINI_JUMBO_FRAME_MTU) {
+-		nss_gmac_jumbo_frame_disable(gmacdev);
+-		nss_gmac_twokpe_frame_enable(gmacdev);
+-	} else if (newmtu <= NSS_GMAC_FULL_JUMBO_FRAME_MTU) {
+-		nss_gmac_jumbo_frame_enable(gmacdev);
+-	}
++  if (newmtu <= NSS_GMAC_NORMAL_FRAME_MTU) {
++    netdev_info(netdev, "%s: Enabling Normal Frame MTU (Requested MTU [%d])\n",
++                __func__, newmtu);
++    if (strcmp(netdev_name(netdev), "eth1") == 0) {
++      netdev_info(netdev, "%s: Enabling Jumbo Frame MTU for eth1 (Requested MTU [%d])\n",
++                  __func__, newmtu);
++      nss_gmac_jumbo_frame_enable(gmacdev);
++    } else {
++      nss_gmac_jumbo_frame_disable(gmacdev);
++      nss_gmac_twokpe_frame_disable(gmacdev);
++    }
++  } else if (newmtu <= NSS_GMAC_MINI_JUMBO_FRAME_MTU) {
++    netdev_info(netdev,
++                "%s: Enabling Mini Jumbo Frame MTU (Requested MTU [%d])\n",
++                __func__, newmtu);
++    nss_gmac_jumbo_frame_disable(gmacdev);
++    nss_gmac_twokpe_frame_enable(gmacdev);
++  } else if (newmtu <= NSS_GMAC_FULL_JUMBO_FRAME_MTU) {
++    netdev_info(netdev, "%s: Enabling Jumbo Frame MTU (Requested MTU [%d])\n", __func__, newmtu);
++    nss_gmac_jumbo_frame_enable(gmacdev);
++  }
+ 
+ 	netdev->mtu = newmtu;
+ 	return 0;
+@@ -1138,8 +1157,7 @@ int nss_gmac_override_data_plane(struct
+ 	if (!dp_ops->open || !dp_ops->close || !dp_ops->link_state
+ 		|| !dp_ops->mac_addr || !dp_ops->change_mtu || !dp_ops->xmit
+ 		|| !dp_ops->set_features || !dp_ops->pause_on_off) {
+-		netdev_dbg(netdev, "%s: All the op functions must be present, reject this registeration\n",
+-								__func__);
++		netdev_dbg(netdev, "%s: All the op functions must be present, reject this registeration\n", __func__);
+ 		return NSS_GMAC_FAILURE;
+ 	}
+ 

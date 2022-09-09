@@ -1,0 +1,178 @@
+From 895de8e4119afe3cbad2aa81566b1ebcb2b39dcd Mon Sep 17 00:00:00 2001
+From: Ansuel Smith <ansuelsmth@gmail.com>
+Date: Tue, 17 May 2022 20:23:19 +0200
+Subject: [PATCH] Makefile: modularize driver even more
+
+Permit to disable even more module.
+
+Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
+---
+ Makefile          | 56 ++++++++++++++++++++++++++++++++---------------
+ nss_hal/nss_hal.c |  6 +++++
+ nss_init.c        |  4 ++++
+ 3 files changed, 48 insertions(+), 18 deletions(-)
+
+--- a/Makefile
++++ b/Makefile
+@@ -51,22 +51,44 @@ qca-nss-drv-objs := \
+ 			nss_pm.o \
+ 			nss_profiler.o \
+ 			nss_project.o \
+-			nss_pppoe.o \
+-			nss_pppoe_log.o \
+-			nss_pppoe_stats.o \
+-			nss_pppoe_strings.o \
+ 			nss_rps.o \
+ 			nss_stats.o \
+ 			nss_strings.o \
+ 			nss_tx_msg_sync.o \
+ 			nss_unaligned.o \
+ 			nss_unaligned_log.o \
+-			nss_unaligned_stats.o \
+-			nss_virt_if.o \
+-			nss_virt_if_stats.o \
+-			nss_vlan.o \
+-			nss_vlan_log.o \
+-			nss_wifi.o \
++			nss_unaligned_stats.o
++
++# Base NSS data plane/HAL support
++qca-nss-drv-objs += nss_data_plane/nss_data_plane_common.o
++qca-nss-drv-objs += nss_hal/nss_hal.o
++
++ifneq "$(NSS_DRV_PPPOE_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_PPPOE_ENABLE
++qca-nss-drv-objs += \
++		    nss_pppoe.o \
++		    nss_pppoe_log.o \
++		    nss_pppoe_stats.o \
++		    nss_pppoe_strings.o
++endif
++
++ifneq "$(NSS_DRV_VIRT_IF_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_VIRT_IF_ENABLE
++qca-nss-drv-objs += \
++		    nss_virt_if.o \
++		    nss_virt_if_stats.o
++endif
++
++ifneq "$(NSS_DRV_VLAN_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_VLAN_ENABLE
++qca-nss-drv-objs += \
++		    nss_vlan.o \
++		    nss_vlan_log.o
++endif
++
++ifneq "$(NSS_DRV_WIFI_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_WIFI_ENABLE
++qca-nss-drv-objs += nss_wifi.o \
+ 			nss_wifi_log.o \
+ 			nss_wifi_stats.o \
+ 			nss_wifi_vdev.o \
+@@ -82,10 +104,7 @@ qca-nss-drv-objs := \
+ 			nss_wifi_mesh_log.o \
+ 			nss_wifi_mesh_stats.o \
+ 			nss_wifi_mesh_strings.o
+-
+-# Base NSS data plane/HAL support
+-qca-nss-drv-objs += nss_data_plane/nss_data_plane_common.o
+-qca-nss-drv-objs += nss_hal/nss_hal.o
++endif
+ 
+ ifneq "$(NSS_DRV_L2TP_ENABLE)" "n"
+ ccflags-y += -DNSS_DRV_L2TP_ENABLE
+@@ -322,7 +341,11 @@ ifneq "$(NSS_DRV_IPSEC_ENABLE)" "n"
+ ccflags-y += -DNSS_DRV_IPSEC_ENABLE
+ qca-nss-drv-objs += \
+ 		    nss_ipsec_log.o \
+-		    nss_ipsec.o
++		    nss_ipsec.o \
++		    nss_ipsec_cmn_log.o \
++		    nss_ipsec_cmn.o \
++		    nss_ipsec_cmn_stats.o \
++		    nss_ipsec_cmn_strings.o
+ endif
+ 
+ ifneq "$(NSS_DRV_CRYPTO_ENABLE)" "n"
+@@ -466,7 +489,7 @@ endif
+ ccflags-y += -I$(obj)/nss_hal/ipq50xx -DNSS_HAL_IPQ50XX_SUPPORT -DNSS_MULTI_H2N_DATA_RING_SUPPORT
+ endif
+ 
+-ccflags-y += -I$(obj)/nss_hal/include -I$(obj)/nss_data_plane/include -I$(obj)/exports -DNSS_DEBUG_LEVEL=0 -DNSS_PKT_STATS_ENABLED=1
++ccflags-y += -I$(obj)/nss_hal/include -I$(obj)/nss_data_plane/include -I$(obj)/exports -DNSS_DEBUG_LEVEL=3 -DNSS_PKT_STATS_ENABLED=1
+ ccflags-y += -I$(obj)/nss_data_plane/hal/include
+ ccflags-y += -DNSS_PM_DEBUG_LEVEL=0 -DNSS_SKB_REUSE_SUPPORT=1
+ ccflags-y += -Wall -Werror
+--- a/nss_hal/nss_hal.c
++++ b/nss_hal/nss_hal.c
+@@ -460,10 +460,12 @@ int nss_hal_probe(struct platform_device
+ 	}
+ #endif
+ 
++#ifdef NSS_DRV_PPPOE_ENABLE
+ 	if (npd->pppoe_enabled == NSS_FEATURE_ENABLED) {
+ 		nss_top->pppoe_handler_id = nss_dev->id;
+ 		nss_pppoe_register_handler();
+ 	}
++#endif
+ 
+ #ifdef NSS_DRV_PPE_ENABLE
+ 	if (npd->ppe_enabled == NSS_FEATURE_ENABLED) {
+@@ -558,6 +560,7 @@ int nss_hal_probe(struct platform_device
+ 	}
+ #endif
+ 
++#ifdef NSS_DRV_WIFI_ENABLE
+ 	if (npd->wifioffload_enabled == NSS_FEATURE_ENABLED) {
+ 		nss_top->wifi_handler_id = nss_dev->id;
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_VAP] = nss_dev->id;
+@@ -584,6 +587,7 @@ int nss_hal_probe(struct platform_device
+ 		 */
+ 		nss_wifili_thread_scheme_db_init(nss_dev->id);
+ 	}
++#endif
+ 
+ #ifdef NSS_DRV_OAM_ENABLE
+ 	if (npd->oam_enabled == NSS_FEATURE_ENABLED) {
+@@ -598,11 +602,13 @@ int nss_hal_probe(struct platform_device
+ 		nss_bridge_init();
+ 	}
+ 
++#ifdef NSS_DRV_VLAN_ENABLE
+ 	if (npd->vlan_enabled == NSS_FEATURE_ENABLED) {
+ 		nss_top->vlan_handler_id = nss_dev->id;
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_VLAN] = nss_dev->id;
+ 		nss_vlan_register_handler();
+ 	}
++#endif
+ 
+ #ifdef NSS_DRV_QVPN_ENABLE
+ #if defined(NSS_HAL_IPQ807x_SUPPORT) || defined(NSS_HAL_IPQ60XX_SUPPORT)
+--- a/nss_init.c
++++ b/nss_init.c
+@@ -773,10 +773,12 @@ static int __init nss_init(void)
+ 	 */
+ 	nss_project_register_sysctl();
+ 
++#ifdef NSS_DRV_PPPOE_ENABLE
+ 	/*
+ 	 * Registering sysctl for pppoe specific config.
+ 	 */
+ 	nss_pppoe_register_sysctl();
++#endif
+ 
+ 	/*
+ 	 * Setup Runtime Sample values
+@@ -904,10 +906,12 @@ static void __exit nss_cleanup(void)
+ 	nss_c2c_tx_unregister_sysctl();
+ #endif
+ 
++#ifdef NSS_DRV_PPPOE_ENABLE
+ 	/*
+ 	 * Unregister pppoe specific sysctl
+ 	 */
+ 	nss_pppoe_unregister_sysctl();
++#endif
+ 
+ 	/*
+ 	 * Unregister ipv4/6 specific sysctl
