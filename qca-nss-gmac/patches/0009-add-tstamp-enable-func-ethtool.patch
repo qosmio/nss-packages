@@ -1,0 +1,82 @@
+--- a/ipq806x/include/nss_gmac_dev.h
++++ b/ipq806x/include/nss_gmac_dev.h
+@@ -1342,6 +1342,9 @@ void nss_gmac_disable_rx_chksum_offload(
+ void nss_gmac_rx_tcpip_chksum_drop_enable(struct nss_gmac_dev *gmacdev);
+ void nss_gmac_rx_tcpip_chksum_drop_disable(struct nss_gmac_dev *gmacdev);
+ 
++void nss_gmac_tstamp_sysfs_create(struct net_device *dev);
++void nss_gmac_tstamp_sysfs_remove(struct net_device *dev);
++
+ /**
+  * The check summ offload engine is enabled to do complete checksum computation.
+  * Hardware computes the tcp ip checksum including the pseudo header checksum.
+--- a/ipq806x/nss_gmac_ctrl.c
++++ b/ipq806x/nss_gmac_ctrl.c
+@@ -651,7 +651,7 @@ static DEVICE_ATTR(fadj, 0220, NULL, nss
+ static DEVICE_ATTR(mtnp, 0444, nss_gmac_mtnp_show, NULL);
+ static DEVICE_ATTR(tstamp, 0444, nss_gmac_tstamp_show, NULL);
+ 
+-static void nss_gmac_tstamp_sysfs_create(struct net_device *dev)
++void nss_gmac_tstamp_sysfs_create(struct net_device *dev)
+ {
+ 	if (device_create_file(&(dev->dev), &dev_attr_slam) ||
+ 		device_create_file(&(dev->dev), &dev_attr_cadj) ||
+@@ -662,7 +662,7 @@ static void nss_gmac_tstamp_sysfs_create
+ 	return;
+ }
+ 
+-static void nss_gmac_tstamp_sysfs_remove(struct net_device *dev)
++void nss_gmac_tstamp_sysfs_remove(struct net_device *dev)
+ {
+ 	device_remove_file(&(dev->dev), &dev_attr_slam);
+ 	device_remove_file(&(dev->dev), &dev_attr_cadj);
+--- a/ipq806x/nss_gmac_ethtool.c
++++ b/ipq806x/nss_gmac_ethtool.c
+@@ -559,6 +559,47 @@ static int32_t nss_gmac_set_priv_flags(s
+ 	}
+ 
+ 	/*
++	 * Set timestamp
++	 */
++	if (changed & NSS_GMAC_PRIV_FLAG(TSTAMP)) {
++
++		if (flags & NSS_GMAC_PRIV_FLAG(TSTAMP)) {
++		  if (!test_bit(__NSS_GMAC_TSTAMP, &gmacdev->flags)) {
++			/*
++			 * Increase headroom for PTP/NTP timestamps
++			 */
++			netdev->needed_headroom += 32;
++
++			/*
++			 * Create sysfs entries for timestamp registers
++			 */
++			nss_gmac_tstamp_sysfs_create(netdev);
++
++			if (nss_gmac_ts_enable(gmacdev)) {
++				netdev_info(netdev, "%s: Reg write error. Cannot enable Timestamping \n", __func__);
++				return -EINVAL;
++			}
++			gmacdev->drv_flags |= NSS_GMAC_PRIV_FLAG(TSTAMP);
++			netdev_info(netdev, "%s: Enabled 'Timestamp' flag (needed_headroom: %dx)", __func__, netdev->needed_headroom);
++		  } else
++			netdev_warn(netdev, "%s: Already enabled 'Timestamp' flag", __func__);
++		} else {
++		  /*
++		   * Disable Timestamping if not already disabled
++		   */
++		  if (!test_bit(__NSS_GMAC_TSTAMP, &gmacdev->flags)) {
++			  netdev_warn(netdev, "%s: Timestamp is already disabled \n", __func__);
++			  return -EINVAL;
++		  }
++		  nss_gmac_ts_disable(gmacdev);
++		  gmacdev->drv_flags &= ~NSS_GMAC_PRIV_FLAG(TSTAMP);
++		  nss_gmac_tstamp_sysfs_remove(gmacdev->netdev);
++		  // netdev->needed_headroom -= 32;
++		  netdev_info(netdev, "%s: Disabled 'Timestamp' flag (needed_headroom: %dx)", __func__, netdev->needed_headroom);
++		}
++	}
++
++	/*
+ 	 * Set ignore rx csum flag
+ 	 */
+ 	if (changed & NSS_GMAC_PRIV_FLAG(IGNORE_RX_CSUM_ERR)) {
