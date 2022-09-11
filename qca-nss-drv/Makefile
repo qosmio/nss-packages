@@ -41,7 +41,7 @@ define KernelPackage/qca-nss-drv/install
 	$(INSTALL_BIN) ./files/qca-nss-drv.hotplug $(1)/etc/hotplug.d/firmware/10-qca-nss-fw
 	$(INSTALL_BIN) ./files/qca-nss-drv.conf $(1)/etc/config/nss
 	$(INSTALL_BIN) ./files/nss-firmware/qca-nss0-retail.bin $(1)/lib/firmware/qca-nss0.bin
-	$(INSTALL_BIN) ./files/nss-firmware/qca-nss1-retail.bin $(1)/lib/firmware/qca-nss1.bin
+	# $(INSTALL_BIN) ./files/nss-firmware/qca-nss1-retail.bin $(1)/lib/firmware/qca-nss1.bin
 
 endef
 
@@ -54,8 +54,8 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/exports/* $(1)/usr/include/qca-nss-drv/
 ifneq (, $(findstring $(subtarget), "ipq807x" "ipq807x_64" "ipq60xx" "ipq60xx_64" "ipq50xx" "ipq50xx_64"))
 	$(RM) $(1)/usr/include/qca-nss-drv/nss_ipsecmgr.h
-	$(INSTALL_DIR) $(1)/usr/include/qca-nss-clients
-	$(CP) $(NSS_CLIENTS_DIR)/exports/nss_ipsecmgr.h $(1)/usr/include/qca-nss-clients/.
+	# $(INSTALL_DIR) $(1)/usr/include/qca-nss-clients
+	# $(CP) $(NSS_CLIENTS_DIR)/exports/nss_ipsecmgr.h $(1)/usr/include/qca-nss-clients/.
 endif
 endef
 
@@ -124,21 +124,43 @@ endif
 
 ifeq ($(CONFIG_TARGET_BOARD), "ipq806x")
     TARGET_NSS_MINOR_VERSION=0
-    DRV_MAKE_OPTS+=NSS_DRV_MIRROR_ENABLE=n \
+    DRV_MAKE_OPTS+= \
 	NSS_DRV_CAPWAP_ENABLE=n \
-	NSS_DRV_QRFS_ENABLE=n
-else
-	TARGET_NSS_MINOR_VERSION=3
+	NSS_DRV_QRFS_ENABLE=n \
+	NSS_DRV_VLAN_ENABLE=n \
+	NSS_DRV_WIFI_ENABLE=n \
+	NSS_DRV_L2TP_ENABLE=n \
+	NSS_DRV_LAG_ENABLE=n \
+	NSS_DRV_PVXLAN_ENABLE=n \
+	NSS_DRV_GRE_ENABLE=n \
+	NSS_DRV_GRE_REDIR_ENABLE=n \
+	NSS_DRV_GRE_TUNNEL_ENABLE=n \
+	NSS_DRV_CAPWAP_ENABLE=n \
+	NSS_DRV_MAPT_ENABLE=n \
+	NSS_DRV_PPTP_ENABLE=n \
+	NSS_DRV_SJACK_ENABLE=n \
+	NSS_DRV_TUN6RD_ENABLE=n \
+	NSS_DRV_TRUSTSEC_ENABLE=n \
+	NSS_DRV_TUNIPIP6_ENABLE=n \
+	NSS_DRV_QRFS_ENABLE=n \
+	NSS_DRV_RMNET_ENABLE=n \
+	NSS_DRV_OAM_ENABLE=n \
+	NSS_DRV_CLMAP_ENABLE=n \
+	NSS_DRV_VXLAN_ENABLE=n \
+	NSS_DRV_MATCH_ENABLE=n \
+	NSS_DRV_MIRROR_ENABLE=n \
+	NSS_DRV_PORTID_ENABLE=y
 endif
 
 define Build/Configure
+	$(CP) $(SOURCE)/files/nss-firmware/nss_fw_version.h $(PKG_BUILD_DIR)/exports/nss_fw_version.h
+	sed -i "s/define NSS_FW_VERSION_MAJOR.*/define NSS_FW_VERSION_MAJOR 11/" $(PKG_BUILD_DIR)/exports/nss_fw_version.h
+	sed -i "s/define NSS_FW_VERSION_MINOR.*/define NSS_FW_VERSION_MINOR $(TARGET_NSS_MINOR_VERSION)/" $(PKG_BUILD_DIR)/exports/nss_fw_version.h
 	$(LN) arch/nss_$(SOC).h $(PKG_BUILD_DIR)/exports/nss_arch.h
-	# sed -i "s/define NSS_FW_VERSION_MAJOR.*/define NSS_FW_VERSION_MAJOR 11/" $(PKG_BUILD_DIR)/exports/nss_fw_version.h
-	# sed -i "s/define NSS_FW_VERSION_MINOR.*/define NSS_FW_VERSION_MINOR $(TARGET_NSS_MINOR_VERSION)/" $(PKG_BUILD_DIR)/exports/nss_fw_version.h
 endef
 
 define Build/Compile
-	+$(MAKE) -C "$(LINUX_DIR)" $(strip $(DRV_MAKE_OPTS)) \
+	$(MAKE) -C "$(LINUX_DIR)" $(strip $(DRV_MAKE_OPTS)) \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		ARCH="$(LINUX_KARCH)" \
 		M="$(PKG_BUILD_DIR)" \

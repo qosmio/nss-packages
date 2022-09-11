@@ -1,8 +1,6 @@
-diff --git a/nss_qdisc/Makefile b/nss_qdisc/Makefile
-index 74bee93..c3895b5 100644
 --- a/nss_qdisc/Makefile
 +++ b/nss_qdisc/Makefile
-@@ -6,7 +6,7 @@ ifeq ($(SoC),$(filter $(SoC),ipq807x ipq807x_64 ipq60xx ipq60xx_64))
+@@ -6,7 +6,7 @@ ifeq ($(SoC),$(filter $(SoC),ipq807x ipq
  ccflags-y += -DNSS_QDISC_PPE_SUPPORT -DNSS_QDISC_BRIDGE_SUPPORT
  endif
  
@@ -11,8 +9,12 @@ index 74bee93..c3895b5 100644
  
  obj-m += qca-nss-qdisc.o
  qca-nss-qdisc-objs := 	nss_qdisc.o \
-diff --git a/nss_qdisc/igs/Makefile b/nss_qdisc/igs/Makefile
-index eb5f574..19f6972 100644
+@@ -25,4 +25,4 @@ qca-nss-qdisc-objs += 	nss_ppe.o \
+ 			nss_ppe_mc.o
+ endif
+ 
+-obj-$(igs)+= igs/
++obj-y += igs/
 --- a/nss_qdisc/igs/Makefile
 +++ b/nss_qdisc/igs/Makefile
 @@ -2,7 +2,7 @@
@@ -24,8 +26,6 @@ index eb5f574..19f6972 100644
  
  obj-m += act_nssmirred.o
  act_nssmirred-objs := \
-diff --git a/nss_qdisc/igs/nss_mirred.c b/nss_qdisc/igs/nss_mirred.c
-index 5ca5914..5729b08 100644
 --- a/nss_qdisc/igs/nss_mirred.c
 +++ b/nss_qdisc/igs/nss_mirred.c
 @@ -1,6 +1,6 @@
@@ -57,28 +57,33 @@ index 5ca5914..5729b08 100644
  {
  	struct nss_mirred_tcf *act = nss_mirred_get(tc_act);
  	struct net_device *dev = rcu_dereference_protected(act->tcfm_dev, 1);
-@@ -74,10 +82,20 @@ static const struct nla_policy nss_mirred_policy[TC_NSS_MIRRED_MAX + 1] = {
-  * nss_mirred_init()
+@@ -75,9 +83,23 @@ static const struct nla_policy nss_mirre
   *	Initialize the nss mirred action.
   */
-+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0))
  static int nss_mirred_init(struct net *net, struct nlattr *nla,
- 			   struct nlattr *est, struct tc_action *tc_act, int ovr,
- 			   int bind)
+-			   struct nlattr *est, struct tc_action *tc_act, int ovr,
+-			   int bind)
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0))
++						struct nlattr *est, struct tc_action *tc_act, int ovr,
++						int bind)
  {
-+#else
-+static int nss_mirred_init(struct net *net, struct nlattr *nla,
-+			   struct nlattr *est, struct tc_action **tc_act, int ovr,
-+			   int bind, bool rtnl_held, struct tcf_proto *tp,
-+			   struct netlink_ext_ack *extack)
++#elif (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0))
++						struct nlattr *est, struct tc_action **tc_act, int ovr,
++						int bind, bool rtnl_held, struct tcf_proto *tp,
++						u32 flags, struct netlink_ext_ack *extack)
 +{
++#else
++						struct nlattr *est, struct tc_action **tc_act,
++						struct tcf_proto *tp, u32 flags, struct netlink_ext_ack *extack)
++{
++	bool bind = flags & TCA_ACT_FLAGS_BIND;
++#endif
 +	struct tc_action_net *tn = net_generic(net, nss_mirred_net_id);
 +	u32 index;
-+#endif
  	struct nlattr *arr[TC_NSS_MIRRED_MAX + 1];
  	struct tc_nss_mirred *parm;
  	struct nss_mirred_tcf *act;
-@@ -92,7 +110,11 @@ static int nss_mirred_init(struct net *net, struct nlattr *nla,
+@@ -92,7 +114,11 @@ static int nss_mirred_init(struct net *n
  	/*
  	 * Parse and validate the user configurations.
  	 */
@@ -90,7 +95,7 @@ index 5ca5914..5729b08 100644
  	if (ret < 0) {
  		return ret;
  	}
-@@ -193,6 +215,7 @@ static int nss_mirred_init(struct net *net, struct nlattr *nla,
+@@ -193,6 +219,7 @@ static int nss_mirred_init(struct net *n
  	/*
  	 * Return error if nss mirred action index is present in the hash.
  	 */
@@ -98,7 +103,7 @@ index 5ca5914..5729b08 100644
  	if (tcf_hash_check(parm->index, tc_act, bind)) {
  		return -EEXIST;
  	}
-@@ -204,7 +227,28 @@ static int nss_mirred_init(struct net *net, struct nlattr *nla,
+@@ -204,7 +231,33 @@ static int nss_mirred_init(struct net *n
  	}
  
  	act = nss_mirred_get(tc_act);
@@ -114,8 +119,13 @@ index 5ca5914..5729b08 100644
 +	}
 +
 +	if (!ret) {
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0))
 +		ret = tcf_idr_create(tn, index, est, tc_act, &nss_mirred_act_ops,
 +				bind, true);
++#else
++		ret = tcf_idr_create(tn, index, est, tc_act, &nss_mirred_act_ops,
++				bind, true, 0);
++#endif
 +		if (ret) {
 +			tcf_idr_cleanup(tn, index);
 +			return ret;
@@ -127,7 +137,7 @@ index 5ca5914..5729b08 100644
  	/*
  	 * Fill up the nss mirred tc parameters to
  	 * its local action structure.
-@@ -222,7 +266,9 @@ static int nss_mirred_init(struct net *net, struct nlattr *nla,
+@@ -222,7 +275,9 @@ static int nss_mirred_init(struct net *n
  	spin_lock_bh(&nss_mirred_list_lock);
  	list_add(&act->tcfm_list, &nss_mirred_list);
  	spin_unlock_bh(&nss_mirred_list_lock);
@@ -137,7 +147,7 @@ index 5ca5914..5729b08 100644
  
  	return ACT_P_CREATED;
  }
-@@ -234,10 +280,15 @@ static int nss_mirred_init(struct net *net, struct nlattr *nla,
+@@ -234,10 +289,15 @@ static int nss_mirred_init(struct net *n
  static int nss_mirred_act(struct sk_buff *skb, const struct tc_action *tc_act,
  		      struct tcf_result *res)
  {
@@ -153,7 +163,7 @@ index 5ca5914..5729b08 100644
  	u32 skb_tc_at = G_TC_AT(skb->tc_verd);
  
  	/*
-@@ -247,6 +298,12 @@ static int nss_mirred_act(struct sk_buff *skb, const struct tc_action *tc_act,
+@@ -247,6 +307,12 @@ static int nss_mirred_act(struct sk_buff
  		return TC_ACT_UNSPEC;
  	}
  
@@ -166,7 +176,7 @@ index 5ca5914..5729b08 100644
  	/*
  	 * Update the last use of action.
  	 */
-@@ -276,9 +333,14 @@ static int nss_mirred_act(struct sk_buff *skb, const struct tc_action *tc_act,
+@@ -276,9 +342,14 @@ static int nss_mirred_act(struct sk_buff
  
  	skb_new->skb_iif = skb->dev->ifindex;
  	skb_new->dev = dev;
@@ -181,7 +191,7 @@ index 5ca5914..5729b08 100644
  
  	err = dev_queue_xmit(skb_new);
  	if (!err) {
-@@ -300,12 +362,21 @@ static int nss_mirred_dump(struct sk_buff *skb, struct tc_action *tc_act, int bi
+@@ -300,12 +371,21 @@ static int nss_mirred_dump(struct sk_buf
  {
  	struct tcf_t filter;
  	unsigned char *tail = skb_tail_pointer(skb);
@@ -203,7 +213,7 @@ index 5ca5914..5729b08 100644
  		.from_ifindex = act->tcfm_from_ifindex,
  		.to_ifindex = act->tcfm_to_ifindex,
  	};
-@@ -470,6 +541,64 @@ static int nss_mirred_device_event(struct notifier_block *unused,
+@@ -470,6 +550,64 @@ static int nss_mirred_device_event(struc
  	return NOTIFY_DONE;
  }
  
@@ -268,7 +278,7 @@ index 5ca5914..5729b08 100644
  /*
   * nss_mirred_device_notifier
   *	nss mirred device notifier structure.
-@@ -482,14 +611,22 @@ static struct notifier_block nss_mirred_device_notifier = {
+@@ -482,14 +620,22 @@ static struct notifier_block nss_mirred_
   * nss_mirred_act_ops
   *	Registration structure for nss mirred action.
   */
@@ -293,7 +303,7 @@ index 5ca5914..5729b08 100644
  };
  
  /*
-@@ -514,6 +651,52 @@ struct nf_hook_ops nss_mirred_igs_nf_ops[] __read_mostly = {
+@@ -514,6 +660,52 @@ struct nf_hook_ops nss_mirred_igs_nf_ops
  	},
  };
  
@@ -346,7 +356,7 @@ index 5ca5914..5729b08 100644
  /*
   * nss_mirred_init_module()
   *	nssmirred init function.
-@@ -525,6 +708,7 @@ static int __init nss_mirred_init_module(void)
+@@ -525,6 +717,7 @@ static int __init nss_mirred_init_module
  		return err;
  	}
  
@@ -354,7 +364,7 @@ index 5ca5914..5729b08 100644
  	err = tcf_register_action(&nss_mirred_act_ops, NSS_MIRRED_TAB_MASK);
  	if (err) {
  		unregister_netdevice_notifier(&nss_mirred_device_notifier);
-@@ -538,6 +722,13 @@ static int __init nss_mirred_init_module(void)
+@@ -538,6 +731,13 @@ static int __init nss_mirred_init_module
  		unregister_netdevice_notifier(&nss_mirred_device_notifier);
  		return err;
  	}
@@ -368,7 +378,7 @@ index 5ca5914..5729b08 100644
  
  	/*
  	 * Set the IGS module reference variable.
-@@ -559,12 +750,16 @@ static void __exit nss_mirred_cleanup_module(void)
+@@ -559,12 +759,16 @@ static void __exit nss_mirred_cleanup_mo
  	 */
  	nss_igs_module_save(&nss_mirred_act_ops, NULL);
  
@@ -385,8 +395,6 @@ index 5ca5914..5729b08 100644
  	unregister_netdevice_notifier(&nss_mirred_device_notifier);
  }
  
-diff --git a/nss_qdisc/igs/nss_mirred.h b/nss_qdisc/igs/nss_mirred.h
-index 1d0bebc..3f48f83 100644
 --- a/nss_qdisc/igs/nss_mirred.h
 +++ b/nss_qdisc/igs/nss_mirred.h
 @@ -1,6 +1,6 @@
@@ -428,11 +436,9 @@ index 1d0bebc..3f48f83 100644
 +#define nss_mirred_get(a) ((struct nss_mirred_tcf *)a)
 +#endif
 +
-diff --git a/nss_qdisc/nss_bf.c b/nss_qdisc/nss_bf.c
-index 882c00c..300d1a8 100644
 --- a/nss_qdisc/nss_bf.c
 +++ b/nss_qdisc/nss_bf.c
-@@ -68,12 +68,20 @@ static inline struct nss_bf_class_data *nss_bf_find_class(u32 classid,
+@@ -68,12 +68,20 @@ static inline struct nss_bf_class_data *
   * nss_bf_change_class()
   *	Configures a new class.
   */
@@ -453,7 +459,7 @@ index 882c00c..300d1a8 100644
  	struct tc_nssbf_class_qopt *qopt;
  	struct nss_if_msg nim_config;
  	struct net_device *dev = qdisc_dev(sch);
-@@ -84,7 +92,12 @@ static int nss_bf_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
+@@ -84,7 +92,12 @@ static int nss_bf_change_class(struct Qd
  		return -EINVAL;
  	}
  
@@ -467,7 +473,7 @@ index 882c00c..300d1a8 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -111,7 +124,7 @@ static int nss_bf_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
+@@ -111,7 +124,7 @@ static int nss_bf_change_class(struct Qd
  		 * reference count should not be 0.
  		 */
  		cl->qdisc = &noop_qdisc;
@@ -476,7 +482,7 @@ index 882c00c..300d1a8 100644
  		*arg = (unsigned long)cl;
  
  		nss_qdisc_info("Adding classid %u to qdisc %px hash queue %px\n", classid, sch, &q->clhash);
-@@ -121,7 +134,8 @@ static int nss_bf_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
+@@ -121,7 +134,8 @@ static int nss_bf_change_class(struct Qd
  		 * that is registered to Linux. Therefore we initialize the NSSBF_GROUP shaper
  		 * here.
  		 */
@@ -486,7 +492,7 @@ index 882c00c..300d1a8 100644
  			nss_qdisc_error("Nss init for class %u failed\n", classid);
  			kfree(cl);
  			return -EINVAL;
-@@ -260,7 +274,7 @@ static void nss_bf_destroy_class(struct Qdisc *sch, struct nss_bf_class_data *cl
+@@ -260,7 +274,7 @@ static void nss_bf_destroy_class(struct
  	/*
  	 * And now we destroy the child.
  	 */
@@ -495,7 +501,7 @@ index 882c00c..300d1a8 100644
  
  	/*
  	 * Stop the stats polling timer and free class
-@@ -282,7 +296,11 @@ static void nss_bf_destroy_class(struct Qdisc *sch, struct nss_bf_class_data *cl
+@@ -282,7 +296,11 @@ static void nss_bf_destroy_class(struct
   * nss_bf_delete_class()
   *	Detaches a class from operation, but does not destroy it.
   */
@@ -507,7 +513,7 @@ index 882c00c..300d1a8 100644
  {
  	struct nss_bf_sched_data *q = qdisc_priv(sch);
  	struct nss_bf_class_data *cl = (struct nss_bf_class_data *)arg;
-@@ -311,7 +329,7 @@ static int nss_bf_delete_class(struct Qdisc *sch, unsigned long arg)
+@@ -311,7 +329,7 @@ static int nss_bf_delete_class(struct Qd
  	sch_tree_lock(sch);
  	qdisc_reset(cl->qdisc);
  	qdisc_class_hash_remove(&q->clhash, &cl->cl_common);
@@ -516,7 +522,7 @@ index 882c00c..300d1a8 100644
  	sch_tree_unlock(sch);
  	if (!refcnt) {
  		nss_qdisc_error("Reference count should not be zero for class %px\n", cl);
-@@ -324,8 +342,13 @@ static int nss_bf_delete_class(struct Qdisc *sch, unsigned long arg)
+@@ -324,8 +342,13 @@ static int nss_bf_delete_class(struct Qd
   * nss_bf_graft_class()
   *	Replaces the qdisc attached to the provided class.
   */
@@ -530,7 +536,7 @@ index 882c00c..300d1a8 100644
  {
  	struct nss_bf_sched_data *q = qdisc_priv(sch);
  	struct nss_bf_class_data *cl = (struct nss_bf_class_data *)arg;
-@@ -415,6 +438,7 @@ static void nss_bf_qlen_notify(struct Qdisc *sch, unsigned long arg)
+@@ -415,6 +438,7 @@ static void nss_bf_qlen_notify(struct Qd
  	 */
  }
  
@@ -538,7 +544,7 @@ index 882c00c..300d1a8 100644
  /*
   * nss_bf_get_class()
   *	Fetches the class pointer if provided the classid.
-@@ -444,10 +468,24 @@ static void nss_bf_put_class(struct Qdisc *sch, unsigned long arg)
+@@ -444,10 +468,24 @@ static void nss_bf_put_class(struct Qdis
  	 * We are safe to destroy the qdisc if the reference count
  	 * goes down to 0.
  	 */
@@ -564,7 +570,7 @@ index 882c00c..300d1a8 100644
  
  /*
   * nss_bf_dump_class()
-@@ -475,7 +513,7 @@ static int nss_bf_dump_class(struct Qdisc *sch, unsigned long arg, struct sk_buf
+@@ -475,7 +513,7 @@ static int nss_bf_dump_class(struct Qdis
  	tcm->tcm_handle = cl->cl_common.classid;
  	tcm->tcm_info = cl->qdisc->handle;
  
@@ -573,7 +579,7 @@ index 882c00c..300d1a8 100644
  	if (opts == NULL || nla_put(skb, TCA_NSSBF_CLASS_PARMS, sizeof(qopt), &qopt)) {
  		goto nla_put_failure;
  	}
-@@ -495,7 +533,7 @@ static int nss_bf_dump_class_stats(struct Qdisc *sch, unsigned long arg, struct
+@@ -495,7 +533,7 @@ static int nss_bf_dump_class_stats(struc
  {
  	struct nss_qdisc *nq = (struct nss_qdisc *)arg;
  
@@ -582,7 +588,7 @@ index 882c00c..300d1a8 100644
  			nss_qdisc_gnet_stats_copy_queue(d, &nq->qstats) < 0) {
  		return -1;
  	}
-@@ -538,9 +576,15 @@ static void nss_bf_walk(struct Qdisc *sch, struct qdisc_walker *arg)
+@@ -538,9 +576,15 @@ static void nss_bf_walk(struct Qdisc *sc
   * nss_bf_change_qdisc()
   *	Can be used to configure a nssbf qdisc.
   */
@@ -598,7 +604,7 @@ index 882c00c..300d1a8 100644
  	struct tc_nssbf_qopt *qopt;
  
  	/*
-@@ -563,7 +607,11 @@ static int nss_bf_change_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -563,7 +607,11 @@ static int nss_bf_change_qdisc(struct Qd
  	/*
  	 * If it is not NULL, parse to get qopt.
  	 */
@@ -611,7 +617,7 @@ index 882c00c..300d1a8 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -643,7 +691,7 @@ static void nss_bf_destroy_qdisc(struct Qdisc *sch)
+@@ -643,7 +691,7 @@ static void nss_bf_destroy_qdisc(struct
  			 * Reduce refcnt by 1 before destroying. This is to
  			 * ensure that polling of stat stops properly.
  			 */
@@ -620,7 +626,7 @@ index 882c00c..300d1a8 100644
  
  			/*
  			 * Detach class before destroying it. We dont check for noop qdisc here
-@@ -684,9 +732,17 @@ static void nss_bf_destroy_qdisc(struct Qdisc *sch)
+@@ -684,9 +732,17 @@ static void nss_bf_destroy_qdisc(struct
   * nss_bf_init_qdisc()
   *	Initializes the nssbf qdisc.
   */
@@ -638,7 +644,7 @@ index 882c00c..300d1a8 100644
  	struct tc_nssbf_qopt *qopt;
  	int err;
  	unsigned int accel_mode;
-@@ -710,7 +766,11 @@ static int nss_bf_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -710,7 +766,11 @@ static int nss_bf_init_qdisc(struct Qdis
  	if (!opt) {
  		accel_mode = TCA_NSS_ACCEL_MODE_NSS_FW;
  	} else {
@@ -651,7 +657,7 @@ index 882c00c..300d1a8 100644
  		if (!qopt) {
  			return -EINVAL;
  		}
-@@ -720,7 +780,7 @@ static int nss_bf_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -720,7 +780,7 @@ static int nss_bf_init_qdisc(struct Qdis
  	/*
  	 * Initialize the NSSBF shaper in NSS
  	 */
@@ -660,7 +666,7 @@ index 882c00c..300d1a8 100644
  		return -EINVAL;
  	}
  
-@@ -729,7 +789,11 @@ static int nss_bf_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -729,7 +789,11 @@ static int nss_bf_init_qdisc(struct Qdis
  	/*
  	 * Tune nss_bf parameters.
  	 */
@@ -672,7 +678,7 @@ index 882c00c..300d1a8 100644
  		nss_qdisc_destroy(&q->nq);
  		return -EINVAL;
  	}
-@@ -756,7 +820,7 @@ static int nss_bf_dump_qdisc(struct Qdisc *sch, struct sk_buff *skb)
+@@ -756,7 +820,7 @@ static int nss_bf_dump_qdisc(struct Qdis
  	qopt.defcls = q->defcls;
  	qopt.accel_mode = nss_qdisc_accel_mode_get(&q->nq);
  
@@ -700,7 +706,7 @@ index 882c00c..300d1a8 100644
  }
  
  /*
-@@ -786,6 +859,7 @@ static struct sk_buff *nss_bf_dequeue(struct Qdisc *sch)
+@@ -786,6 +859,7 @@ static struct sk_buff *nss_bf_dequeue(st
  	return nss_qdisc_dequeue(sch);
  }
  
@@ -708,7 +714,7 @@ index 882c00c..300d1a8 100644
  /*
   * nss_bf_drop()
   *	Drops a single skb from linux queue, if not empty.
-@@ -797,6 +871,7 @@ static unsigned int nss_bf_drop(struct Qdisc *sch)
+@@ -797,6 +871,7 @@ static unsigned int nss_bf_drop(struct Q
  	printk("In bf drop\n");
  	return nss_qdisc_drop(sch);
  }
@@ -716,7 +722,7 @@ index 882c00c..300d1a8 100644
  
  /*
   * Registration structure for nssbf class
-@@ -807,9 +882,17 @@ const struct Qdisc_class_ops nss_bf_class_ops = {
+@@ -807,9 +882,17 @@ const struct Qdisc_class_ops nss_bf_clas
  	.graft		= nss_bf_graft_class,
  	.leaf		= nss_bf_leaf_class,
  	.qlen_notify	= nss_bf_qlen_notify,
@@ -734,7 +740,7 @@ index 882c00c..300d1a8 100644
  	.bind_tcf	= nss_qdisc_tcf_bind,
  	.unbind_tcf	= nss_qdisc_tcf_unbind,
  	.dump		= nss_bf_dump_class,
-@@ -830,7 +913,9 @@ struct Qdisc_ops nss_bf_qdisc_ops __read_mostly = {
+@@ -830,7 +913,9 @@ struct Qdisc_ops nss_bf_qdisc_ops __read
  	.enqueue	= nss_bf_enqueue,
  	.dequeue	= nss_bf_dequeue,
  	.peek		= qdisc_peek_dequeued,
@@ -744,8 +750,6 @@ index 882c00c..300d1a8 100644
  	.cl_ops		= &nss_bf_class_ops,
  	.priv_size	= sizeof(struct nss_bf_sched_data),
  	.owner		= THIS_MODULE
-diff --git a/nss_qdisc/nss_blackhole.c b/nss_qdisc/nss_blackhole.c
-index a64aca9..fb737df 100644
 --- a/nss_qdisc/nss_blackhole.c
 +++ b/nss_qdisc/nss_blackhole.c
 @@ -1,6 +1,6 @@
@@ -756,7 +760,7 @@ index a64aca9..fb737df 100644
   * Permission to use, copy, modify, and/or distribute this software for
   * any purpose with or without fee is hereby granted, provided that the
   * above copyright notice and this permission notice appear in all copies.
-@@ -35,9 +35,18 @@ static struct nla_policy nss_blackhole_policy[TCA_NSSBLACKHOLE_MAX + 1] = {
+@@ -35,9 +35,18 @@ static struct nla_policy nss_blackhole_p
   * nss_blackhole_enqueue()
   *	Enqueue API for nss blackhole qdisc.
   */
@@ -775,7 +779,7 @@ index a64aca9..fb737df 100644
  }
  
  /*
-@@ -49,6 +58,7 @@ static struct sk_buff *nss_blackhole_dequeue(struct Qdisc *sch)
+@@ -49,6 +58,7 @@ static struct sk_buff *nss_blackhole_deq
  	return nss_qdisc_dequeue(sch);
  }
  
@@ -783,7 +787,7 @@ index a64aca9..fb737df 100644
  /*
   * nss_blackhole_drop()
   *	The following function drops a packet from HLOS queue.
-@@ -60,6 +70,7 @@ static unsigned int nss_blackhole_drop(struct Qdisc *sch)
+@@ -60,6 +70,7 @@ static unsigned int nss_blackhole_drop(s
  	nss_qdisc_info("qdisc %x dropping\n", sch->handle);
  	return nss_qdisc_drop(sch);
  }
@@ -791,7 +795,7 @@ index a64aca9..fb737df 100644
  
  /*
   * nss_blackhole_reset()
-@@ -92,9 +103,15 @@ static void nss_blackhole_destroy(struct Qdisc *sch)
+@@ -92,9 +103,15 @@ static void nss_blackhole_destroy(struct
   * nss_blackhole_change()
   *	Function call used to configure the parameters of the nss blackhole qdisc.
   */
@@ -807,7 +811,7 @@ index a64aca9..fb737df 100644
  	struct tc_nssblackhole_qopt *qopt;
  	struct nss_if_msg nim;
  
-@@ -102,7 +119,11 @@ static int nss_blackhole_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -102,7 +119,11 @@ static int nss_blackhole_change(struct Q
  		return 0;
  	}
  
@@ -820,7 +824,7 @@ index a64aca9..fb737df 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -154,9 +175,17 @@ static int nss_blackhole_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -154,9 +175,17 @@ static int nss_blackhole_change(struct Q
   * nss_blackhole_init()
   *	Initializes a nss blackhole qdisc.
   */
@@ -838,7 +842,7 @@ index a64aca9..fb737df 100644
  	struct tc_nssblackhole_qopt *qopt;
  	unsigned int accel_mode;
  
-@@ -166,7 +195,11 @@ static int nss_blackhole_init(struct Qdisc *sch, struct nlattr *opt)
+@@ -166,7 +195,11 @@ static int nss_blackhole_init(struct Qdi
  	if (!opt) {
  		accel_mode = TCA_NSS_ACCEL_MODE_PPE;
  	} else {
@@ -851,7 +855,7 @@ index a64aca9..fb737df 100644
  		if (!qopt) {
  			return -EINVAL;
  		}
-@@ -176,12 +209,17 @@ static int nss_blackhole_init(struct Qdisc *sch, struct nlattr *opt)
+@@ -176,12 +209,17 @@ static int nss_blackhole_init(struct Qdi
  	nss_qdisc_info("qdisc %x initializing\n", sch->handle);
  	nss_blackhole_reset(sch);
  
@@ -870,7 +874,7 @@ index a64aca9..fb737df 100644
  		nss_qdisc_destroy(nq);
  		return -EINVAL;
  	}
-@@ -214,7 +252,7 @@ static int nss_blackhole_dump(struct Qdisc *sch, struct sk_buff *skb)
+@@ -214,7 +252,7 @@ static int nss_blackhole_dump(struct Qdi
  	opt.set_default = q->set_default;
  	opt.accel_mode = nss_qdisc_accel_mode_get(&q->nq);
  
@@ -879,7 +883,7 @@ index a64aca9..fb737df 100644
  	if (opts == NULL) {
  		goto nla_put_failure;
  	}
-@@ -251,7 +289,9 @@ struct Qdisc_ops nss_blackhole_qdisc_ops __read_mostly = {
+@@ -251,7 +289,9 @@ struct Qdisc_ops nss_blackhole_qdisc_ops
  	.enqueue	=	nss_blackhole_enqueue,
  	.dequeue	=	nss_blackhole_dequeue,
  	.peek		=	nss_blackhole_peek,
@@ -889,8 +893,6 @@ index a64aca9..fb737df 100644
  	.init		=	nss_blackhole_init,
  	.reset		=	nss_blackhole_reset,
  	.destroy	=	nss_blackhole_destroy,
-diff --git a/nss_qdisc/nss_codel.c b/nss_qdisc/nss_codel.c
-index 1389cb7..226d706 100644
 --- a/nss_qdisc/nss_codel.c
 +++ b/nss_qdisc/nss_codel.c
 @@ -1,6 +1,6 @@
@@ -901,7 +903,7 @@ index 1389cb7..226d706 100644
   * Permission to use, copy, modify, and/or distribute this software for
   * any purpose with or without fee is hereby granted, provided that the
   * above copyright notice and this permission notice appear in all copies.
-@@ -76,9 +76,18 @@ static struct nla_policy nss_codel_policy[TCA_NSSCODEL_MAX + 1] = {
+@@ -76,9 +76,18 @@ static struct nla_policy nss_codel_polic
   * nss_codel_enqueue()
   *	Enqueue a packet into nss_codel queue in NSS firmware (bounce).
   */
@@ -920,7 +922,7 @@ index 1389cb7..226d706 100644
  }
  
  /*
-@@ -90,6 +99,7 @@ static struct sk_buff *nss_codel_dequeue(struct Qdisc *sch)
+@@ -90,6 +99,7 @@ static struct sk_buff *nss_codel_dequeue
  	return nss_qdisc_dequeue(sch);
  }
  
@@ -928,7 +930,7 @@ index 1389cb7..226d706 100644
  /*
   * nss_codel_drop()
   *	Drops a packet from the bounce complete queue.
-@@ -100,6 +110,7 @@ static unsigned int nss_codel_drop(struct Qdisc *sch)
+@@ -100,6 +110,7 @@ static unsigned int nss_codel_drop(struc
  {
  	return nss_qdisc_drop(sch);
  }
@@ -936,7 +938,7 @@ index 1389cb7..226d706 100644
  
  /*
   * nss_codel_reset()
-@@ -234,9 +245,15 @@ static int nss_codel_mem_sz_get(struct Qdisc *sch, struct tc_nsscodel_qopt *qopt
+@@ -234,9 +245,15 @@ static int nss_codel_mem_sz_get(struct Q
   * nss_codel_change()
   *	Used to configure the nss_codel queue in NSS firmware.
   */
@@ -952,7 +954,7 @@ index 1389cb7..226d706 100644
  	struct tc_nsscodel_qopt *qopt;
  	struct nss_if_msg nim;
  	struct net_device *dev = qdisc_dev(sch);
-@@ -245,7 +262,11 @@ static int nss_codel_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -245,7 +262,11 @@ static int nss_codel_change(struct Qdisc
  	struct nss_shaper_node_config *config;
  	bool free_flow_queue = true;
  
@@ -995,7 +997,7 @@ index 1389cb7..226d706 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -404,7 +437,8 @@ static int nss_codel_init(struct Qdisc *sch, struct nlattr *opt)
+@@ -404,7 +437,8 @@ static int nss_codel_init(struct Qdisc *
  	nss_qdisc_register_configure_callback(nq, nss_codel_configure_callback);
  	nss_qdisc_register_stats_callback(nq, nss_codel_stats_callback);
  
@@ -1005,7 +1007,7 @@ index 1389cb7..226d706 100644
  		return -EINVAL;
  	}
  
-@@ -412,7 +446,11 @@ static int nss_codel_init(struct Qdisc *sch, struct nlattr *opt)
+@@ -412,7 +446,11 @@ static int nss_codel_init(struct Qdisc *
  		return -EINVAL;
  	}
  
@@ -1017,7 +1019,7 @@ index 1389cb7..226d706 100644
  		nss_qdisc_destroy(nq);
  		return -EINVAL;
  	}
-@@ -451,7 +489,7 @@ static int nss_codel_dump(struct Qdisc *sch, struct sk_buff *skb)
+@@ -451,7 +489,7 @@ static int nss_codel_dump(struct Qdisc *
  	opt.flows = q->flows;
  	opt.ecn = q->ecn;
  
@@ -1026,7 +1028,7 @@ index 1389cb7..226d706 100644
  	if (opts == NULL) {
  		goto nla_put_failure;
  	}
-@@ -511,7 +549,9 @@ struct Qdisc_ops nss_codel_qdisc_ops __read_mostly = {
+@@ -511,7 +549,9 @@ struct Qdisc_ops nss_codel_qdisc_ops __r
  	.enqueue	=	nss_codel_enqueue,
  	.dequeue	=	nss_codel_dequeue,
  	.peek		=	nss_codel_peek,
@@ -1036,7 +1038,7 @@ index 1389cb7..226d706 100644
  	.init		=	nss_codel_init,
  	.reset		=	nss_codel_reset,
  	.destroy	=	nss_codel_destroy,
-@@ -530,7 +570,9 @@ struct Qdisc_ops nss_fq_codel_qdisc_ops __read_mostly = {
+@@ -530,7 +570,9 @@ struct Qdisc_ops nss_fq_codel_qdisc_ops
  	.enqueue	=	nss_codel_enqueue,
  	.dequeue	=	nss_codel_dequeue,
  	.peek		=	nss_codel_peek,
@@ -1046,11 +1048,9 @@ index 1389cb7..226d706 100644
  	.init		=	nss_codel_init,
  	.reset		=	nss_codel_reset,
  	.destroy	=	nss_codel_destroy,
-diff --git a/nss_qdisc/nss_fifo.c b/nss_qdisc/nss_fifo.c
-index 62128da..a5d2705 100644
 --- a/nss_qdisc/nss_fifo.c
 +++ b/nss_qdisc/nss_fifo.c
-@@ -29,9 +29,18 @@ static struct nla_policy nss_fifo_policy[TCA_NSSFIFO_MAX + 1] = {
+@@ -29,9 +29,18 @@ static struct nla_policy nss_fifo_policy
  	[TCA_NSSFIFO_PARMS] = { .len = sizeof(struct tc_nssfifo_qopt) },
  };
  
@@ -1069,7 +1069,7 @@ index 62128da..a5d2705 100644
  }
  
  static struct sk_buff *nss_fifo_dequeue(struct Qdisc *sch)
-@@ -39,11 +48,13 @@ static struct sk_buff *nss_fifo_dequeue(struct Qdisc *sch)
+@@ -39,11 +48,13 @@ static struct sk_buff *nss_fifo_dequeue(
  	return nss_qdisc_dequeue(sch);
  }
  
@@ -1083,7 +1083,7 @@ index 62128da..a5d2705 100644
  
  static void nss_fifo_reset(struct Qdisc *sch)
  {
-@@ -64,8 +75,14 @@ static void nss_fifo_destroy(struct Qdisc *sch)
+@@ -64,8 +75,14 @@ static void nss_fifo_destroy(struct Qdis
  	nss_qdisc_info("nss_fifo destroyed");
  }
  
@@ -1098,7 +1098,7 @@ index 62128da..a5d2705 100644
  	struct tc_nssfifo_qopt *qopt;
  	struct nss_fifo_sched_data *q = qdisc_priv(sch);
  	bool is_bfifo = (sch->ops == &nss_bfifo_qdisc_ops);
-@@ -74,7 +91,11 @@ static int nss_fifo_params_validate_and_save(struct Qdisc *sch, struct nlattr *o
+@@ -74,7 +91,11 @@ static int nss_fifo_params_validate_and_
  		return -EINVAL;
  	}
  
@@ -1111,7 +1111,7 @@ index 62128da..a5d2705 100644
  	if (!qopt) {
  		nss_qdisc_warning("Invalid input to fifo %x", sch->handle);
  		return -EINVAL;
-@@ -101,7 +122,11 @@ static int nss_fifo_params_validate_and_save(struct Qdisc *sch, struct nlattr *o
+@@ -101,7 +122,11 @@ static int nss_fifo_params_validate_and_
  }
  
  #if defined(NSS_QDISC_PPE_SUPPORT)
@@ -1170,7 +1170,7 @@ index 62128da..a5d2705 100644
  			nss_qdisc_warning("nss_fifo %px params validate and save failed\n", sch);
  			return -EINVAL;
  		}
-@@ -208,9 +250,17 @@ static int nss_fifo_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -208,9 +250,17 @@ static int nss_fifo_change(struct Qdisc
  	return 0;
  }
  
@@ -1188,7 +1188,7 @@ index 62128da..a5d2705 100644
  	struct tc_nssfifo_qopt *qopt;
  
  	if (!opt) {
-@@ -220,19 +270,28 @@ static int nss_fifo_init(struct Qdisc *sch, struct nlattr *opt)
+@@ -220,19 +270,28 @@ static int nss_fifo_init(struct Qdisc *s
  	nss_qdisc_info("Initializing Fifo - type %d\n", NSS_SHAPER_NODE_TYPE_FIFO);
  	nss_fifo_reset(sch);
  
@@ -1219,7 +1219,7 @@ index 62128da..a5d2705 100644
  		nss_qdisc_destroy(nq);
  		return -EINVAL;
  	}
-@@ -262,7 +321,8 @@ static int nss_fifo_dump(struct Qdisc *sch, struct sk_buff *skb)
+@@ -262,7 +321,8 @@ static int nss_fifo_dump(struct Qdisc *s
  	opt.set_default = q->set_default;
  	opt.accel_mode = nss_qdisc_accel_mode_get(&q->nq);
  
@@ -1229,7 +1229,7 @@ index 62128da..a5d2705 100644
  	if (opts == NULL) {
  		goto nla_put_failure;
  	}
-@@ -290,7 +350,9 @@ struct Qdisc_ops nss_pfifo_qdisc_ops __read_mostly = {
+@@ -290,7 +350,9 @@ struct Qdisc_ops nss_pfifo_qdisc_ops __r
  	.enqueue	=	nss_fifo_enqueue,
  	.dequeue	=	nss_fifo_dequeue,
  	.peek		=	nss_fifo_peek,
@@ -1239,7 +1239,7 @@ index 62128da..a5d2705 100644
  	.init		=	nss_fifo_init,
  	.reset		=	nss_fifo_reset,
  	.destroy	=	nss_fifo_destroy,
-@@ -305,7 +367,9 @@ struct Qdisc_ops nss_bfifo_qdisc_ops __read_mostly = {
+@@ -305,7 +367,9 @@ struct Qdisc_ops nss_bfifo_qdisc_ops __r
  	.enqueue	=	nss_fifo_enqueue,
  	.dequeue	=	nss_fifo_dequeue,
  	.peek		=	nss_fifo_peek,
@@ -1249,11 +1249,9 @@ index 62128da..a5d2705 100644
  	.init		=	nss_fifo_init,
  	.reset		=	nss_fifo_reset,
  	.destroy	=	nss_fifo_destroy,
-diff --git a/nss_qdisc/nss_htb.c b/nss_qdisc/nss_htb.c
-index 86abc8e..291061b 100644
 --- a/nss_qdisc/nss_htb.c
 +++ b/nss_qdisc/nss_htb.c
-@@ -83,10 +83,16 @@ static inline struct nss_htb_class_data *nss_htb_find_class(u32 classid, struct
+@@ -83,10 +83,16 @@ static inline struct nss_htb_class_data
   * nss_htb_class_params_validate_and_save()
   *	Validates and saves the qdisc configuration parameters.
   */
@@ -1270,7 +1268,7 @@ index 86abc8e..291061b 100644
  	struct tc_nsshtb_class_qopt *qopt;
  	struct nss_htb_sched_data *q = qdisc_priv(sch);
  	struct net_device *dev = qdisc_dev(sch);
-@@ -99,7 +105,11 @@ static int nss_htb_class_params_validate_and_save(struct Qdisc *sch, struct nlat
+@@ -99,7 +105,11 @@ static int nss_htb_class_params_validate
  		return -EINVAL;
  	}
  
@@ -1283,7 +1281,7 @@ index 86abc8e..291061b 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -219,7 +229,7 @@ static struct nss_htb_class_data *nss_htb_class_alloc(struct Qdisc *sch, struct
+@@ -219,7 +229,7 @@ static struct nss_htb_class_data *nss_ht
  	 * reference count should not be 0.
  	 */
  	cl->qdisc = &noop_qdisc;
@@ -1292,7 +1290,7 @@ index 86abc8e..291061b 100644
  
  	return cl;
  }
-@@ -266,9 +276,16 @@ static int nss_htb_ppe_change_class(struct Qdisc *sch, struct nss_htb_class_data
+@@ -266,9 +276,16 @@ static int nss_htb_ppe_change_class(stru
   * nss_htb_change_class()
   *	Configures a new class.
   */
@@ -1309,7 +1307,7 @@ index 86abc8e..291061b 100644
  	struct nss_htb_sched_data *q = qdisc_priv(sch);
  	struct nss_htb_class_data *cl = (struct nss_htb_class_data *)*arg;
  	struct nss_htb_class_data *parent;
-@@ -282,7 +299,11 @@ static int nss_htb_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
+@@ -282,7 +299,11 @@ static int nss_htb_change_class(struct Q
  
  	nss_qdisc_trace("configuring htb class %x of qdisc %x\n", classid, sch->handle);
  
@@ -1321,7 +1319,7 @@ index 86abc8e..291061b 100644
  		nss_qdisc_warning("validation of configuration parameters for htb class %x failed\n",
  					sch->handle);
  		return -EINVAL;
-@@ -332,7 +353,8 @@ static int nss_htb_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
+@@ -332,7 +353,8 @@ static int nss_htb_change_class(struct Q
  		 * here.
  		 */
  		cl->nq.parent = nq_parent;
@@ -1331,7 +1329,7 @@ index 86abc8e..291061b 100644
  			nss_qdisc_error("nss_init for htb class %x failed\n", classid);
  			goto failure;
  		}
-@@ -478,7 +500,7 @@ static void nss_htb_destroy_class(struct Qdisc *sch, struct nss_htb_class_data *
+@@ -478,7 +500,7 @@ static void nss_htb_destroy_class(struct
  	/*
  	 * And now we destroy the child.
  	 */
@@ -1340,7 +1338,7 @@ index 86abc8e..291061b 100644
  
  	/*
  	 * Stop the stats polling timer and free class
-@@ -500,7 +522,11 @@ static void nss_htb_destroy_class(struct Qdisc *sch, struct nss_htb_class_data *
+@@ -500,7 +522,11 @@ static void nss_htb_destroy_class(struct
   * nss_htb_delete_class()
   *	Detaches a class from operation, but does not destroy it.
   */
@@ -1352,7 +1350,7 @@ index 86abc8e..291061b 100644
  {
  	struct nss_htb_sched_data *q = qdisc_priv(sch);
  	struct nss_htb_class_data *cl = (struct nss_htb_class_data *)arg;
-@@ -550,7 +576,7 @@ static int nss_htb_delete_class(struct Qdisc *sch, unsigned long arg)
+@@ -550,7 +576,7 @@ static int nss_htb_delete_class(struct Q
  	 * We simply deduct refcnt and return.
  	 */
  	if (!cl->parent) {
@@ -1361,7 +1359,7 @@ index 86abc8e..291061b 100644
  		sch_tree_unlock(sch);
  		return 0;
  	}
-@@ -567,7 +593,7 @@ static int nss_htb_delete_class(struct Qdisc *sch, unsigned long arg)
+@@ -567,7 +593,7 @@ static int nss_htb_delete_class(struct Q
  	/*
  	 * Decrement refcnt and return
  	 */
@@ -1370,7 +1368,7 @@ index 86abc8e..291061b 100644
  	sch_tree_unlock(sch);
  
  	return 0;
-@@ -577,7 +603,12 @@ static int nss_htb_delete_class(struct Qdisc *sch, unsigned long arg)
+@@ -577,7 +603,12 @@ static int nss_htb_delete_class(struct Q
   * nss_htb_graft_class()
   *	Replaces the qdisc attached to the provided class.
   */
@@ -1383,7 +1381,7 @@ index 86abc8e..291061b 100644
  {
  	struct nss_htb_class_data *cl = (struct nss_htb_class_data *)arg;
  	struct nss_if_msg nim_detach;
-@@ -664,6 +695,7 @@ static void nss_htb_qlen_notify(struct Qdisc *sch, unsigned long arg)
+@@ -664,6 +695,7 @@ static void nss_htb_qlen_notify(struct Q
  	 */
  }
  
@@ -1391,7 +1389,7 @@ index 86abc8e..291061b 100644
  /*
   * nss_htb_get_class()
   *	Fetches the class pointer if provided the classid.
-@@ -695,10 +727,22 @@ static void nss_htb_put_class(struct Qdisc *sch, unsigned long arg)
+@@ -695,10 +727,22 @@ static void nss_htb_put_class(struct Qdi
  	 * We are safe to destroy the qdisc if the reference count
  	 * goes down to 0.
  	 */
@@ -1415,7 +1413,7 @@ index 86abc8e..291061b 100644
  
  /*
   * nss_htb_dump_class()
-@@ -728,8 +772,7 @@ static int nss_htb_dump_class(struct Qdisc *sch, unsigned long arg, struct sk_bu
+@@ -728,8 +772,7 @@ static int nss_htb_dump_class(struct Qdi
  	tcm->tcm_handle = cl->sch_common.classid;
  	tcm->tcm_info = cl->qdisc->handle;
  
@@ -1425,7 +1423,7 @@ index 86abc8e..291061b 100644
  	if (opts == NULL || nla_put(skb, TCA_NSSHTB_CLASS_PARMS, sizeof(qopt), &qopt)) {
  		goto nla_put_failure;
  	}
-@@ -750,7 +793,7 @@ static int nss_htb_dump_class_stats(struct Qdisc *sch, unsigned long arg, struct
+@@ -750,7 +793,7 @@ static int nss_htb_dump_class_stats(stru
  {
  	struct nss_qdisc *nq = (struct nss_qdisc *)arg;
  
@@ -1434,7 +1432,7 @@ index 86abc8e..291061b 100644
  			nss_qdisc_gnet_stats_copy_queue(d, &nq->qstats) < 0) {
  		nss_qdisc_error("htb class %x stats dump failed\n", nq->qos_tag);
  		return -1;
-@@ -795,9 +838,15 @@ static void nss_htb_walk(struct Qdisc *sch, struct qdisc_walker *arg)
+@@ -795,9 +838,15 @@ static void nss_htb_walk(struct Qdisc *s
   * nss_htb_change_qdisc()
   *	Can be used to configure a htb qdisc.
   */
@@ -1450,7 +1448,7 @@ index 86abc8e..291061b 100644
  	struct tc_nsshtb_qopt *qopt;
  
  	/*
-@@ -820,7 +869,11 @@ static int nss_htb_change_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -820,7 +869,11 @@ static int nss_htb_change_qdisc(struct Q
  	/*
  	 * If it is not NULL, parse to get qopt.
  	 */
@@ -1463,7 +1461,7 @@ index 86abc8e..291061b 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -895,7 +948,7 @@ static void nss_htb_destroy_qdisc(struct Qdisc *sch)
+@@ -895,7 +948,7 @@ static void nss_htb_destroy_qdisc(struct
  			 * Reduce refcnt by 1 before destroying. This is to
  			 * ensure that polling of stat stops properly.
  			 */
@@ -1472,7 +1470,7 @@ index 86abc8e..291061b 100644
  
  			/*
  			 * We are not root class. Therefore we reduce the children count
-@@ -945,9 +998,17 @@ static void nss_htb_destroy_qdisc(struct Qdisc *sch)
+@@ -945,9 +998,17 @@ static void nss_htb_destroy_qdisc(struct
   * nss_htb_init_qdisc()
   *	Initializes the htb qdisc.
   */
@@ -1490,7 +1488,7 @@ index 86abc8e..291061b 100644
  	struct tc_nsshtb_qopt *qopt;
  	int err;
  	unsigned int accel_mode;
-@@ -964,7 +1025,11 @@ static int nss_htb_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -964,7 +1025,11 @@ static int nss_htb_init_qdisc(struct Qdi
  	if (!opt) {
  		accel_mode = TCA_NSS_ACCEL_MODE_PPE;
  	} else {
@@ -1503,7 +1501,7 @@ index 86abc8e..291061b 100644
  		if (!qopt) {
  			return -EINVAL;
  		}
-@@ -977,7 +1042,7 @@ static int nss_htb_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -977,7 +1042,7 @@ static int nss_htb_init_qdisc(struct Qdi
  	/*
  	 * Initialize the NSSHTB shaper in NSS
  	 */
@@ -1512,7 +1510,7 @@ index 86abc8e..291061b 100644
  		nss_qdisc_error("failed to initialize htb qdisc %x in nss", sch->handle);
  		return -EINVAL;
  	}
-@@ -987,7 +1052,11 @@ static int nss_htb_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -987,7 +1052,11 @@ static int nss_htb_init_qdisc(struct Qdi
  	/*
  	 * Tune HTB parameters
  	 */
@@ -1524,7 +1522,7 @@ index 86abc8e..291061b 100644
  		nss_qdisc_destroy(&q->nq);
  		return -EINVAL;
  	}
-@@ -1016,7 +1085,8 @@ static int nss_htb_dump_qdisc(struct Qdisc *sch, struct sk_buff *skb)
+@@ -1016,7 +1085,8 @@ static int nss_htb_dump_qdisc(struct Qdi
  	qopt.accel_mode = nss_qdisc_accel_mode_get(&q->nq);
  
  	nss_qdisc_info("r2q = %u accel_mode = %u", qopt.r2q, qopt.accel_mode);
@@ -1534,7 +1532,7 @@ index 86abc8e..291061b 100644
  	if (!opts || nla_put(skb, TCA_NSSHTB_QDISC_PARMS, sizeof(qopt), &qopt)) {
  		goto nla_put_failure;
  	}
-@@ -1032,9 +1102,18 @@ static int nss_htb_dump_qdisc(struct Qdisc *sch, struct sk_buff *skb)
+@@ -1032,9 +1102,18 @@ static int nss_htb_dump_qdisc(struct Qdi
   * nss_htb_enqueue()
   *	Enqueues a skb to htb qdisc.
   */
@@ -1553,7 +1551,7 @@ index 86abc8e..291061b 100644
  }
  
  /*
-@@ -1046,6 +1125,7 @@ static struct sk_buff *nss_htb_dequeue(struct Qdisc *sch)
+@@ -1046,6 +1125,7 @@ static struct sk_buff *nss_htb_dequeue(s
  	return nss_qdisc_dequeue(sch);
  }
  
@@ -1561,7 +1559,7 @@ index 86abc8e..291061b 100644
  /*
   * nss_htb_drop()
   *	Drops a single skb from linux queue, if not empty.
-@@ -1057,6 +1137,7 @@ static unsigned int nss_htb_drop(struct Qdisc *sch)
+@@ -1057,6 +1137,7 @@ static unsigned int nss_htb_drop(struct
  	nss_qdisc_trace("drop called on htb qdisc %x\n", sch->handle);
  	return nss_qdisc_drop(sch);
  }
@@ -1569,7 +1567,7 @@ index 86abc8e..291061b 100644
  
  /*
   * Registration structure for htb class
-@@ -1067,9 +1148,17 @@ const struct Qdisc_class_ops nss_htb_class_ops = {
+@@ -1067,9 +1148,17 @@ const struct Qdisc_class_ops nss_htb_cla
  	.graft		= nss_htb_graft_class,
  	.leaf		= nss_htb_leaf_class,
  	.qlen_notify	= nss_htb_qlen_notify,
@@ -1587,7 +1585,7 @@ index 86abc8e..291061b 100644
  	.bind_tcf	= nss_qdisc_tcf_bind,
  	.unbind_tcf	= nss_qdisc_tcf_unbind,
  	.dump		= nss_htb_dump_class,
-@@ -1090,7 +1179,9 @@ struct Qdisc_ops nss_htb_qdisc_ops __read_mostly = {
+@@ -1090,7 +1179,9 @@ struct Qdisc_ops nss_htb_qdisc_ops __rea
  	.enqueue	= nss_htb_enqueue,
  	.dequeue	= nss_htb_dequeue,
  	.peek		= qdisc_peek_dequeued,
@@ -1597,11 +1595,9 @@ index 86abc8e..291061b 100644
  	.cl_ops		= &nss_htb_class_ops,
  	.priv_size	= sizeof(struct nss_htb_sched_data),
  	.owner		= THIS_MODULE
-diff --git a/nss_qdisc/nss_ppe.c b/nss_qdisc/nss_ppe.c
-index f0526ea..cd793d1 100644
 --- a/nss_qdisc/nss_ppe.c
 +++ b/nss_qdisc/nss_ppe.c
-@@ -1773,7 +1773,7 @@ int nss_ppe_set_parent(struct Qdisc *sch, struct nss_qdisc *nq, uint32_t parent)
+@@ -1773,7 +1773,7 @@ int nss_ppe_set_parent(struct Qdisc *sch
  	struct net_device *dev = qdisc_dev(sch);
  	struct nss_qdisc *parent_nq = NULL;
  	struct Qdisc *parent_qdisc = NULL;
@@ -1610,7 +1606,7 @@ index f0526ea..cd793d1 100644
  
  	/*
  	 * PPE Qdisc cannot be attached to NSS Qdisc.
-@@ -1812,8 +1812,11 @@ int nss_ppe_set_parent(struct Qdisc *sch, struct nss_qdisc *nq, uint32_t parent)
+@@ -1812,8 +1812,11 @@ int nss_ppe_set_parent(struct Qdisc *sch
  				return NSS_PPE_QDISC_PARENT_NOT_EXISTING;
  			}
  
@@ -1623,7 +1619,7 @@ index f0526ea..cd793d1 100644
  			if (!parent_class) {
  				nq->parent = NULL;
  				nss_qdisc_info("HW qdisc/class %px cannot be attached to non-existing class %x\n", nq->qdisc, parent);
-@@ -1822,7 +1825,9 @@ int nss_ppe_set_parent(struct Qdisc *sch, struct nss_qdisc *nq, uint32_t parent)
+@@ -1822,7 +1825,9 @@ int nss_ppe_set_parent(struct Qdisc *sch
  			}
  
  			nq->parent = (struct nss_qdisc *)parent_class;
@@ -1656,11 +1652,9 @@ index f0526ea..cd793d1 100644
  			nss_qdisc_warning("Fallback to NSS Qdisc failed.\n");
  			return -EINVAL;
  	}
-diff --git a/nss_qdisc/nss_ppe.h b/nss_qdisc/nss_ppe.h
-index f0390e0..fc4e088 100644
 --- a/nss_qdisc/nss_ppe.h
 +++ b/nss_qdisc/nss_ppe.h
-@@ -269,7 +269,11 @@ extern int nss_ppe_configure(struct nss_qdisc *nq, struct nss_ppe_qdisc *prev_np
+@@ -269,7 +269,11 @@ extern int nss_ppe_configure(struct nss_
   * nss_ppe_fallback_to_nss()
   *	Calls the initialization of NSS Qdisc when PPE initialization fails.
   */
@@ -1672,11 +1666,9 @@ index f0390e0..fc4e088 100644
  
  /*
   * nss_ppe_destroy()
-diff --git a/nss_qdisc/nss_prio.c b/nss_qdisc/nss_prio.c
-index add744d..6b44ba9 100644
 --- a/nss_qdisc/nss_prio.c
 +++ b/nss_qdisc/nss_prio.c
-@@ -37,9 +37,18 @@ static struct nla_policy nss_prio_policy[TCA_NSSPRIO_MAX + 1] = {
+@@ -37,9 +37,18 @@ static struct nla_policy nss_prio_policy
   * nss_prio_enqueue()
   *	Enqueues a skb to nssprio qdisc.
   */
@@ -1695,7 +1687,7 @@ index add744d..6b44ba9 100644
  }
  
  /*
-@@ -51,6 +60,7 @@ static struct sk_buff *nss_prio_dequeue(struct Qdisc *sch)
+@@ -51,6 +60,7 @@ static struct sk_buff *nss_prio_dequeue(
  	return nss_qdisc_dequeue(sch);
  }
  
@@ -1703,7 +1695,7 @@ index add744d..6b44ba9 100644
  /*
   * nss_prio_drop()
   *	Drops a single skb from linux queue, if not empty.
-@@ -61,6 +71,7 @@ static unsigned int nss_prio_drop(struct Qdisc *sch)
+@@ -61,6 +71,7 @@ static unsigned int nss_prio_drop(struct
  {
  	return nss_qdisc_drop(sch);
  }
@@ -1711,7 +1703,7 @@ index add744d..6b44ba9 100644
  
  /*
   * nss_prio_peek()
-@@ -117,7 +128,11 @@ static void nss_prio_destroy(struct Qdisc *sch)
+@@ -117,7 +128,11 @@ static void nss_prio_destroy(struct Qdis
  		/*
  		 * We can now destroy it
  		 */
@@ -1723,7 +1715,7 @@ index add744d..6b44ba9 100644
  	}
  
  	/*
-@@ -157,8 +172,14 @@ static int nss_prio_get_max_bands(struct Qdisc *sch)
+@@ -157,8 +172,14 @@ static int nss_prio_get_max_bands(struct
   * nss_prio_change()
   *	Function call to configure the nssprio parameters
   */
@@ -1738,7 +1730,7 @@ index add744d..6b44ba9 100644
  	struct nss_prio_sched_data *q;
  	struct tc_nssprio_qopt *qopt;
  
-@@ -180,7 +201,11 @@ static int nss_prio_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -180,7 +201,11 @@ static int nss_prio_change(struct Qdisc
  		return 0;
  	}
  
@@ -1751,7 +1743,7 @@ index add744d..6b44ba9 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -209,9 +234,17 @@ static int nss_prio_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -209,9 +234,17 @@ static int nss_prio_change(struct Qdisc
   * nss_prio_init()
   *	Initializes the nssprio qdisc
   */
@@ -1769,7 +1761,7 @@ index add744d..6b44ba9 100644
  	struct tc_nssprio_qopt *qopt;
  	int i;
  	unsigned int accel_mode;
-@@ -223,21 +256,30 @@ static int nss_prio_init(struct Qdisc *sch, struct nlattr *opt)
+@@ -223,21 +256,30 @@ static int nss_prio_init(struct Qdisc *s
  	if (!opt) {
  		accel_mode = TCA_NSS_ACCEL_MODE_PPE;
  	} else {
@@ -1802,7 +1794,7 @@ index add744d..6b44ba9 100644
  		nss_qdisc_destroy(&q->nq);
  		return -EINVAL;
  	}
-@@ -263,7 +305,7 @@ static int nss_prio_dump(struct Qdisc *sch, struct sk_buff *skb)
+@@ -263,7 +305,7 @@ static int nss_prio_dump(struct Qdisc *s
  	qopt.bands = q->bands;
  	qopt.accel_mode = nss_qdisc_accel_mode_get(&q->nq);
  
@@ -1826,7 +1818,7 @@ index add744d..6b44ba9 100644
  {
  	struct nss_prio_sched_data *q = qdisc_priv(sch);
  	struct nss_qdisc *nq_new = qdisc_priv(new);
-@@ -365,6 +413,7 @@ static struct Qdisc *nss_prio_leaf(struct Qdisc *sch, unsigned long arg)
+@@ -365,6 +413,7 @@ static struct Qdisc *nss_prio_leaf(struc
  	return q->queues[band];
  }
  
@@ -1834,7 +1826,7 @@ index add744d..6b44ba9 100644
  /*
   * nss_prio_get()
   *	Returns the band if provided the classid.
-@@ -390,6 +439,24 @@ static void nss_prio_put(struct Qdisc *sch, unsigned long arg)
+@@ -390,6 +439,24 @@ static void nss_prio_put(struct Qdisc *s
  {
  	nss_qdisc_info("Inside prio put\n");
  }
@@ -1859,7 +1851,7 @@ index add744d..6b44ba9 100644
  
  /*
   * nss_prio_walk()
-@@ -446,7 +513,7 @@ static int nss_prio_dump_class_stats(struct Qdisc *sch, unsigned long cl,
+@@ -446,7 +513,7 @@ static int nss_prio_dump_class_stats(str
  	cl_q = q->queues[cl - 1];
  	cl_q->qstats.qlen = cl_q->q.qlen;
  
@@ -1868,7 +1860,7 @@ index add744d..6b44ba9 100644
  			nss_qdisc_gnet_stats_copy_queue(d, &cl_q->qstats) < 0)
  		return -1;
  
-@@ -460,9 +527,17 @@ static int nss_prio_dump_class_stats(struct Qdisc *sch, unsigned long cl,
+@@ -460,9 +527,17 @@ static int nss_prio_dump_class_stats(str
  const struct Qdisc_class_ops nss_prio_class_ops = {
  	.graft		=	nss_prio_graft,
  	.leaf		=	nss_prio_leaf,
@@ -1886,7 +1878,7 @@ index add744d..6b44ba9 100644
  	.bind_tcf	=	nss_qdisc_tcf_bind,
  	.unbind_tcf	=	nss_qdisc_tcf_unbind,
  	.walk		=	nss_prio_walk,
-@@ -481,7 +556,9 @@ struct Qdisc_ops nss_prio_qdisc_ops __read_mostly = {
+@@ -481,7 +556,9 @@ struct Qdisc_ops nss_prio_qdisc_ops __re
  	.enqueue	=	nss_prio_enqueue,
  	.dequeue	=	nss_prio_dequeue,
  	.peek		=	nss_prio_peek,
@@ -1896,8 +1888,6 @@ index add744d..6b44ba9 100644
  	.init		=	nss_prio_init,
  	.reset		=	nss_prio_reset,
  	.destroy	=	nss_prio_destroy,
-diff --git a/nss_qdisc/nss_qdisc.c b/nss_qdisc/nss_qdisc.c
-index 752cb98..3c56b77 100644
 --- a/nss_qdisc/nss_qdisc.c
 +++ b/nss_qdisc/nss_qdisc.c
 @@ -1,6 +1,6 @@
@@ -1908,7 +1898,7 @@ index 752cb98..3c56b77 100644
   * Permission to use, copy, modify, and/or distribute this software for
   * any purpose with or without fee is hereby granted, provided that the
   * above copyright notice and this permission notice appear in all copies.
-@@ -927,7 +927,11 @@ static inline void nss_qdisc_add_to_tail_protected(struct sk_buff *skb, struct Q
+@@ -927,7 +927,11 @@ static inline void nss_qdisc_add_to_tail
  	 * We do not use the qdisc_enqueue_tail() API here in order
  	 * to prevent stats from getting updated by the API.
  	 */
@@ -1920,7 +1910,7 @@ index 752cb98..3c56b77 100644
  
  	spin_unlock_bh(&nq->bounce_protection_lock);
  };
-@@ -942,7 +946,11 @@ static inline void nss_qdisc_add_to_tail(struct sk_buff *skb, struct Qdisc *sch)
+@@ -942,7 +946,11 @@ static inline void nss_qdisc_add_to_tail
  	 * We do not use the qdisc_enqueue_tail() API here in order
  	 * to prevent stats from getting updated by the API.
  	 */
@@ -1932,7 +1922,7 @@ index 752cb98..3c56b77 100644
  };
  
  /*
-@@ -964,10 +972,12 @@ static inline struct sk_buff *nss_qdisc_remove_from_tail_protected(struct Qdisc
+@@ -964,10 +972,12 @@ static inline struct sk_buff *nss_qdisc_
  	 * We use __skb_dequeue() to ensure that
  	 * stats don't get updated twice.
  	 */
@@ -1947,7 +1937,7 @@ index 752cb98..3c56b77 100644
  	return skb;
  };
  
-@@ -981,7 +991,11 @@ static inline struct sk_buff *nss_qdisc_remove_from_tail(struct Qdisc *sch)
+@@ -981,7 +991,11 @@ static inline struct sk_buff *nss_qdisc_
  	 * We use __skb_dequeue() to ensure that
  	 * stats don't get updated twice.
  	 */
@@ -1959,7 +1949,7 @@ index 752cb98..3c56b77 100644
  };
  
  /*
-@@ -1059,24 +1073,33 @@ struct Qdisc *nss_qdisc_replace(struct Qdisc *sch, struct Qdisc *new,
+@@ -1059,24 +1073,33 @@ struct Qdisc *nss_qdisc_replace(struct Q
   * nss_qdisc_qopt_get()
   *	Extracts qopt from opt.
   */
@@ -1998,7 +1988,7 @@ index 752cb98..3c56b77 100644
  }
  
  /*
-@@ -1102,16 +1125,17 @@ struct sk_buff *nss_qdisc_peek(struct Qdisc *sch)
+@@ -1102,16 +1125,17 @@ struct sk_buff *nss_qdisc_peek(struct Qd
  	struct sk_buff *skb;
  
  	if (!nq->is_virtual) {
@@ -2018,7 +2008,7 @@ index 752cb98..3c56b77 100644
  /*
   * nss_qdisc_drop()
   *	Called to drop the packet at the head of queue
-@@ -1134,6 +1158,7 @@ unsigned int nss_qdisc_drop(struct Qdisc *sch)
+@@ -1134,6 +1158,7 @@ unsigned int nss_qdisc_drop(struct Qdisc
  
  	return ret;
  }
@@ -2026,7 +2016,7 @@ index 752cb98..3c56b77 100644
  
  /*
   * nss_qdisc_reset()
-@@ -1181,7 +1206,11 @@ static bool nss_qdisc_iterate_fl(struct sk_buff *skb, struct Qdisc *sch)
+@@ -1181,7 +1206,11 @@ static bool nss_qdisc_iterate_fl(struct
  		return 0;
  	}
  
@@ -2039,7 +2029,7 @@ index 752cb98..3c56b77 100644
  	if ((status == TC_ACT_STOLEN) || (status == TC_ACT_QUEUED)) {
  		return 1;
  	}
-@@ -1203,7 +1232,11 @@ static bool nss_qdisc_iterate_fl(struct sk_buff *skb, struct Qdisc *sch)
+@@ -1203,7 +1232,11 @@ static bool nss_qdisc_iterate_fl(struct
   * nss_qdisc_enqueue()
   *	Generic enqueue call for enqueuing packets into NSS for shaping
   */
@@ -2052,7 +2042,7 @@ index 752cb98..3c56b77 100644
  {
  	struct nss_qdisc *nq = qdisc_priv(sch);
  	nss_tx_status_t status;
-@@ -1263,11 +1296,18 @@ int nss_qdisc_enqueue(struct sk_buff *skb, struct Qdisc *sch)
+@@ -1263,11 +1296,18 @@ int nss_qdisc_enqueue(struct sk_buff *sk
  	/*
  	 * Skip the shaping of already shaped packets.
  	 */
@@ -2088,7 +2078,7 @@ index 752cb98..3c56b77 100644
  	return NET_XMIT_DROP;
  }
  
-@@ -1882,7 +1925,12 @@ void nss_qdisc_destroy(struct nss_qdisc *nq)
+@@ -1882,7 +1925,12 @@ void nss_qdisc_destroy(struct nss_qdisc
  	/*
  	 * Destroy any attached filter over qdisc.
  	 */
@@ -2101,7 +2091,7 @@ index 752cb98..3c56b77 100644
  #if defined(NSS_QDISC_PPE_SUPPORT)
  	if (nq->mode == NSS_QDISC_MODE_PPE) {
  		nss_ppe_destroy(nq);
-@@ -1960,12 +2008,19 @@ void nss_qdisc_destroy(struct nss_qdisc *nq)
+@@ -1960,12 +2008,19 @@ void nss_qdisc_destroy(struct nss_qdisc
  }
  
  /*
@@ -2123,7 +2113,7 @@ index 752cb98..3c56b77 100644
  	struct Qdisc *root;
  	u32 parent;
  	nss_tx_status_t rc;
-@@ -1978,7 +2033,6 @@ int nss_qdisc_init(struct Qdisc *sch, struct nss_qdisc *nq, nss_shaper_node_type
+@@ -1978,7 +2033,6 @@ int nss_qdisc_init(struct Qdisc *sch, st
  	bool mode_ppe = false;
  #endif
  	bool igs_put = false;
@@ -2131,7 +2121,7 @@ index 752cb98..3c56b77 100644
  	if (accel_mode >= TCA_NSS_ACCEL_MODE_MAX) {
  		nss_qdisc_warning("Qdisc %px (type %d) accel_mode:%u should be < %u\n",
  					sch, nq->type, accel_mode, TCA_NSS_ACCEL_MODE_MAX);
-@@ -2037,8 +2091,9 @@ int nss_qdisc_init(struct Qdisc *sch, struct nss_qdisc *nq, nss_shaper_node_type
+@@ -2037,8 +2091,9 @@ int nss_qdisc_init(struct Qdisc *sch, st
  	/*
  	 * Initialize filter list.
  	 */
@@ -2142,7 +2132,7 @@ index 752cb98..3c56b77 100644
  	/*
  	 * If we are a class, then classid is used as the qos tag.
  	 * Else the qdisc handle will be used as the qos tag.
-@@ -2073,6 +2128,25 @@ int nss_qdisc_init(struct Qdisc *sch, struct nss_qdisc *nq, nss_shaper_node_type
+@@ -2073,6 +2128,25 @@ int nss_qdisc_init(struct Qdisc *sch, st
  	 * or on a net device that is represented by a virtual NSS interface (e.g. WIFI)
  	 */
  	dev = qdisc_dev(sch);
@@ -2168,7 +2158,7 @@ index 752cb98..3c56b77 100644
  	nss_qdisc_info("Qdisc %px (type %d) init dev: %px\n", nq->qdisc, nq->type, dev);
  
  	/*
-@@ -2098,6 +2172,8 @@ int nss_qdisc_init(struct Qdisc *sch, struct nss_qdisc *nq, nss_shaper_node_type
+@@ -2098,6 +2172,8 @@ int nss_qdisc_init(struct Qdisc *sch, st
  	 * This is to prevent mixing NSS and PPE qdisc with linux qdisc.
  	 */
  	if ((parent != TC_H_ROOT) && (root->ops->owner != THIS_MODULE)) {
@@ -2177,7 +2167,7 @@ index 752cb98..3c56b77 100644
  		nss_qdisc_warning("NSS qdisc %px (type %d) used along with non-nss qdiscs,"
  			" or the interface is currently down", nq->qdisc, nq->type);
  	}
-@@ -2394,7 +2470,7 @@ int nss_qdisc_init(struct Qdisc *sch, struct nss_qdisc *nq, nss_shaper_node_type
+@@ -2394,7 +2470,7 @@ int nss_qdisc_init(struct Qdisc *sch, st
  		if (igs_put) {
  			nss_igs_module_put();
  		}
@@ -2186,11 +2176,10 @@ index 752cb98..3c56b77 100644
  		return -1;
  	}
  
-@@ -2464,6 +2540,20 @@ init_fail:
- 	return -1;
+@@ -2465,6 +2541,20 @@ init_fail:
  }
  
-+/*
+ /*
 + * nss_qdisc_init()
 + *	Initialize nss qdisc based on position of the qdisc
 + */
@@ -2204,10 +2193,11 @@ index 752cb98..3c56b77 100644
 +#endif
 +}
 +
- /*
++/*
   * nss_qdisc_basic_stats_callback()
   *	Invoked after getting basic stats
-@@ -2476,7 +2566,11 @@ static void nss_qdisc_basic_stats_callback(void *app_data,
+  */
+@@ -2476,7 +2566,11 @@ static void nss_qdisc_basic_stats_callba
  	struct gnet_stats_basic_packed *bstats;
  	struct gnet_stats_queue *qstats;
  	struct nss_shaper_node_stats_response *response;
@@ -2219,7 +2209,7 @@ index 752cb98..3c56b77 100644
  
  	if (nim->cm.response != NSS_CMN_RESPONSE_ACK) {
  		nss_qdisc_warning("Qdisc %px (type %d): Receive stats FAILED - "
-@@ -2539,7 +2633,11 @@ static void nss_qdisc_basic_stats_callback(void *app_data,
+@@ -2539,7 +2633,11 @@ static void nss_qdisc_basic_stats_callba
  	 * All access to nq fields below do not need lock protection. They
  	 * do not get manipulated on different thread contexts.
  	 */
@@ -2231,7 +2221,7 @@ index 752cb98..3c56b77 100644
  		atomic_sub(1, &nq->pending_stat_requests);
  		wake_up(&nq->wait_queue);
  		return;
-@@ -2561,9 +2659,18 @@ static void nss_qdisc_basic_stats_callback(void *app_data,
+@@ -2561,9 +2659,18 @@ static void nss_qdisc_basic_stats_callba
   * nss_qdisc_get_stats_timer_callback()
   *	Invoked periodically to get updated stats
   */
@@ -2250,7 +2240,7 @@ index 752cb98..3c56b77 100644
  	nss_tx_status_t rc;
  	struct nss_if_msg nim;
  	int msg_type;
-@@ -2610,9 +2717,14 @@ void nss_qdisc_start_basic_stats_polling(struct nss_qdisc *nq)
+@@ -2610,9 +2717,14 @@ void nss_qdisc_start_basic_stats_polling
  		return;
  	}
  
@@ -2265,7 +2255,7 @@ index 752cb98..3c56b77 100644
  	nq->stats_get_timer.expires = jiffies + HZ;
  	atomic_set(&nq->pending_stat_requests, 1);
  	add_timer(&nq->stats_get_timer);
-@@ -2650,13 +2762,15 @@ void nss_qdisc_stop_basic_stats_polling(struct nss_qdisc *nq)
+@@ -2650,13 +2762,15 @@ void nss_qdisc_stop_basic_stats_polling(
   * nss_qdisc_gnet_stats_copy_basic()
   *  Wrapper around gnet_stats_copy_basic()
   */
@@ -2283,7 +2273,7 @@ index 752cb98..3c56b77 100644
  #endif
  }
  
-@@ -2695,10 +2809,8 @@ static int nss_qdisc_if_event_cb(struct notifier_block *unused,
+@@ -2695,10 +2809,8 @@ static int nss_qdisc_if_event_cb(struct
  
  	switch (event) {
  	case NETDEV_BR_JOIN:
@@ -2295,7 +2285,7 @@ index 752cb98..3c56b77 100644
  				dev->name);
  		br = nss_qdisc_get_dev_master(dev);
  		if_num = nss_cmn_get_interface_number(nss_qdisc_ctx, dev);
-@@ -2754,6 +2866,7 @@ static int nss_qdisc_if_event_cb(struct notifier_block *unused,
+@@ -2754,6 +2866,7 @@ static int nss_qdisc_if_event_cb(struct
  	return NOTIFY_DONE;
  }
  
@@ -2303,7 +2293,7 @@ index 752cb98..3c56b77 100644
  /*
   * nss_qdisc_tcf_chain()
   *	Return the filter list of qdisc.
-@@ -2778,8 +2891,29 @@ struct tcf_proto __rcu **nss_qdisc_tcf_chain(struct Qdisc *sch, unsigned long ar
+@@ -2778,8 +2891,29 @@ struct tcf_proto __rcu **nss_qdisc_tcf_c
  	if (nq->is_root) {
  		return &(nq->filter_list);
  	}
@@ -2333,8 +2323,6 @@ index 752cb98..3c56b77 100644
  
  /*
   * nss_qdisc_tcf_bind()
-diff --git a/nss_qdisc/nss_qdisc.h b/nss_qdisc/nss_qdisc.h
-index 0c9fb0a..3b7381c 100644
 --- a/nss_qdisc/nss_qdisc.h
 +++ b/nss_qdisc/nss_qdisc.h
 @@ -1,6 +1,6 @@
@@ -2385,11 +2373,10 @@ index 0c9fb0a..3b7381c 100644
  };
  
  /*
-@@ -237,12 +248,82 @@ enum nss_qdisc_hybrid_mode {
- 	NSS_QDISC_HYBRID_MODE_ENABLE,
+@@ -238,11 +249,81 @@ enum nss_qdisc_hybrid_mode {
  };
  
-+/*
+ /*
 + * nss_qdisc_nla_nest_start()
 + *	Returns the container attribute
 + */
@@ -2454,7 +2441,7 @@ index 0c9fb0a..3b7381c 100644
 +#endif
 +}
 +
- /*
++/*
   * nss_qdisc_qopt_get()
   *	Extracts qopt from opt.
   */
@@ -2469,7 +2456,7 @@ index 0c9fb0a..3b7381c 100644
  
  /*
   * nss_qdisc_mode_get()
-@@ -256,11 +337,13 @@ extern uint8_t nss_qdisc_accel_mode_get(struct nss_qdisc *nq);
+@@ -256,11 +337,13 @@ extern uint8_t nss_qdisc_accel_mode_get(
   */
  extern struct sk_buff *nss_qdisc_peek(struct Qdisc *sch);
  
@@ -2483,7 +2470,7 @@ index 0c9fb0a..3b7381c 100644
  
  /*
   * nss_qdisc_reset()
-@@ -272,7 +355,11 @@ extern void nss_qdisc_reset(struct Qdisc *sch);
+@@ -272,7 +355,11 @@ extern void nss_qdisc_reset(struct Qdisc
   * nss_qdisc_enqueue()
   *	Generic enqueue call for enqueuing packets into NSS for shaping
   */
@@ -2495,7 +2482,7 @@ index 0c9fb0a..3b7381c 100644
  
  /*
   * nss_qdisc_dequeue()
-@@ -338,7 +425,8 @@ extern void nss_qdisc_destroy(struct nss_qdisc *nq);
+@@ -338,7 +425,8 @@ extern void nss_qdisc_destroy(struct nss
   *	Initializes a shaper in NSS, based on the position of this qdisc (child or root)
   *	and if its a normal interface or a bridge interface.
   */
@@ -2505,7 +2492,7 @@ index 0c9fb0a..3b7381c 100644
  
  /*
   * nss_qdisc_start_basic_stats_polling()
-@@ -356,8 +444,8 @@ extern void nss_qdisc_stop_basic_stats_polling(struct nss_qdisc *nq);
+@@ -356,8 +444,8 @@ extern void nss_qdisc_stop_basic_stats_p
   * nss_qdisc_gnet_stats_copy_basic()
   *  Wrapper around gnet_stats_copy_basic()
   */
@@ -2516,7 +2503,7 @@ index 0c9fb0a..3b7381c 100644
  
  /*
   * nss_qdisc_gnet_stats_copy_queue()
-@@ -373,11 +461,19 @@ extern int nss_qdisc_gnet_stats_copy_queue(struct gnet_dump *d,
+@@ -373,11 +461,19 @@ extern int nss_qdisc_gnet_stats_copy_que
  extern struct Qdisc *nss_qdisc_replace(struct Qdisc *sch, struct Qdisc *new,
  					struct Qdisc **pold);
  
@@ -2536,11 +2523,9 @@ index 0c9fb0a..3b7381c 100644
  
  /*
   * nss_qdisc_tcf_bind()
-diff --git a/nss_qdisc/nss_tbl.c b/nss_qdisc/nss_tbl.c
-index fd8b445..ddca81b 100644
 --- a/nss_qdisc/nss_tbl.c
 +++ b/nss_qdisc/nss_tbl.c
-@@ -29,9 +29,18 @@ static struct nla_policy nss_tbl_policy[TCA_NSSTBL_MAX + 1] = {
+@@ -29,9 +29,18 @@ static struct nla_policy nss_tbl_policy[
  	[TCA_NSSTBL_PARMS] = { .len = sizeof(struct tc_nsstbl_qopt) },
  };
  
@@ -2559,7 +2544,7 @@ index fd8b445..ddca81b 100644
  }
  
  static struct sk_buff *nss_tbl_dequeue(struct Qdisc *sch)
-@@ -39,10 +48,12 @@ static struct sk_buff *nss_tbl_dequeue(struct Qdisc *sch)
+@@ -39,10 +48,12 @@ static struct sk_buff *nss_tbl_dequeue(s
  	return nss_qdisc_dequeue(sch);
  }
  
@@ -2572,7 +2557,7 @@ index fd8b445..ddca81b 100644
  
  static struct sk_buff *nss_tbl_peek(struct Qdisc *sch)
  {
-@@ -77,7 +88,7 @@ static void nss_tbl_destroy(struct Qdisc *sch)
+@@ -77,7 +88,7 @@ static void nss_tbl_destroy(struct Qdisc
  	/*
  	 * Now we can destroy our child qdisc
  	 */
@@ -2581,7 +2566,7 @@ index fd8b445..ddca81b 100644
  
  	/*
  	 * Stop the polling of basic stats and destroy qdisc.
-@@ -87,7 +98,11 @@ static void nss_tbl_destroy(struct Qdisc *sch)
+@@ -87,7 +98,11 @@ static void nss_tbl_destroy(struct Qdisc
  }
  
  #if defined(NSS_QDISC_PPE_SUPPORT)
@@ -2623,7 +2608,7 @@ index fd8b445..ddca81b 100644
  	struct tc_nsstbl_qopt *qopt;
  	struct nss_if_msg nim;
  	struct net_device *dev = qdisc_dev(sch);
-@@ -143,7 +168,11 @@ static int nss_tbl_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -143,7 +168,11 @@ static int nss_tbl_change(struct Qdisc *
  		return -EINVAL;
  	}
  
@@ -2636,7 +2621,7 @@ index fd8b445..ddca81b 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -178,7 +207,11 @@ static int nss_tbl_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -178,7 +207,11 @@ static int nss_tbl_change(struct Qdisc *
  
  #if defined(NSS_QDISC_PPE_SUPPORT)
  	if (q->nq.mode == NSS_QDISC_MODE_PPE) {
@@ -2648,7 +2633,7 @@ index fd8b445..ddca81b 100644
  			nss_qdisc_warning("nss_tbl %x SSDK scheduler config failed\n", sch->handle);
  			return -EINVAL;
  		}
-@@ -216,9 +249,17 @@ static int nss_tbl_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -216,9 +249,17 @@ static int nss_tbl_change(struct Qdisc *
  	return 0;
  }
  
@@ -2666,7 +2651,7 @@ index fd8b445..ddca81b 100644
  	struct tc_nsstbl_qopt *qopt;
  
  	if (!opt) {
-@@ -227,15 +268,25 @@ static int nss_tbl_init(struct Qdisc *sch, struct nlattr *opt)
+@@ -227,15 +268,25 @@ static int nss_tbl_init(struct Qdisc *sc
  
  	q->qdisc = &noop_qdisc;
  
@@ -2694,7 +2679,7 @@ index fd8b445..ddca81b 100644
  		nss_qdisc_info("Failed to configure tbl\n");
  		nss_qdisc_destroy(&q->nq);
  		return -EINVAL;
-@@ -262,7 +313,8 @@ static int nss_tbl_dump(struct Qdisc *sch, struct sk_buff *skb)
+@@ -262,7 +313,8 @@ static int nss_tbl_dump(struct Qdisc *sc
  	opt.accel_mode = nss_qdisc_accel_mode_get(&q->nq);
  
  	nss_qdisc_info("Nsstbl dumping");
@@ -2704,7 +2689,7 @@ index fd8b445..ddca81b 100644
  	if (opts == NULL || nla_put(skb, TCA_NSSTBL_PARMS, sizeof(opt), &opt)) {
  		goto nla_put_failure;
  	}
-@@ -286,8 +338,13 @@ static int nss_tbl_dump_class(struct Qdisc *sch, unsigned long cl,
+@@ -286,8 +338,13 @@ static int nss_tbl_dump_class(struct Qdi
  	return 0;
  }
  
@@ -2718,7 +2703,7 @@ index fd8b445..ddca81b 100644
  {
  	struct nss_tbl_sched_data *q = qdisc_priv(sch);
  	struct nss_qdisc *nq_new = (struct nss_qdisc *)qdisc_priv(new);
-@@ -339,6 +396,7 @@ static struct Qdisc *nss_tbl_leaf(struct Qdisc *sch, unsigned long arg)
+@@ -339,6 +396,7 @@ static struct Qdisc *nss_tbl_leaf(struct
  	return q->qdisc;
  }
  
@@ -2726,7 +2711,7 @@ index fd8b445..ddca81b 100644
  static unsigned long nss_tbl_get(struct Qdisc *sch, u32 classid)
  {
  	return 1;
-@@ -347,6 +405,12 @@ static unsigned long nss_tbl_get(struct Qdisc *sch, u32 classid)
+@@ -347,6 +405,12 @@ static unsigned long nss_tbl_get(struct
  static void nss_tbl_put(struct Qdisc *sch, unsigned long arg)
  {
  }
@@ -2739,7 +2724,7 @@ index fd8b445..ddca81b 100644
  
  static void nss_tbl_walk(struct Qdisc *sch, struct qdisc_walker *walker)
  {
-@@ -364,9 +428,17 @@ static void nss_tbl_walk(struct Qdisc *sch, struct qdisc_walker *walker)
+@@ -364,9 +428,17 @@ static void nss_tbl_walk(struct Qdisc *s
  const struct Qdisc_class_ops nss_tbl_class_ops = {
  	.graft		=	nss_tbl_graft,
  	.leaf		=	nss_tbl_leaf,
@@ -2757,7 +2742,7 @@ index fd8b445..ddca81b 100644
  	.bind_tcf	=	nss_qdisc_tcf_bind,
  	.unbind_tcf	=	nss_qdisc_tcf_unbind,
  	.walk		=	nss_tbl_walk,
-@@ -381,7 +453,9 @@ struct Qdisc_ops nss_tbl_qdisc_ops __read_mostly = {
+@@ -381,7 +453,9 @@ struct Qdisc_ops nss_tbl_qdisc_ops __rea
  	.enqueue	=	nss_tbl_enqueue,
  	.dequeue	=	nss_tbl_dequeue,
  	.peek		=	nss_tbl_peek,
@@ -2767,11 +2752,9 @@ index fd8b445..ddca81b 100644
  	.init		=	nss_tbl_init,
  	.reset		=	nss_tbl_reset,
  	.destroy	=	nss_tbl_destroy,
-diff --git a/nss_qdisc/nss_wred.c b/nss_qdisc/nss_wred.c
-index cd16546..c301f99 100644
 --- a/nss_qdisc/nss_wred.c
 +++ b/nss_qdisc/nss_wred.c
-@@ -55,9 +55,18 @@ static struct nla_policy nss_wred_policy[TCA_NSSWRED_MAX + 1] = {
+@@ -55,9 +55,18 @@ static struct nla_policy nss_wred_policy
   * nss_wred_enqueue()
   *	Enqueue API for nsswred qdisc
   */
@@ -2790,7 +2773,7 @@ index cd16546..c301f99 100644
  }
  
  /*
-@@ -69,6 +78,7 @@ static struct sk_buff *nss_wred_dequeue(struct Qdisc *sch)
+@@ -69,6 +78,7 @@ static struct sk_buff *nss_wred_dequeue(
  	return nss_qdisc_dequeue(sch);
  }
  
@@ -2798,7 +2781,7 @@ index cd16546..c301f99 100644
  /*
   * nss_wred_drop()
   *	Drops a packet from HLOS queue.
-@@ -78,6 +88,7 @@ static unsigned int nss_wred_drop(struct Qdisc *sch)
+@@ -78,6 +88,7 @@ static unsigned int nss_wred_drop(struct
  	nss_qdisc_info("nsswred dropping");
  	return nss_qdisc_drop(sch);
  }
@@ -2806,7 +2789,7 @@ index cd16546..c301f99 100644
  
  /*
   * nss_wred_reset()
-@@ -111,7 +122,11 @@ static void nss_wred_destroy(struct Qdisc *sch)
+@@ -111,7 +122,11 @@ static void nss_wred_destroy(struct Qdis
   * nss_wred_ppe_change()
   *	Function call to configure the nssred parameters for ppe qdisc.
   */
@@ -2848,7 +2831,7 @@ index cd16546..c301f99 100644
  	struct tc_nsswred_qopt *qopt;
  	struct nss_if_msg nim;
  
-@@ -181,7 +206,11 @@ static int nss_wred_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -181,7 +206,11 @@ static int nss_wred_change(struct Qdisc
  		return -EINVAL;
  	}
  
@@ -2861,7 +2844,7 @@ index cd16546..c301f99 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -253,7 +282,11 @@ static int nss_wred_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -253,7 +282,11 @@ static int nss_wred_change(struct Qdisc
  
  #if defined(NSS_QDISC_PPE_SUPPORT)
  	if (q->nq.mode == NSS_QDISC_MODE_PPE) {
@@ -2873,7 +2856,7 @@ index cd16546..c301f99 100644
  			nss_qdisc_warning("nss_wred %px params validate and save failed\n", sch);
  			return -EINVAL;
  		}
-@@ -298,16 +331,28 @@ static int nss_wred_change(struct Qdisc *sch, struct nlattr *opt)
+@@ -298,16 +331,28 @@ static int nss_wred_change(struct Qdisc
   * nss_wred_init()
   *	Init the nsswred qdisc
   */
@@ -2903,7 +2886,7 @@ index cd16546..c301f99 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -315,11 +360,17 @@ static int nss_wred_init(struct Qdisc *sch, struct nlattr *opt)
+@@ -315,11 +360,17 @@ static int nss_wred_init(struct Qdisc *s
  	nss_qdisc_info("Initializing Wred - type %d\n", NSS_SHAPER_NODE_TYPE_WRED);
  	nss_wred_reset(sch);
  
@@ -2922,7 +2905,7 @@ index cd16546..c301f99 100644
  		nss_qdisc_destroy(nq);
  		return -EINVAL;
  	}
-@@ -374,7 +425,7 @@ static int nss_wred_dump(struct Qdisc *sch, struct sk_buff *skb)
+@@ -374,7 +425,7 @@ static int nss_wred_dump(struct Qdisc *s
  	opt.set_default = q->set_default;
  	opt.accel_mode = nss_qdisc_accel_mode_get(&q->nq);
  
@@ -2931,7 +2914,7 @@ index cd16546..c301f99 100644
  	if (opts == NULL || nla_put(skb, TCA_NSSWRED_PARMS, sizeof(opt), &opt)) {
  		goto nla_put_failure;
  	}
-@@ -405,7 +456,9 @@ struct Qdisc_ops nss_red_qdisc_ops __read_mostly = {
+@@ -405,7 +456,9 @@ struct Qdisc_ops nss_red_qdisc_ops __rea
  	.enqueue	=	nss_wred_enqueue,
  	.dequeue	=	nss_wred_dequeue,
  	.peek		=	nss_wred_peek,
@@ -2941,7 +2924,7 @@ index cd16546..c301f99 100644
  	.init		=	nss_wred_init,
  	.reset		=	nss_wred_reset,
  	.destroy	=	nss_wred_destroy,
-@@ -423,7 +476,9 @@ struct Qdisc_ops nss_wred_qdisc_ops __read_mostly = {
+@@ -423,7 +476,9 @@ struct Qdisc_ops nss_wred_qdisc_ops __re
  	.enqueue	=	nss_wred_enqueue,
  	.dequeue	=	nss_wred_dequeue,
  	.peek		=	nss_wred_peek,
@@ -2951,11 +2934,9 @@ index cd16546..c301f99 100644
  	.init		=	nss_wred_init,
  	.reset		=	nss_wred_reset,
  	.destroy	=	nss_wred_destroy,
-diff --git a/nss_qdisc/nss_wrr.c b/nss_qdisc/nss_wrr.c
-index 1c0f8ec..468bc6f 100644
 --- a/nss_qdisc/nss_wrr.c
 +++ b/nss_qdisc/nss_wrr.c
-@@ -84,7 +84,7 @@ static void nss_wrr_destroy_class(struct Qdisc *sch, struct nss_wrr_class_data *
+@@ -84,7 +84,7 @@ static void nss_wrr_destroy_class(struct
  	/*
  	 * And now we destroy the child.
  	 */
@@ -2964,7 +2945,7 @@ index 1c0f8ec..468bc6f 100644
  
  	/*
  	 * Stop the stats polling timer and free class
-@@ -106,9 +106,15 @@ static void nss_wrr_destroy_class(struct Qdisc *sch, struct nss_wrr_class_data *
+@@ -106,9 +106,15 @@ static void nss_wrr_destroy_class(struct
   * nss_wrr_class_params_validate_and_save()
   *	Validates and saves the class configuration parameters.
   */
@@ -2980,7 +2961,7 @@ index 1c0f8ec..468bc6f 100644
  	struct nlattr *opt = tca[TCA_OPTIONS];
  	struct tc_nsswrr_class_qopt *qopt;
  	struct net_device *dev = qdisc_dev(sch);
-@@ -123,7 +129,11 @@ static int nss_wrr_class_params_validate_and_save(struct Qdisc *sch, struct nlat
+@@ -123,7 +129,11 @@ static int nss_wrr_class_params_validate
  		return -EINVAL;
  	}
  
@@ -2993,7 +2974,7 @@ index 1c0f8ec..468bc6f 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -218,9 +228,16 @@ static int nss_wrr_ppe_change_class(struct Qdisc *sch, struct nss_wrr_class_data
+@@ -218,9 +228,16 @@ static int nss_wrr_ppe_change_class(stru
  }
  #endif
  
@@ -3010,7 +2991,7 @@ index 1c0f8ec..468bc6f 100644
  	struct nss_wrr_sched_data *q = qdisc_priv(sch);
  	struct nss_wrr_class_data *cl = (struct nss_wrr_class_data *)*arg;
  	struct nss_if_msg nim_config;
-@@ -230,7 +247,11 @@ static int nss_wrr_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
+@@ -230,7 +247,11 @@ static int nss_wrr_change_class(struct Q
  
  	nss_qdisc_info("Changing nss_wrr class %u\n", classid);
  
@@ -3022,7 +3003,7 @@ index 1c0f8ec..468bc6f 100644
  		nss_qdisc_warning("validation of configuration parameters for wrr class %x failed\n",
  					sch->handle);
  		return -EINVAL;
-@@ -275,7 +296,7 @@ static int nss_wrr_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
+@@ -275,7 +296,7 @@ static int nss_wrr_change_class(struct Q
  		 * reference count should not be 0.
  		 */
  		cl->qdisc = &noop_qdisc;
@@ -3031,7 +3012,7 @@ index 1c0f8ec..468bc6f 100644
  		*arg = (unsigned long)cl;
  
  		nss_qdisc_info("Adding classid %u to qdisc %px hash queue %px\n", classid, sch, &q->clhash);
-@@ -286,7 +307,8 @@ static int nss_wrr_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
+@@ -286,7 +307,8 @@ static int nss_wrr_change_class(struct Q
  		 * here.
  		 */
  		cl->nq.parent = &q->nq;
@@ -3053,7 +3034,7 @@ index 1c0f8ec..468bc6f 100644
  {
  	struct nss_wrr_sched_data *q = qdisc_priv(sch);
  	struct nss_wrr_class_data *cl = (struct nss_wrr_class_data *)arg;
-@@ -412,7 +438,9 @@ static int nss_wrr_delete_class(struct Qdisc *sch, unsigned long arg)
+@@ -412,7 +438,9 @@ static int nss_wrr_delete_class(struct Q
  	sch_tree_lock(sch);
  	qdisc_reset(cl->qdisc);
  	qdisc_class_hash_remove(&q->clhash, &cl->cl_common);
@@ -3064,7 +3045,7 @@ index 1c0f8ec..468bc6f 100644
  	sch_tree_unlock(sch);
  	if (!refcnt) {
  		nss_qdisc_error("Reference count should not be zero for class %px\n", cl);
-@@ -421,8 +449,13 @@ static int nss_wrr_delete_class(struct Qdisc *sch, unsigned long arg)
+@@ -421,8 +449,13 @@ static int nss_wrr_delete_class(struct Q
  	return 0;
  }
  
@@ -3078,7 +3059,7 @@ index 1c0f8ec..468bc6f 100644
  {
  	struct nss_wrr_sched_data *q = qdisc_priv(sch);
  	struct nss_wrr_class_data *cl = (struct nss_wrr_class_data *)arg;
-@@ -504,6 +537,7 @@ static void nss_wrr_qlen_notify(struct Qdisc *sch, unsigned long arg)
+@@ -504,6 +537,7 @@ static void nss_wrr_qlen_notify(struct Q
  	 */
  }
  
@@ -3086,7 +3067,7 @@ index 1c0f8ec..468bc6f 100644
  static unsigned long nss_wrr_get_class(struct Qdisc *sch, u32 classid)
  {
  	struct nss_wrr_class_data *cl = nss_wrr_find_class(classid, sch);
-@@ -526,10 +560,24 @@ static void nss_wrr_put_class(struct Qdisc *sch, unsigned long arg)
+@@ -526,10 +560,24 @@ static void nss_wrr_put_class(struct Qdi
  	 * We are safe to destroy the qdisc if the reference count
  	 * goes down to 0.
  	 */
@@ -3112,7 +3093,7 @@ index 1c0f8ec..468bc6f 100644
  
  static int nss_wrr_dump_class(struct Qdisc *sch, unsigned long arg, struct sk_buff *skb,
  		struct tcmsg *tcm)
-@@ -550,7 +598,7 @@ static int nss_wrr_dump_class(struct Qdisc *sch, unsigned long arg, struct sk_bu
+@@ -550,7 +598,7 @@ static int nss_wrr_dump_class(struct Qdi
  	tcm->tcm_handle = cl->cl_common.classid;
  	tcm->tcm_info = cl->qdisc->handle;
  
@@ -3121,7 +3102,7 @@ index 1c0f8ec..468bc6f 100644
  	if (opts == NULL || nla_put(skb, TCA_NSSWRR_CLASS_PARMS, sizeof(qopt), &qopt)) {
  		goto nla_put_failure;
  	}
-@@ -565,7 +613,7 @@ static int nss_wrr_dump_class_stats(struct Qdisc *sch, unsigned long arg, struct
+@@ -565,7 +613,7 @@ static int nss_wrr_dump_class_stats(stru
  {
  	struct nss_qdisc *nq = (struct nss_qdisc *)arg;
  
@@ -3130,7 +3111,7 @@ index 1c0f8ec..468bc6f 100644
  			nss_qdisc_gnet_stats_copy_queue(d, &nq->qstats) < 0) {
  		return -1;
  	}
-@@ -600,9 +648,17 @@ static void nss_wrr_walk(struct Qdisc *sch, struct qdisc_walker *arg)
+@@ -600,9 +648,17 @@ static void nss_wrr_walk(struct Qdisc *s
  	}
  }
  
@@ -3148,7 +3129,7 @@ index 1c0f8ec..468bc6f 100644
  	int err;
  	struct nss_if_msg nim;
  	struct tc_nsswrr_qopt *qopt;
-@@ -620,7 +676,11 @@ static int nss_wrr_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -620,7 +676,11 @@ static int nss_wrr_init_qdisc(struct Qdi
  	qdisc_class_hash_insert(&q->clhash, &q->root.cl_common);
  	qdisc_class_hash_grow(sch, &q->clhash);
  
@@ -3161,7 +3142,7 @@ index 1c0f8ec..468bc6f 100644
  	if (!qopt) {
  		nss_qdisc_warning("Failed to parse input");
  		return -EINVAL;
-@@ -629,7 +689,7 @@ static int nss_wrr_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -629,7 +689,7 @@ static int nss_wrr_init_qdisc(struct Qdi
  	/*
  	 * Initialize the NSSWRR shaper in NSS
  	 */
@@ -3170,7 +3151,7 @@ index 1c0f8ec..468bc6f 100644
  		nss_qdisc_warning("Failed init nss_wrr qdisc");
  		return -EINVAL;
  	}
-@@ -669,8 +729,14 @@ static int nss_wrr_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -669,8 +729,14 @@ static int nss_wrr_init_qdisc(struct Qdi
  	return 0;
  }
  
@@ -3185,7 +3166,7 @@ index 1c0f8ec..468bc6f 100644
  	struct nss_wrr_sched_data *q;
  	struct tc_nsswrr_qopt *qopt;
  
-@@ -680,7 +746,11 @@ static int nss_wrr_change_qdisc(struct Qdisc *sch, struct nlattr *opt)
+@@ -680,7 +746,11 @@ static int nss_wrr_change_qdisc(struct Q
  		return -EINVAL;
  	}
  
@@ -3198,7 +3179,7 @@ index 1c0f8ec..468bc6f 100644
  	if (!qopt) {
  		return -EINVAL;
  	}
-@@ -743,7 +813,7 @@ static void nss_wrr_destroy_qdisc(struct Qdisc *sch)
+@@ -743,7 +813,7 @@ static void nss_wrr_destroy_qdisc(struct
  			 * Reduce refcnt by 1 before destroying. This is to
  			 * ensure that polling of stat stops properly.
  			 */
@@ -3207,7 +3188,7 @@ index 1c0f8ec..468bc6f 100644
  
  			/*
  			 * Detach class before destroying it. We dont check for noop qdisc here
-@@ -794,7 +864,7 @@ static int nss_wrr_dump_qdisc(struct Qdisc *sch, struct sk_buff *skb)
+@@ -794,7 +864,7 @@ static int nss_wrr_dump_qdisc(struct Qdi
  
  	opt.accel_mode = nss_qdisc_accel_mode_get(&q->nq);
  
@@ -3235,7 +3216,7 @@ index 1c0f8ec..468bc6f 100644
  }
  
  static struct sk_buff *nss_wrr_dequeue(struct Qdisc *sch)
-@@ -819,11 +898,13 @@ static struct sk_buff *nss_wrr_dequeue(struct Qdisc *sch)
+@@ -819,11 +898,13 @@ static struct sk_buff *nss_wrr_dequeue(s
  	return nss_qdisc_dequeue(sch);
  }
  
@@ -3249,7 +3230,7 @@ index 1c0f8ec..468bc6f 100644
  
  const struct Qdisc_class_ops nss_wrr_class_ops = {
  	.change		= nss_wrr_change_class,
-@@ -831,9 +912,17 @@ const struct Qdisc_class_ops nss_wrr_class_ops = {
+@@ -831,9 +912,17 @@ const struct Qdisc_class_ops nss_wrr_cla
  	.graft		= nss_wrr_graft_class,
  	.leaf		= nss_wrr_leaf_class,
  	.qlen_notify	= nss_wrr_qlen_notify,
@@ -3267,7 +3248,7 @@ index 1c0f8ec..468bc6f 100644
  	.bind_tcf	= nss_qdisc_tcf_bind,
  	.unbind_tcf	= nss_qdisc_tcf_unbind,
  	.dump		= nss_wrr_dump_class,
-@@ -851,7 +940,9 @@ struct Qdisc_ops nss_wrr_qdisc_ops __read_mostly = {
+@@ -851,7 +940,9 @@ struct Qdisc_ops nss_wrr_qdisc_ops __rea
  	.enqueue	= nss_wrr_enqueue,
  	.dequeue	= nss_wrr_dequeue,
  	.peek		= qdisc_peek_dequeued,
@@ -3277,7 +3258,7 @@ index 1c0f8ec..468bc6f 100644
  	.cl_ops		= &nss_wrr_class_ops,
  	.priv_size	= sizeof(struct nss_wrr_sched_data),
  	.owner		= THIS_MODULE
-@@ -863,9 +954,17 @@ const struct Qdisc_class_ops nss_wfq_class_ops = {
+@@ -863,9 +954,17 @@ const struct Qdisc_class_ops nss_wfq_cla
  	.graft		= nss_wrr_graft_class,
  	.leaf		= nss_wrr_leaf_class,
  	.qlen_notify	= nss_wrr_qlen_notify,
@@ -3295,7 +3276,7 @@ index 1c0f8ec..468bc6f 100644
  	.bind_tcf	= nss_qdisc_tcf_bind,
  	.unbind_tcf	= nss_qdisc_tcf_unbind,
  	.dump		= nss_wrr_dump_class,
-@@ -883,7 +982,9 @@ struct Qdisc_ops nss_wfq_qdisc_ops __read_mostly = {
+@@ -883,7 +982,9 @@ struct Qdisc_ops nss_wfq_qdisc_ops __rea
  	.enqueue	= nss_wrr_enqueue,
  	.dequeue	= nss_wrr_dequeue,
  	.peek		= qdisc_peek_dequeued,

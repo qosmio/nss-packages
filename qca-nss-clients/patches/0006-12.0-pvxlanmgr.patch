@@ -1,8 +1,6 @@
-diff --git a/pvxlanmgr/nss_pvxlanmgr.c b/pvxlanmgr/nss_pvxlanmgr.c
-index 7332d7f..e1d749f 100644
 --- a/pvxlanmgr/nss_pvxlanmgr.c
 +++ b/pvxlanmgr/nss_pvxlanmgr.c
-@@ -186,6 +186,26 @@ static struct rtnl_link_stats64 *nss_pvxlanmgr_get_tunnel_stats(struct net_devic
+@@ -186,6 +186,26 @@ static struct rtnl_link_stats64 *nss_pvx
  	return stats;
  }
  
@@ -29,7 +27,7 @@ index 7332d7f..e1d749f 100644
  /*
   * nss_pvxlanmgr_unregister_with_nss()
   *	Internal function to unregister with NSS FW
-@@ -262,7 +282,7 @@ static const struct net_device_ops nss_pvxlanmgr_netdev_ops = {
+@@ -262,7 +282,7 @@ static const struct net_device_ops nss_p
  	.ndo_stop		= nss_pvxlanmgr_close,
  	.ndo_start_xmit		= nss_pvxlanmgr_start_xmit,
  	.ndo_set_mac_address	= eth_mac_addr,
@@ -38,7 +36,7 @@ index 7332d7f..e1d749f 100644
  };
  
  /*
-@@ -278,7 +298,13 @@ static void nss_pvxlanmgr_dummy_netdev_setup(struct net_device *dev)
+@@ -278,7 +298,13 @@ static void nss_pvxlanmgr_dummy_netdev_s
  	dev->ethtool_ops = NULL;
  	dev->header_ops = NULL;
  	dev->netdev_ops = &nss_pvxlanmgr_netdev_ops;
@@ -52,7 +50,7 @@ index 7332d7f..e1d749f 100644
  	memcpy(dev->dev_addr, "\x00\x00\x00\x00\x00\x00", dev->addr_len);
  	memset(dev->broadcast, 0xff, dev->addr_len);
  	memcpy(dev->perm_addr, dev->dev_addr, dev->addr_len);
-@@ -600,13 +626,14 @@ EXPORT_SYMBOL(nss_pvxlanmgr_netdev_create);
+@@ -600,13 +626,14 @@ EXPORT_SYMBOL(nss_pvxlanmgr_netdev_creat
  void __exit nss_pvxlanmgr_exit_module(void)
  {
  	int ret;
@@ -68,7 +66,7 @@ index 7332d7f..e1d749f 100644
  
  	ret = unregister_netdevice_notifier(&nss_pvxlanmgr_netdev_notifier);
  	if (!ret) {
-@@ -623,12 +650,14 @@ void __exit nss_pvxlanmgr_exit_module(void)
+@@ -623,12 +650,14 @@ void __exit nss_pvxlanmgr_exit_module(vo
  int __init nss_pvxlanmgr_init_module(void)
  {
  	int ret;
@@ -83,8 +81,6 @@ index 7332d7f..e1d749f 100644
  
  	nss_pvxlanmgr_info("module %s loaded\n",
  			   NSS_CLIENT_BUILD_ID);
-diff --git a/pvxlanmgr/nss_pvxlanmgr_priv.h b/pvxlanmgr/nss_pvxlanmgr_priv.h
-index 804dff0..7c1fb79 100644
 --- a/pvxlanmgr/nss_pvxlanmgr_priv.h
 +++ b/pvxlanmgr/nss_pvxlanmgr_priv.h
 @@ -1,6 +1,6 @@
