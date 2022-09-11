@@ -41,7 +41,7 @@ define KernelPackage/qca-nss-drv/install
 	$(INSTALL_BIN) ./files/qca-nss-drv.hotplug $(1)/etc/hotplug.d/firmware/10-qca-nss-fw
 	$(INSTALL_BIN) ./files/qca-nss-drv.conf $(1)/etc/config/nss
 	$(INSTALL_BIN) ./files/nss-firmware/qca-nss0-retail.bin $(1)/lib/firmware/qca-nss0.bin
-	# $(INSTALL_BIN) ./files/nss-firmware/qca-nss1-retail.bin $(1)/lib/firmware/qca-nss1.bin
+	$(INSTALL_BIN) ./files/nss-firmware/qca-nss1-retail.bin $(1)/lib/firmware/qca-nss1.bin
 
 endef
 
@@ -54,8 +54,8 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/exports/* $(1)/usr/include/qca-nss-drv/
 ifneq (, $(findstring $(subtarget), "ipq807x" "ipq807x_64" "ipq60xx" "ipq60xx_64" "ipq50xx" "ipq50xx_64"))
 	$(RM) $(1)/usr/include/qca-nss-drv/nss_ipsecmgr.h
-	# $(INSTALL_DIR) $(1)/usr/include/qca-nss-clients
-	# $(CP) $(NSS_CLIENTS_DIR)/exports/nss_ipsecmgr.h $(1)/usr/include/qca-nss-clients/.
+	$(INSTALL_DIR) $(1)/usr/include/qca-nss-clients
+	$(CP) $(NSS_CLIENTS_DIR)/exports/nss_ipsecmgr.h $(1)/usr/include/qca-nss-clients/.
 endif
 endef
 
