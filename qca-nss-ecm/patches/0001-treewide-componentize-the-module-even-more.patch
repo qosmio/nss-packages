@@ -14,7 +14,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 
 --- a/Makefile
 +++ b/Makefile
-@@ -82,10 +82,18 @@ ccflags-$(ECM_INTERFACE_BOND_ENABLE) +=
+@@ -125,10 +125,18 @@ ccflags-$(ECM_INTERFACE_BOND_ENABLE) +=
  # Define ECM_INTERFACE_PPPOE_ENABLE=y in order
  # to enable support for PPPoE acceleration.
  # #############################################################################
@@ -34,8 +34,8 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  # Define ECM_INTERFACE_L2TPV2_ENABLE=y in order
  # to enable support for l2tpv2 acceleration.
  # #############################################################################
-@@ -118,6 +126,12 @@ ccflags-$(ECM_INTERFACE_PPP_ENABLE) += -
- ccflags-$(ECM_INTERFACE_MAP_T_ENABLE) += -DECM_INTERFACE_MAP_T_ENABLE
+@@ -155,6 +163,12 @@ endif
+ ccflags-$(ECM_INTERFACE_PPP_ENABLE) += -DECM_INTERFACE_PPP_ENABLE
  
  # #############################################################################
 +# Define ECM_INTERFACE_GRE_ENABLE=y in order
@@ -47,7 +47,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  # Define ECM_INTERFACE_GRE_TAP_ENABLE=y in order
  # to enable support for GRE TAP interface.
  # #############################################################################
-@@ -186,7 +200,9 @@ ccflags-$(ECM_INTERFACE_OVS_BRIDGE_ENABL
+@@ -230,7 +244,9 @@ ccflags-$(ECM_INTERFACE_OVS_BRIDGE_ENABL
  # #############################################################################
  # Define ECM_INTERFACE_VLAN_ENABLE=y in order to enable support for VLAN
  # #############################################################################
@@ -58,7 +58,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ccflags-$(ECM_INTERFACE_VLAN_ENABLE) += -DECM_INTERFACE_VLAN_ENABLE
  
  # #############################################################################
-@@ -228,7 +244,9 @@ ccflags-$(ECM_CLASSIFIER_OVS_ENABLE) +=
+@@ -271,7 +287,9 @@ ccflags-$(ECM_CLASSIFIER_OVS_ENABLE) +=
  # #############################################################################
  # Define ECM_CLASSIFIER_MARK_ENABLE=y in order to enable mark classifier.
  # #############################################################################
@@ -69,7 +69,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ecm-$(ECM_CLASSIFIER_MARK_ENABLE) += ecm_classifier_mark.o
  ccflags-$(ECM_CLASSIFIER_MARK_ENABLE) += -DECM_CLASSIFIER_MARK_ENABLE
  
-@@ -247,12 +265,23 @@ ccflags-$(ECM_CLASSIFIER_NL_ENABLE) += -
+@@ -290,21 +308,14 @@ ccflags-$(ECM_CLASSIFIER_NL_ENABLE) += -
  # #############################################################################
  # Define ECM_CLASSIFIER_DSCP_ENABLE=y in order to enable DSCP classifier.
  # #############################################################################
@@ -82,35 +82,35 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ccflags-$(ECM_CLASSIFIER_DSCP_IGS) += -DECM_CLASSIFIER_DSCP_IGS
  
  # #############################################################################
-+# Define ECM_CLASSIFIER_PCC_ENABLE=y in order to enable
-+# the Parental Controls subsystem classifier in ECM. Currently disabled until
-+# customers require it / if they need to integrate their Parental Controls with it.
-+# #############################################################################
-+ECM_CLASSIFIER_PCC_ENABLE=y
-+ecm-$(ECM_CLASSIFIER_PCC_ENABLE) += ecm_classifier_pcc.o
-+ccflags-$(ECM_CLASSIFIER_PCC_ENABLE) += -DECM_CLASSIFIER_PCC_ENABLE
-+
-+# #############################################################################
- # Define ECM_CLASSIFIER_HYFI_ENABLE=y in order to enable
- # the Hy-Fi classifier in ECM. Currently disabled until the integration
- # with Hy-Fi is completed.
-@@ -270,15 +299,6 @@ ccflags-$(ECM_CLASSIFIER_HYFI_ENABLE) +=
- endif
- 
- # #############################################################################
--# Define ECM_CLASSIFIER_PCC_ENABLE=y in order to enable
--# the Parental Controls subsystem classifier in ECM. Currently disabled until
--# customers require it / if they need to integrate their Parental Controls with it.
+-# Define ECM_CLASSIFIER_HYFI_ENABLE=y in order to enable
+-# the Hy-Fi classifier in ECM. Currently disabled until the integration
+-# with Hy-Fi is completed.
 -# #############################################################################
--ECM_CLASSIFIER_PCC_ENABLE=y
--ecm-$(ECM_CLASSIFIER_PCC_ENABLE) += ecm_classifier_pcc.o
--ccflags-$(ECM_CLASSIFIER_PCC_ENABLE) += -DECM_CLASSIFIER_PCC_ENABLE
+-#
+-ecm-$(ECM_CLASSIFIER_HYFI_ENABLE) += ecm_classifier_hyfi.o
+-ccflags-$(ECM_CLASSIFIER_HYFI_ENABLE) += -DECM_CLASSIFIER_HYFI_ENABLE
 -
 -# #############################################################################
+ # Define ECM_CLASSIFIER_PCC_ENABLE=y in order to enable
+ # the Parental Controls subsystem classifier in ECM. Currently disabled until
+ # customers require it / if they need to integrate their Parental Controls with it.
+@@ -314,6 +325,15 @@ ecm-$(ECM_CLASSIFIER_PCC_ENABLE) += ecm_
+ ccflags-$(ECM_CLASSIFIER_PCC_ENABLE) += -DECM_CLASSIFIER_PCC_ENABLE
+ 
+ # #############################################################################
++# Define ECM_CLASSIFIER_HYFI_ENABLE=y in order to enable
++# the Hy-Fi classifier in ECM. Currently disabled until the integration
++# with Hy-Fi is completed.
++# #############################################################################
++#
++ecm-$(ECM_CLASSIFIER_HYFI_ENABLE) += ecm_classifier_hyfi.o
++ccflags-$(ECM_CLASSIFIER_HYFI_ENABLE) += -DECM_CLASSIFIER_HYFI_ENABLE
++
++# #############################################################################
  # Define ECM_CLASSIFIER_EMESH_ENABLE=y in order to enable E-Mesh classifier.
  # #############################################################################
  ecm-$(ECM_CLASSIFIER_EMESH_ENABLE) += ecm_classifier_emesh.o
-@@ -301,28 +321,36 @@ ccflags-$(ECM_NON_PORTED_SUPPORT_ENABLE)
+@@ -350,27 +370,36 @@ ccflags-$(ECM_NON_PORTED_SUPPORT_ENABLE)
  # #############################################################################
  # Define ECM_STATE_OUTPUT_ENABLE=y to support XML state output
  # #############################################################################
@@ -144,14 +144,13 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  # Define ECM_TRACKER_DPI_SUPPORT_ENABLE=y in order to enable support for
  # deep packet inspection and tracking of data with the trackers.
  # #############################################################################
--ECM_TRACKER_DPI_SUPPORT_ENABLE=y
 +ifndef $(ECM_TRACKER_DPI_SUPPORT_ENABLE)
 +	ECM_TRACKER_DPI_SUPPORT_ENABLE=y
 +endif
  ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE) += -DECM_TRACKER_DPI_SUPPORT_ENABLE
  
  # #############################################################################
-@@ -330,14 +358,18 @@ ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE
+@@ -378,14 +407,18 @@ ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE
  # support for the database keeping lists of connections that are assigned
  # on a per TYPE of classifier basis.
  # #############################################################################
@@ -174,7 +173,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  # #############################################################################
 --- a/ecm_db/ecm_db_connection.c
 +++ b/ecm_db/ecm_db_connection.c
-@@ -430,7 +430,9 @@ EXPORT_SYMBOL(ecm_db_connection_make_def
+@@ -462,7 +462,9 @@ EXPORT_SYMBOL(ecm_db_connection_make_def
   */
  void ecm_db_connection_data_totals_update(struct ecm_db_connection_instance *ci, bool is_from, uint64_t size, uint64_t packets)
  {
@@ -184,7 +183,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	DEBUG_CHECK_MAGIC(ci, ECM_DB_CONNECTION_INSTANCE_MAGIC, "%px: magic failed\n", ci);
  
-@@ -529,7 +531,9 @@ EXPORT_SYMBOL(ecm_db_connection_data_tot
+@@ -561,7 +563,9 @@ EXPORT_SYMBOL(ecm_db_connection_data_tot
   */
  void ecm_db_connection_data_totals_update_dropped(struct ecm_db_connection_instance *ci, bool is_from, uint64_t size, uint64_t packets)
  {
@@ -194,7 +193,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	DEBUG_CHECK_MAGIC(ci, ECM_DB_CONNECTION_INSTANCE_MAGIC, "%px: magic failed\n", ci);
  
-@@ -1508,6 +1512,7 @@ void ecm_db_connection_defunct_all(void)
+@@ -1540,6 +1544,7 @@ void ecm_db_connection_defunct_all(void)
  }
  EXPORT_SYMBOL(ecm_db_connection_defunct_all);
  
@@ -202,7 +201,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  /*
   * ecm_db_connection_defunct_by_classifier()
   *	Make defunct based on masked fields
-@@ -1667,6 +1672,7 @@ next_ci:
+@@ -1706,6 +1711,7 @@ next_ci:
  				ECM_IP_ADDR_TO_OCTAL(dest_addr_mask), dest_port_mask, proto_mask, cnt);
  	}
  }
@@ -210,7 +209,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  /*
   * ecm_db_connection_defunct_by_port()
-@@ -1956,6 +1962,7 @@ struct ecm_db_node_instance *ecm_db_conn
+@@ -1995,6 +2001,7 @@ struct ecm_db_node_instance *ecm_db_conn
  }
  EXPORT_SYMBOL(ecm_db_connection_node_get_and_ref);
  
@@ -218,7 +217,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  /*
   * ecm_db_connection_mapping_get_and_ref_next()
   *	Return reference to next connection in the mapping chain in the specified direction.
-@@ -1997,6 +2004,7 @@ struct ecm_db_connection_instance *ecm_d
+@@ -2036,6 +2043,7 @@ struct ecm_db_connection_instance *ecm_d
  	return nci;
  }
  EXPORT_SYMBOL(ecm_db_connection_iface_get_and_ref_next);
@@ -228,7 +227,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
   * ecm_db_connection_mapping_get_and_ref()
 --- a/ecm_db/ecm_db_node.c
 +++ b/ecm_db/ecm_db_node.c
-@@ -224,9 +224,11 @@ EXPORT_SYMBOL(ecm_db_node_get_and_ref_ne
+@@ -227,9 +227,11 @@ EXPORT_SYMBOL(ecm_db_node_get_and_ref_ne
   */
  int ecm_db_node_deref(struct ecm_db_node_instance *ni)
  {
@@ -240,7 +239,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	DEBUG_CHECK_MAGIC(ni, ECM_DB_NODE_INSTANCE_MAGIC, "%px: magic failed\n", ni);
  
  	spin_lock_bh(&ecm_db_lock);
-@@ -486,9 +488,11 @@ EXPORT_SYMBOL(ecm_db_node_iface_get_and_
+@@ -489,9 +491,11 @@ EXPORT_SYMBOL(ecm_db_node_iface_get_and_
  void ecm_db_node_add(struct ecm_db_node_instance *ni, struct ecm_db_iface_instance *ii, uint8_t *address,
  					ecm_db_node_final_callback_t final, void *arg)
  {
@@ -254,7 +253,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -1343,6 +1343,7 @@ struct neighbour *ecm_interface_ipv6_nei
+@@ -1353,6 +1353,7 @@ struct neighbour *ecm_interface_ipv6_nei
   */
  bool ecm_interface_is_pptp(struct sk_buff *skb, const struct net_device *out)
  {
@@ -262,7 +261,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	struct net_device *in;
  
  	/*
-@@ -1367,6 +1368,7 @@ bool ecm_interface_is_pptp(struct sk_buf
+@@ -1377,6 +1378,7 @@ bool ecm_interface_is_pptp(struct sk_buf
  	}
  
  	dev_put(in);
@@ -270,7 +269,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	return false;
  }
  
-@@ -1379,6 +1381,7 @@ bool ecm_interface_is_pptp(struct sk_buf
+@@ -1389,6 +1391,7 @@ bool ecm_interface_is_pptp(struct sk_buf
   */
  bool ecm_interface_is_l2tp_packet_by_version(struct sk_buff *skb, const struct net_device *out, int ver)
  {
@@ -278,7 +277,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	uint32_t flag = 0;
  	struct net_device *in;
  
-@@ -1411,6 +1414,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
+@@ -1421,6 +1424,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
  	}
  
  	dev_put(in);
@@ -286,7 +285,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	return false;
  }
  
-@@ -1423,6 +1427,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
+@@ -1433,6 +1437,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
   */
  bool ecm_interface_is_l2tp_pptp(struct sk_buff *skb, const struct net_device *out)
  {
@@ -294,7 +293,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	struct net_device *in;
  
  	/*
-@@ -1445,6 +1450,7 @@ bool ecm_interface_is_l2tp_pptp(struct s
+@@ -1455,6 +1460,7 @@ bool ecm_interface_is_l2tp_pptp(struct s
  	}
  
  	dev_put(in);
@@ -302,7 +301,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	return false;
  }
  
-@@ -6630,6 +6636,7 @@ static void ecm_interface_regenerate_con
+@@ -6770,6 +6776,7 @@ static void ecm_interface_regenerate_con
  		return;
  	}
  
@@ -310,7 +309,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	for (dir = 0; dir < ECM_DB_OBJ_DIR_MAX; dir++) {
  		/*
  		 * Re-generate all connections associated with this interface
-@@ -6645,6 +6652,7 @@ static void ecm_interface_regenerate_con
+@@ -6785,6 +6792,7 @@ static void ecm_interface_regenerate_con
  			ci[dir] = cin;
  		}
  	}
@@ -320,7 +319,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	/*
 --- a/frontends/ecm_front_end_common.c
 +++ b/frontends/ecm_front_end_common.c
-@@ -106,6 +106,7 @@ bool ecm_front_end_gre_proto_is_accel_al
+@@ -354,6 +354,7 @@ bool ecm_front_end_gre_proto_is_accel_al
  							     struct nf_conntrack_tuple *tuple,
  							     int ip_version)
  {
@@ -328,7 +327,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	struct net_device *dev;
  	struct gre_base_hdr *greh;
  
-@@ -117,10 +118,12 @@ bool ecm_front_end_gre_proto_is_accel_al
+@@ -365,10 +366,12 @@ bool ecm_front_end_gre_proto_is_accel_al
  		/*
  		 * Case 1: PPTP locally terminated
  		 */
@@ -341,7 +340,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  		/*
  		 * Case 2: PPTP pass through
-@@ -223,6 +226,10 @@ bool ecm_front_end_gre_proto_is_accel_al
+@@ -476,6 +479,10 @@ bool ecm_front_end_gre_proto_is_accel_al
  	 */
  	DEBUG_TRACE("%px: GRE IPv%d pass through - allow acceleration\n", skb, ip_version);
  	return true;

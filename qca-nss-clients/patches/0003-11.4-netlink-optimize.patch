@@ -19,15 +19,14 @@
 -ccflags-y += -DCONFIG_NSS_NLIPV4_REASM=1
 -ccflags-y += -DCONFIG_NSS_NLIPV6_REASM=1
 -ccflags-y += -DCONFIG_NSS_NLWIFILI=1
--ccflags-y += -DCONFIG_NSS_NLLSO_RX=1
++ccflags-y += -DCONFIG_NSS_NLIPV4_REASM=0
++ccflags-y += -DCONFIG_NSS_NLIPV6_REASM=0
++ccflags-y += -DCONFIG_NSS_NLWIFILI=0
+ ccflags-y += -DCONFIG_NSS_NLLSO_RX=1
 -ccflags-y += -DCONFIG_NSS_NLMAP_T=1
 -ccflags-y += -DCONFIG_NSS_NLPPPOE=1
 -ccflags-y += -DCONFIG_NSS_NLL2TPV2=1
 -ccflags-y += -DCONFIG_NSS_NLPPTP=1
-+ccflags-y += -DCONFIG_NSS_NLIPV4_REASM=0
-+ccflags-y += -DCONFIG_NSS_NLIPV6_REASM=0
-+ccflags-y += -DCONFIG_NSS_NLWIFILI=0
-+ccflags-y += -DCONFIG_NSS_NLLSO_RX=0
 +ccflags-y += -DCONFIG_NSS_NLMAP_T=0
 +ccflags-y += -DCONFIG_NSS_NLPPPOE=0
 +ccflags-y += -DCONFIG_NSS_NLL2TPV2=0

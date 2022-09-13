@@ -1,0 +1,55 @@
+--- a/ecm_conntrack_notifier.c
++++ b/ecm_conntrack_notifier.c
+@@ -89,6 +89,7 @@
+  * Locking of the classifier - concurrency control
+  */
+ static DEFINE_SPINLOCK(ecm_conntrack_notifier_lock __attribute__((unused)));	/* Protect against SMP access between netfilter, events and private threaded function. */
++static DEFINE_MUTEX(ecm_conntrack_notifier_mtx);    /* Protect against race conditions during nf_conntrack notifier registration/unregistration events */
+ 
+ /*
+  * Debugfs dentry object.
+@@ -427,7 +428,9 @@ int ecm_conntrack_notifier_init(struct d
+ 	int result __attribute__((unused));
+ 	DEBUG_INFO("ECM Conntrack Notifier init\n");
+ 
+-	ecm_conntrack_notifier_dentry = debugfs_create_dir("ecm_conntrack_notifier", dentry);
++   mutex_lock(&ecm_conntrack_notifier_mtx);
++
++   ecm_conntrack_notifier_dentry = debugfs_create_dir("ecm_conntrack_notifier", dentry);
+ 	if (!ecm_conntrack_notifier_dentry) {
+ 		DEBUG_ERROR("Failed to create ecm conntrack notifier directory in debugfs\n");
+ 		return -1;
+@@ -453,11 +456,14 @@ int ecm_conntrack_notifier_init(struct d
+ 	if (result < 0) {
+ 		DEBUG_ERROR("Can't register nf notifier hook.\n");
+ 		debugfs_remove_recursive(ecm_conntrack_notifier_dentry);
+-		return result;
++		mutex_unlock(&ecm_conntrack_notifier_mtx);
++       return result;
+ 	}
+ #endif
+ #endif
+ 
++   mutex_unlock(&ecm_conntrack_notifier_mtx);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL(ecm_conntrack_notifier_init);
+@@ -468,6 +474,9 @@ EXPORT_SYMBOL(ecm_conntrack_notifier_ini
+ void ecm_conntrack_notifier_exit(void)
+ {
+ 	DEBUG_INFO("ECM Conntrack Notifier exit\n");
++
++   mutex_lock(&ecm_conntrack_notifier_mtx);
++
+ #ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+ 	nf_conntrack_unregister_chain_notifier(&init_net, &ecm_conntrack_notifier);
+ #else
+@@ -483,5 +492,7 @@ void ecm_conntrack_notifier_exit(void)
+ 	if (ecm_conntrack_notifier_dentry) {
+ 		debugfs_remove_recursive(ecm_conntrack_notifier_dentry);
+ 	}
++
++   mutex_unlock(&ecm_conntrack_notifier_mtx);
+ }
+ EXPORT_SYMBOL(ecm_conntrack_notifier_exit);

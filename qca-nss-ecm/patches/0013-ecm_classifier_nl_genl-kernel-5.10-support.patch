@@ -1,6 +1,14 @@
 --- a/ecm_classifier_nl.c
 +++ b/ecm_classifier_nl.c
-@@ -141,12 +141,55 @@ static struct genl_multicast_group ecm_c
+@@ -70,6 +70,7 @@
+ #include "ecm_tracker_tcp.h"
+ #include "ecm_classifier_nl.h"
+ #include "ecm_db.h"
++#include "ecm_front_end_common.h"
+ #include "ecm_front_end_ipv4.h"
+ #ifdef ECM_IPV6_ENABLE
+ #include "ecm_front_end_ipv6.h"
+@@ -144,12 +145,55 @@ static struct genl_multicast_group ecm_c
  	},
  };
  
@@ -57,7 +65,7 @@
  };
  
  /*
-@@ -210,12 +253,7 @@ ecm_classifier_nl_send_genl_msg(enum ECM
+@@ -213,12 +257,7 @@ ecm_classifier_nl_send_genl_msg(enum ECM
  		return ret;
  	}
  
@@ -71,7 +79,7 @@
  
  	/* genlmsg_multicast frees the skb in both success and error cases */
  	ret = genlmsg_multicast(&ecm_cl_nl_genl_family,
-@@ -1363,49 +1401,14 @@ static struct file_operations ecm_classi
+@@ -1366,49 +1405,14 @@ static struct file_operations ecm_classi
  	.write = ecm_classifier_nl_set_command,
  };
  
