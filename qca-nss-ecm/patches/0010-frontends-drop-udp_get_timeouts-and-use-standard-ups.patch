@@ -15,7 +15,7 @@ instead or relying on a downstream api not present upstream.
 
 --- a/frontends/nss/ecm_nss_ipv4.c
 +++ b/frontends/nss/ecm_nss_ipv4.c
-@@ -2381,7 +2381,8 @@ sync_conntrack:
+@@ -610,7 +610,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {
@@ -27,7 +27,7 @@ instead or relying on a downstream api not present upstream.
  				spin_lock_bh(&ct->lock);
 --- a/frontends/nss/ecm_nss_ipv6.c
 +++ b/frontends/nss/ecm_nss_ipv6.c
-@@ -2121,7 +2121,8 @@ sync_conntrack:
+@@ -587,7 +587,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {
@@ -39,7 +39,7 @@ instead or relying on a downstream api not present upstream.
  				spin_lock_bh(&ct->lock);
 --- a/frontends/sfe/ecm_sfe_ipv4.c
 +++ b/frontends/sfe/ecm_sfe_ipv4.c
-@@ -1614,7 +1614,8 @@ sync_conntrack:
+@@ -533,7 +533,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {
@@ -51,7 +51,7 @@ instead or relying on a downstream api not present upstream.
  				spin_lock_bh(&ct->lock);
 --- a/frontends/sfe/ecm_sfe_ipv6.c
 +++ b/frontends/sfe/ecm_sfe_ipv6.c
-@@ -1338,7 +1338,8 @@ sync_conntrack:
+@@ -522,7 +522,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {

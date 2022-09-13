@@ -10,7 +10,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 
 --- a/ecm_conntrack_notifier.c
 +++ b/ecm_conntrack_notifier.c
-@@ -421,7 +421,11 @@ int ecm_conntrack_notifier_init(struct d
+@@ -436,7 +436,11 @@ int ecm_conntrack_notifier_init(struct d
  	/*
  	 * Eventing subsystem is available so we register a notifier hook to get fast notifications of expired connections
  	 */
@@ -22,7 +22,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	if (result < 0) {
  		DEBUG_ERROR("Can't register nf notifier hook.\n");
  		debugfs_remove_recursive(ecm_conntrack_notifier_dentry);
-@@ -439,7 +443,9 @@ EXPORT_SYMBOL(ecm_conntrack_notifier_ini
+@@ -454,7 +458,9 @@ EXPORT_SYMBOL(ecm_conntrack_notifier_ini
  void ecm_conntrack_notifier_exit(void)
  {
  	DEBUG_INFO("ECM Conntrack Notifier exit\n");

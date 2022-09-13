@@ -14,11 +14,11 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -743,6 +743,27 @@ bool ecm_interface_mac_addr_get(ip_addr_
+@@ -746,6 +746,27 @@ bool ecm_interface_mac_addr_get(ip_addr_
  }
  EXPORT_SYMBOL(ecm_interface_mac_addr_get);
  
-+#ifdef ECM_USE_INTERNAL_FUNC
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 11, 0))
 +static void ecm_interface_br_dev_update_stats(struct net_device *dev,
 +					      struct rtnl_link_stats64 *nlstats)
 +{
@@ -42,15 +42,15 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  #ifdef ECM_IPV6_ENABLE
  /* ecm_interface_ipv6_dev_find_and_hold()
   *	Find (and hold) net device that has the given address.
-@@ -6491,7 +6512,11 @@ static void ecm_interface_list_stats_upd
- 				stats.rx_bytes = rx_bytes;
- 				stats.tx_packets = tx_packets;
- 				stats.tx_bytes = tx_bytes;
-+#ifdef ECM_USE_INTERNAL_FUNC
-+				ecm_interface_br_dev_update_stats(dev, &stats);
+@@ -6586,7 +6607,11 @@ skip_bridge_refresh:
+ 			stats.rx_bytes = rx_bytes;
+ 			stats.tx_packets = tx_packets;
+ 			stats.tx_bytes = tx_bytes;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 11, 0))
++			ecm_interface_br_dev_update_stats(dev, &stats);
 +#else
- 				br_dev_update_stats(dev, &stats);
+ 			br_dev_update_stats(dev, &stats);
 +#endif
- 				break;
- #ifdef ECM_INTERFACE_PPPOE_ENABLE
- 			case ECM_DB_IFACE_TYPE_PPPOE:
+ 			dev_put(dev);
+ 			continue;
+ 

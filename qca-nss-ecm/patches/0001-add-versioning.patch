@@ -1,0 +1,11 @@
+--- a/ecm_init.c
++++ b/ecm_init.c
+@@ -118,7 +118,7 @@ static int __init ecm_init(void)
+ {
+ 	int ret;
+ 
+-	printk(KERN_INFO "ECM init\n");
++	printk(KERN_INFO "ECM init ( QSDK 12.1.0.r1 2022-08-16 )\n");
+ 
+ 	selected_front_end = ecm_front_end_type_select();
+ 	if (selected_front_end == ECM_FRONT_END_TYPE_MAX) {

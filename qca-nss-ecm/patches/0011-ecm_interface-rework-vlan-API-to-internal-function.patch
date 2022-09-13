@@ -14,11 +14,11 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -304,8 +304,36 @@ EXPORT_SYMBOL(ecm_interface_get_and_hold
+@@ -308,8 +308,36 @@ EXPORT_SYMBOL(ecm_interface_get_and_hold
   */
  static inline struct net_device *ecm_interface_vlan_real_dev(struct net_device *vlan_dev)
  {
-+#ifdef ECM_USE_INTERNAL_FUNC
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 11, 0))
 +	struct vlan_dev_priv *vlan = vlan_dev_priv(vlan_dev);
 +	return vlan->real_dev;
 +#else
@@ -27,7 +27,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 +}
 +
 +#ifdef ECM_INTERFACE_VLAN_ENABLE
-+#ifdef ECM_USE_INTERNAL_FUNC
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 11, 0))
 +static void ecm_interface_vlan_dev_update_accel_stats(struct net_device *dev,
 +						      struct rtnl_link_stats64 *nlstats)
 +{
@@ -51,15 +51,15 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  /*
   * ecm_interface_dev_find_by_local_addr_ipv4()
-@@ -6442,7 +6470,11 @@ static void ecm_interface_list_stats_upd
- 				stats.rx_bytes = rx_bytes;
- 				stats.tx_packets = tx_packets;
- 				stats.tx_bytes = tx_bytes;
-+#ifdef ECM_USE_INTERNAL_FUNC
-+				ecm_interface_vlan_dev_update_accel_stats(dev, &stats);
+@@ -6593,7 +6621,11 @@ skip_bridge_refresh:
+ 			stats.rx_bytes = rx_bytes;
+ 			stats.tx_packets = tx_packets;
+ 			stats.tx_bytes = tx_bytes;
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 11, 0))
++			ecm_interface_vlan_dev_update_accel_stats(dev, &stats);
 +#else
- 				__vlan_dev_update_accel_stats(dev, &stats);
+ 			__vlan_dev_update_accel_stats(dev, &stats);
 +#endif
- 				break;
+ 			dev_put(dev);
+ 			continue;
  #endif
- #ifdef ECM_INTERFACE_OVS_BRIDGE_ENABLE

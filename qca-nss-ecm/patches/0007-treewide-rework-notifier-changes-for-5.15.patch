@@ -12,7 +12,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 
 --- a/ecm_conntrack_notifier.c
 +++ b/ecm_conntrack_notifier.c
-@@ -320,7 +320,7 @@ EXPORT_SYMBOL(ecm_conntrack_ipv4_event);
+@@ -335,7 +335,7 @@ EXPORT_SYMBOL(ecm_conntrack_ipv4_event);
  #ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
  static int ecm_conntrack_event(struct notifier_block *this, unsigned long events, void *ptr)
  #else
@@ -21,7 +21,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  #endif
  {
  #ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
-@@ -386,7 +386,11 @@ static struct notifier_block ecm_conntra
+@@ -401,7 +401,11 @@ static struct notifier_block ecm_conntra
   *	Netfilter conntrack event system to monitor connection tracking changes
   */
  static struct nf_ct_event_notifier ecm_conntrack_notifier = {
@@ -33,7 +33,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  };
  #endif
  #endif
-@@ -424,14 +428,20 @@ int ecm_conntrack_notifier_init(struct d
+@@ -439,14 +443,20 @@ int ecm_conntrack_notifier_init(struct d
  #ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
  	result = nf_conntrack_register_chain_notifier(&init_net, &ecm_conntrack_notifier);
  #else
@@ -54,7 +54,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	return 0;
  }
-@@ -446,7 +456,11 @@ void ecm_conntrack_notifier_exit(void)
+@@ -461,7 +471,11 @@ void ecm_conntrack_notifier_exit(void)
  #ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
  	nf_conntrack_unregister_chain_notifier(&init_net, &ecm_conntrack_notifier);
  #else

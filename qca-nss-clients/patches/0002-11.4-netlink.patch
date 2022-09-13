@@ -1,5 +1,3 @@
-diff --git a/netlink/include/nss_nldtls_if.h b/netlink/include/nss_nldtls_if.h
-index aedb137..875e19d 100644
 --- a/netlink/include/nss_nldtls_if.h
 +++ b/netlink/include/nss_nldtls_if.h
 @@ -34,9 +34,9 @@
@@ -15,11 +13,10 @@ index aedb137..875e19d 100644
  
  /**
   * @brief Enumeration for all command types.
-@@ -50,12 +50,37 @@ enum nss_nldtls_cmd_type {
- 	NSS_NLDTLS_CMD_TYPE_MAX				/**< Max number of commands type. */
+@@ -51,11 +51,36 @@ enum nss_nldtls_cmd_type {
  };
  
-+/**
+ /**
 + * @brief Parameters for crypto keys
 + */
 +struct nss_nldtls_crypto_keys {
@@ -44,7 +41,7 @@ index aedb137..875e19d 100644
 +	struct nss_nldtls_crypto_keys keys;
 +};
 +
- /**
++/**
   * @brief Parameters to create a tunnel.
   */
  struct nss_nldtls_create_tun {
@@ -76,8 +73,6 @@ index aedb137..875e19d 100644
  	bool log_en;			/**< Enable or disable wireless info */
  };
  
-diff --git a/netlink/nss_nl.h b/netlink/nss_nl.h
-index e9f2c28..95300ce 100644
 --- a/netlink/nss_nl.h
 +++ b/netlink/nss_nl.h
 @@ -1,6 +1,6 @@
@@ -88,7 +83,15 @@ index e9f2c28..95300ce 100644
   * Permission to use, copy, modify, and/or distribute this software for
   * any purpose with or without fee is hereby granted, provided that the
   * above copyright notice and this permission notice appear in all copies.
-@@ -35,7 +35,8 @@
+@@ -25,6 +25,7 @@
+ #define NSS_NL_DEBUG_LVL_WARN 2
+ #define NSS_NL_DEBUG_LVL_INFO 3
+ #define NSS_NL_DEBUG_LVL_TRACE 4
++#define GENL_ID_GENERATE 0
+ 
+ 
+ #if defined(CONFIG_DYNAMIC_DEBUG)
+@@ -35,7 +36,8 @@
  #define nss_nl_warn(s, ...) pr_debug("%s[%d]:" s, __func__, __LINE__, ##__VA_ARGS__)
  #define nss_nl_info(s, ...) pr_debug("%s[%d]:" s, __func__, __LINE__, ##__VA_ARGS__)
  #define nss_nl_trace(s, ...) pr_debug("%s[%d]:" s, __func__, __LINE__, ##__VA_ARGS__)
@@ -98,7 +101,7 @@ index e9f2c28..95300ce 100644
  #else
  /*
   * Statically compile messages at different levels
-@@ -55,6 +56,11 @@
+@@ -55,6 +57,11 @@
  		pr_notice("%s[%d]:" s, __func__, __LINE__, ##__VA_ARGS__);	\
  	}	\
  }
@@ -110,15 +113,12 @@ index e9f2c28..95300ce 100644
  #define nss_nl_trace(s, ...) {	\
  	if (NSS_NL_DEBUG_LEVEL > NSS_NL_DEBUG_LVL_TRACE) {	\
  		pr_info("%s[%d]:" s, __func__, __LINE__, ##__VA_ARGS__);	\
-diff --git a/netlink/nss_nlc2c_rx.c b/netlink/nss_nlc2c_rx.c
-index 73e8e60..ab1fc89 100644
 --- a/netlink/nss_nlc2c_rx.c
 +++ b/netlink/nss_nlc2c_rx.c
-@@ -45,20 +45,6 @@
- static int nss_nlc2c_rx_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -46,20 +46,6 @@ static int nss_nlc2c_rx_ops_get_stats(st
  static int nss_nlc2c_rx_process_notify(struct notifier_block *nb,  unsigned long val, void *data);
  
--/*
+ /*
 - * c2c_rx family definition
 - */
 -static struct genl_family nss_nlc2c_rx_family = {
@@ -132,14 +132,14 @@ index 73e8e60..ab1fc89 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -73,6 +59,26 @@ static struct genl_ops nss_nlc2c_rx_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nlc2c_rx_ops_get_stats},
+ static const struct genl_multicast_group nss_nlc2c_rx_mcgrp[] = {
+@@ -74,6 +60,26 @@ static struct genl_ops nss_nlc2c_rx_ops[
  };
  
-+/*
+ /*
 + * c2c_rx family definition
 + */
 +static struct genl_family nss_nlc2c_rx_family = {
@@ -159,9 +159,10 @@ index 73e8e60..ab1fc89 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlc2c_rx_mcgrp)
 +};
 +
- /*
++/*
   * stats call back handler for c2c_rx from NSS
   */
+ static struct notifier_block nss_c2c_rx_stats_notifier_nb = {
 @@ -125,7 +131,7 @@ bool nss_nlc2c_rx_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -171,15 +172,12 @@ index 73e8e60..ab1fc89 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register c2c_rx family\n");
  		return false;
-diff --git a/netlink/nss_nlc2c_tx.c b/netlink/nss_nlc2c_tx.c
-index 7ab2982..ebc0265 100644
 --- a/netlink/nss_nlc2c_tx.c
 +++ b/netlink/nss_nlc2c_tx.c
-@@ -45,20 +45,6 @@
- static int nss_nlc2c_tx_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -46,20 +46,6 @@ static int nss_nlc2c_tx_ops_get_stats(st
  static int nss_nlc2c_tx_process_notify(struct notifier_block *nb,  unsigned long val, void *data);
  
--/*
+ /*
 - * c2c_tx family definition
 - */
 -static struct genl_family nss_nlc2c_tx_family = {
@@ -193,14 +191,14 @@ index 7ab2982..ebc0265 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -73,6 +59,26 @@ static struct genl_ops nss_nlc2c_tx_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nlc2c_tx_ops_get_stats},
+ static const struct genl_multicast_group nss_nlc2c_tx_mcgrp[] = {
+@@ -74,6 +60,26 @@ static struct genl_ops nss_nlc2c_tx_ops[
  };
  
-+/*
+ /*
 + * c2c_tx family definition
 + */
 +static struct genl_family nss_nlc2c_tx_family = {
@@ -220,9 +218,10 @@ index 7ab2982..ebc0265 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlc2c_tx_mcgrp)
 +};
 +
- /*
++/*
   * stats call back handler for c2c_tx from NSS
   */
+ static struct notifier_block nss_c2c_tx_stats_notifier_nb = {
 @@ -125,7 +131,7 @@ bool nss_nlc2c_tx_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -232,8 +231,6 @@ index 7ab2982..ebc0265 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register c2c_tx family\n");
  		return false;
-diff --git a/netlink/nss_nldtls.c b/netlink/nss_nldtls.c
-index e7b9b0f..1421e29 100644
 --- a/netlink/nss_nldtls.c
 +++ b/netlink/nss_nldtls.c
 @@ -15,6 +15,7 @@
@@ -244,11 +241,10 @@ index e7b9b0f..1421e29 100644
  #include <linux/etherdevice.h>
  #include <linux/icmp.h>
  #include <linux/inet.h>
-@@ -33,6 +34,14 @@
- #include "nss_nldtls.h"
+@@ -34,6 +35,14 @@
  #include "nss_nldtls_if.h"
  
-+/*
+ /*
 + * prototypes
 + */
 +static int nss_nldtls_ops_create_tun(struct sk_buff *skb, struct genl_info *info);
@@ -256,14 +252,14 @@ index e7b9b0f..1421e29 100644
 +static int nss_nldtls_ops_update_config(struct sk_buff *skb, struct genl_info *info);
 +static int nss_nldtls_ops_tx_pkts(struct sk_buff *skb, struct genl_info *info);
 +
- /*
++/*
   * Initializing the global variables
   */
-@@ -51,12 +60,25 @@ static const struct genl_multicast_group nss_nldtls_family_mcgrp[] = {
- 	{.name = NSS_NLDTLS_MCAST_GRP},
+ static struct nss_nldtls_gbl_ctx gbl_ctx = {
+@@ -52,11 +61,24 @@ static const struct genl_multicast_group
  };
  
-+/*
+ /*
 + * nss_nldtls_ops
 + *	Operation table called by the generic netlink layer based on the command
 + */
@@ -274,7 +270,7 @@ index e7b9b0f..1421e29 100644
 +	{.cmd = NSS_NLDTLS_CMD_TYPE_TX_PKTS, .doit = nss_nldtls_ops_tx_pkts,},
 +};
 +
- /*
++/*
   * nss_nldtls_family
   *	Dtls family definition
   */
@@ -305,11 +301,10 @@ index e7b9b0f..1421e29 100644
  {
  	struct nss_nldtls_tun_ctx *entry;
  
-@@ -86,47 +112,6 @@ static struct nss_nldtls_tun_ctx *nss_nldtls_find_dtls_tun_gbl_ctx(struct net_de
- 	return NULL;
+@@ -87,47 +113,6 @@ static struct nss_nldtls_tun_ctx *nss_nl
  }
  
--/*
+ /*
 - * nss_nldtls_data_cb()
 - *	Data callback function for dtls
 - */
@@ -350,14 +345,14 @@ index e7b9b0f..1421e29 100644
 -	dev_kfree_skb_any(skb);
 -}
 -
- /*
+-/*
   * nss_nldtls_dev_rx_handler()
   *	Common rx handler for all dtls dev
-@@ -415,6 +400,48 @@ static int nss_nldtls_create_ipv6_rule(struct nss_ipv6_create *unic, uint16_t ru
- 	return 0;
+  */
+@@ -416,6 +401,48 @@ static int nss_nldtls_create_ipv6_rule(s
  }
  
-+/*
+ /*
 + * nss_nldtls_data_callback()
 + *	Data callback function for dtls
 + */
@@ -399,10 +394,11 @@ index e7b9b0f..1421e29 100644
 +	dev_kfree_skb_any(skb);
 +}
 +
- /*
++/*
   * nss_nldtls_create_session()
   *	Create a DTLS session through dtlsmgr driver API.
-@@ -425,6 +452,7 @@ static struct net_device *nss_nldtls_create_session(struct nss_nldtls_rule *nl_r
+  */
+@@ -425,6 +452,7 @@ static struct net_device *nss_nldtls_cre
  	struct nss_dtlsmgr_config dcfg;
  	struct nss_dtlsmgr_ctx *ctx;
  	struct net_device *ndev;
@@ -410,7 +406,7 @@ index e7b9b0f..1421e29 100644
  	uint8_t algo;
  	int err;
  
-@@ -434,24 +462,66 @@ static struct net_device *nss_nldtls_create_session(struct nss_nldtls_rule *nl_r
+@@ -434,24 +462,66 @@ static struct net_device *nss_nldtls_cre
  	}
  
  	memset(&dcfg, 0, sizeof(struct nss_dtlsmgr_config));
@@ -482,7 +478,7 @@ index e7b9b0f..1421e29 100644
  	dcfg.decap.nexthop_ifnum = NSS_N2H_INTERFACE;
  
  	/*
-@@ -484,6 +554,7 @@ static struct net_device *nss_nldtls_create_session(struct nss_nldtls_rule *nl_r
+@@ -484,6 +554,7 @@ static struct net_device *nss_nldtls_cre
  	dtls_tun_data = (struct nss_nldtls_tun_ctx *)kmalloc(sizeof(*dtls_tun_data), GFP_KERNEL);
  	dtls_tun_data->nl_rule = nl_rule;
  	memcpy(dtls_tun_data->dev_name, ndev->name, IFNAMSIZ);
@@ -490,7 +486,7 @@ index e7b9b0f..1421e29 100644
  
  	/*
  	 * Adding tunnel to global list of tunnels
-@@ -524,15 +595,15 @@ static int nss_nldtls_create_ipv4_rule_entry(struct net_device *dtls_dev, struct
+@@ -524,15 +595,15 @@ static int nss_nldtls_create_ipv4_rule_e
  	ipv4.src_interface_num = if_num;
  	ipv4.dest_interface_num = nss_dtlsmgr_get_interface(dtls_dev, NSS_DTLSMGR_INTERFACE_TYPE_OUTER);
  
@@ -498,15 +494,16 @@ index e7b9b0f..1421e29 100644
 -	ipv4.src_port_xlate = nl_rule->msg.create.encap.dport;
 -	ipv4.src_ip = nl_rule->msg.create.encap.dip[0];
 -	ipv4.src_ip_xlate = nl_rule->msg.create.encap.dip[0];
-+	ipv4.src_port = nl_rule->msg.create.encap.cfg.dport;
-+	ipv4.src_port_xlate = nl_rule->msg.create.encap.cfg.dport;
-+	ipv4.src_ip = nl_rule->msg.create.encap.cfg.dip[0];
-+	ipv4.src_ip_xlate = nl_rule->msg.create.encap.cfg.dip[0];
- 
+-
 -	ipv4.dest_ip = nl_rule->msg.create.encap.sip[0];
 -	ipv4.dest_ip_xlate = nl_rule->msg.create.encap.sip[0];
 -	ipv4.dest_port = nl_rule->msg.create.encap.sport;
 -	ipv4.dest_port_xlate = nl_rule->msg.create.encap.sport;
++	ipv4.src_port = nl_rule->msg.create.encap.cfg.dport;
++	ipv4.src_port_xlate = nl_rule->msg.create.encap.cfg.dport;
++	ipv4.src_ip = nl_rule->msg.create.encap.cfg.dip[0];
++	ipv4.src_ip_xlate = nl_rule->msg.create.encap.cfg.dip[0];
++
 +	ipv4.dest_ip = nl_rule->msg.create.encap.cfg.sip[0];
 +	ipv4.dest_ip_xlate = nl_rule->msg.create.encap.cfg.sip[0];
 +	ipv4.dest_port = nl_rule->msg.create.encap.cfg.sport;
@@ -514,7 +511,7 @@ index e7b9b0f..1421e29 100644
  
  	ipv4.protocol = IPPROTO_UDP;
  	ipv4.in_vlan_tag[0] = NSS_NLDTLS_VLAN_INVALID;
-@@ -575,14 +646,14 @@ static int nss_nldtls_create_ipv6_rule_entry(struct net_device *dtls_dev, struct
+@@ -575,14 +646,14 @@ static int nss_nldtls_create_ipv6_rule_e
  	if_num = nss_cmn_get_interface_number_by_dev(ndev);
  	ipv6.src_interface_num = if_num;
  	ipv6.dest_interface_num = nss_dtlsmgr_get_interface(dtls_dev, NSS_DTLSMGR_INTERFACE_TYPE_OUTER);
@@ -533,7 +530,7 @@ index e7b9b0f..1421e29 100644
  	ipv6.protocol = IPPROTO_UDP;
  
  	ipv6.in_vlan_tag[0] = NSS_NLDTLS_VLAN_INVALID;
-@@ -602,29 +673,27 @@ static int nss_nldtls_create_ipv6_rule_entry(struct net_device *dtls_dev, struct
+@@ -602,29 +673,27 @@ static int nss_nldtls_create_ipv6_rule_e
   * nss_nldtls_destroy_tun()
   *	Common handler for tunnel destroy
   */
@@ -572,7 +569,7 @@ index e7b9b0f..1421e29 100644
  		return -EAGAIN;
  	}
  
-@@ -709,8 +778,8 @@ static int nss_nldtls_ops_create_tun(struct sk_buff *skb, struct genl_info *info
+@@ -709,8 +778,8 @@ static int nss_nldtls_ops_create_tun(str
  static int nss_nldtls_ops_destroy_tun(struct sk_buff *skb, struct genl_info *info)
  {
  	struct nss_nldtls_rule *nl_rule;
@@ -582,7 +579,7 @@ index e7b9b0f..1421e29 100644
  	int ret;
  
  	/*
-@@ -727,18 +796,20 @@ static int nss_nldtls_ops_destroy_tun(struct sk_buff *skb, struct genl_info *inf
+@@ -727,18 +796,20 @@ static int nss_nldtls_ops_destroy_tun(st
  	 */
  	nl_rule = container_of(nl_cm, struct nss_nldtls_rule, cm);
  
@@ -608,7 +605,7 @@ index e7b9b0f..1421e29 100644
  		return -EAGAIN;
  	}
  
-@@ -753,13 +824,14 @@ static int nss_nldtls_ops_destroy_tun(struct sk_buff *skb, struct genl_info *inf
+@@ -753,13 +824,14 @@ static int nss_nldtls_ops_destroy_tun(st
   */
  static int nss_nldtls_ops_update_config(struct sk_buff *skb, struct genl_info *info)
  {
@@ -625,7 +622,7 @@ index e7b9b0f..1421e29 100644
  
  	/*
  	 * extract the message payload
-@@ -775,17 +847,17 @@ static int nss_nldtls_ops_update_config(struct sk_buff *skb, struct genl_info *i
+@@ -775,17 +847,17 @@ static int nss_nldtls_ops_update_config(
  	 */
  	nl_rule = container_of(nl_cm, struct nss_nldtls_rule, cm);
  
@@ -651,7 +648,7 @@ index e7b9b0f..1421e29 100644
  		return -EAGAIN;
  	}
  
-@@ -793,28 +865,46 @@ static int nss_nldtls_ops_update_config(struct sk_buff *skb, struct genl_info *i
+@@ -793,28 +865,46 @@ static int nss_nldtls_ops_update_config(
  	 * Configure the dtls configuration
  	 */
  	dcfg.crypto.algo = nl_rule->msg.update_config.config_update.crypto.algo;
@@ -710,7 +707,7 @@ index e7b9b0f..1421e29 100644
  			return -EINVAL;
  		}
  
-@@ -824,213 +914,65 @@ static int nss_nldtls_ops_update_config(struct sk_buff *skb, struct genl_info *i
+@@ -824,213 +914,65 @@ static int nss_nldtls_ops_update_config(
  	/*
  	 * Update the tun data configuration
  	 */
@@ -723,102 +720,15 @@ index e7b9b0f..1421e29 100644
  /*
 - * nss_nldtls_construct_ipv4_udp_header()
 - *	Creates an ipv4 + udp packet
-+ * nss_nldtls_alloc_pkt()
-+ *	Handler for forming ctype packet
-  */
--static struct sk_buff *nss_nldtls_construct_ipv4_udp_header(struct net_device *dev, struct nss_nldtls_rule *nl_rule)
-+static struct sk_buff *nss_nldtls_alloc_pkt(struct nss_nldtls_rule *nl_rule,
-+			struct net_device *dev, uint32_t pkt_sz, uint8_t ctype)
- {
--	struct nss_nldtls_tun_ctx *tun_data;
--	struct nss_nldtls_rule *dtls_rule;
--	uint16_t hroom, troom;
-+	struct nss_dtlsmgr_metadata *ndm;
-+	uint16_t hdr_len, payload_len;
- 	struct sk_buff *skb;
--	struct udphdr *uh;
--	struct iphdr *iph;
- 
--	/*
--	 * Get the tun data
--	 */
--	tun_data = nss_nldtls_find_dtls_tun_gbl_ctx(dev);
--	dtls_rule = tun_data->nl_rule;
--	hroom = dev->needed_headroom;
--	troom = dev->needed_tailroom;
--	skb = dev_alloc_skb(nl_rule->msg.tx_pkts.pkt_sz + hroom + troom);
-+	hdr_len = dev->needed_headroom + sizeof(*ndm);
-+	payload_len = hdr_len + dev->needed_tailroom + pkt_sz;
-+	skb = netdev_alloc_skb(dev, payload_len);
- 	if (!skb) {
--		nss_nl_info("Failed to allocate skb\n");
- 		return NULL;
- 	}
- 
--	skb_reserve(skb, sizeof(struct udphdr) + sizeof(struct iphdr));
--	skb_put(skb, nl_rule->msg.tx_pkts.pkt_sz);
-+	skb_reserve(skb, hdr_len);
- 
- 	/*
- 	 * Fill the packet with dummy data
- 	 */
--	memset(skb->data, NSS_NLDTLS_DUMMY_DATA, skb->len);
-+	memset(skb_put(skb, pkt_sz), NSS_NLDTLS_DUMMY_DATA, skb->len);
- 
--	/*
--	 * Fill udp header fields
--	 */
--	skb_push(skb, sizeof(struct udphdr));
--	uh = (struct udphdr *)skb->data;
--	uh->source = htons(dtls_rule->msg.create.encap.sport);
--	uh->dest = htons(dtls_rule->msg.create.encap.dport);
--	uh->len = htons(skb->len);
--	uh->check = 0;
--
--	/*
--	 * Fill IP header fields
--	 */
--	skb_push(skb, sizeof(struct iphdr));
--	iph = (struct iphdr *)skb->data;
--	iph->ihl = 5;
--	iph->version = 4;
--	iph->tot_len = (nl_rule->msg.tx_pkts.pkt_sz + sizeof(struct udphdr) + sizeof(struct iphdr));
--	iph->ttl = dtls_rule->msg.create.encap.ip_ttl;
--	iph->protocol = IPPROTO_UDP;
--	iph->saddr = dtls_rule->msg.create.encap.sip[0];
--	iph->daddr = dtls_rule->msg.create.encap.dip[0];
-+	ndm = nss_dtlsmgr_metadata_init(skb);
-+	nss_dtlsmgr_metadata_set_seq(ndm, nl_rule->msg.tx_pkts.seq_num);
-+	nss_dtlsmgr_metadata_set_ctype(ndm, ctype);
- 
--	/*
--	 * UDP checksum
--	 */
--	uh->check = udp_csum(skb);
--	uh->check = csum_tcpudp_magic(iph->saddr, iph->daddr, skb->len,
--				      IPPROTO_UDP, uh->check);
--
--	if (nl_rule->msg.tx_pkts.log_en) {
--		nss_nl_info("%px: DTLS TX pkt len:%d udp_csum:0x%x\n", skb, skb->len, uh->check);
-+	if (unlikely(nl_rule->msg.tx_pkts.log_en)) {
-+		nss_nl_info("%px DTLS TX pkt len:%u\n", skb, skb->len);
- 	}
- 
- 	return skb;
- }
- 
--/*
-- * nss_nldtls_construct_ipv6_udp_header()
-- *	Creates an ipv6 + udp packet
 - */
--static struct sk_buff *nss_nldtls_construct_ipv6_udp_header(struct net_device *dev, struct nss_nldtls_rule *nl_rule)
+-static struct sk_buff *nss_nldtls_construct_ipv4_udp_header(struct net_device *dev, struct nss_nldtls_rule *nl_rule)
 -{
 -	struct nss_nldtls_tun_ctx *tun_data;
 -	struct nss_nldtls_rule *dtls_rule;
 -	uint16_t hroom, troom;
 -	struct sk_buff *skb;
 -	struct udphdr *uh;
--	struct ipv6hdr *ip6h;
+-	struct iphdr *iph;
 -
 -	/*
 -	 * Get the tun data
@@ -854,6 +764,88 @@ index e7b9b0f..1421e29 100644
 -	/*
 -	 * Fill IP header fields
 -	 */
+-	skb_push(skb, sizeof(struct iphdr));
+-	iph = (struct iphdr *)skb->data;
+-	iph->ihl = 5;
+-	iph->version = 4;
+-	iph->tot_len = (nl_rule->msg.tx_pkts.pkt_sz + sizeof(struct udphdr) + sizeof(struct iphdr));
+-	iph->ttl = dtls_rule->msg.create.encap.ip_ttl;
+-	iph->protocol = IPPROTO_UDP;
+-	iph->saddr = dtls_rule->msg.create.encap.sip[0];
+-	iph->daddr = dtls_rule->msg.create.encap.dip[0];
+-
+-	/*
+-	 * UDP checksum
+-	 */
+-	uh->check = udp_csum(skb);
+-	uh->check = csum_tcpudp_magic(iph->saddr, iph->daddr, skb->len,
+-				      IPPROTO_UDP, uh->check);
+-
+-	if (nl_rule->msg.tx_pkts.log_en) {
+-		nss_nl_info("%px: DTLS TX pkt len:%d udp_csum:0x%x\n", skb, skb->len, uh->check);
+-	}
+-
+-	return skb;
+-}
+-
+-/*
+- * nss_nldtls_construct_ipv6_udp_header()
+- *	Creates an ipv6 + udp packet
++ * nss_nldtls_alloc_pkt()
++ *	Handler for forming ctype packet
+  */
+-static struct sk_buff *nss_nldtls_construct_ipv6_udp_header(struct net_device *dev, struct nss_nldtls_rule *nl_rule)
++static struct sk_buff *nss_nldtls_alloc_pkt(struct nss_nldtls_rule *nl_rule,
++			struct net_device *dev, uint32_t pkt_sz, uint8_t ctype)
+ {
+-	struct nss_nldtls_tun_ctx *tun_data;
+-	struct nss_nldtls_rule *dtls_rule;
+-	uint16_t hroom, troom;
++	struct nss_dtlsmgr_metadata *ndm;
++	uint16_t hdr_len, payload_len;
+ 	struct sk_buff *skb;
+-	struct udphdr *uh;
+-	struct ipv6hdr *ip6h;
+ 
+-	/*
+-	 * Get the tun data
+-	 */
+-	tun_data = nss_nldtls_find_dtls_tun_gbl_ctx(dev);
+-	dtls_rule = tun_data->nl_rule;
+-	hroom = dev->needed_headroom;
+-	troom = dev->needed_tailroom;
+-	skb = dev_alloc_skb(nl_rule->msg.tx_pkts.pkt_sz + hroom + troom);
++	hdr_len = dev->needed_headroom + sizeof(*ndm);
++	payload_len = hdr_len + dev->needed_tailroom + pkt_sz;
++	skb = netdev_alloc_skb(dev, payload_len);
+ 	if (!skb) {
+-		nss_nl_info("Failed to allocate skb\n");
+ 		return NULL;
+ 	}
+ 
+-	skb_reserve(skb, sizeof(struct udphdr) + sizeof(struct iphdr));
+-	skb_put(skb, nl_rule->msg.tx_pkts.pkt_sz);
++	skb_reserve(skb, hdr_len);
+ 
+ 	/*
+ 	 * Fill the packet with dummy data
+ 	 */
+-	memset(skb->data, NSS_NLDTLS_DUMMY_DATA, skb->len);
+-
+-	/*
+-	 * Fill udp header fields
+-	 */
+-	skb_push(skb, sizeof(struct udphdr));
+-	uh = (struct udphdr *)skb->data;
+-	uh->source = htons(dtls_rule->msg.create.encap.sport);
+-	uh->dest = htons(dtls_rule->msg.create.encap.dport);
+-	uh->len = htons(skb->len);
+-	uh->check = 0;
++	memset(skb_put(skb, pkt_sz), NSS_NLDTLS_DUMMY_DATA, skb->len);
+ 
+-	/*
+-	 * Fill IP header fields
+-	 */
 -	skb_push(skb, sizeof(struct ipv6hdr));
 -	ip6h = (struct ipv6hdr *)skb->data;
 -	ip6h->version = 6;
@@ -864,7 +856,10 @@ index e7b9b0f..1421e29 100644
 -	ip6h->saddr.in6_u.u6_addr32[1] = htonl(dtls_rule->msg.create.encap.sip[1]);
 -	ip6h->saddr.in6_u.u6_addr32[2] = htonl(dtls_rule->msg.create.encap.sip[2]);
 -	ip6h->saddr.in6_u.u6_addr32[3] = htonl(dtls_rule->msg.create.encap.sip[3]);
--
++	ndm = nss_dtlsmgr_metadata_init(skb);
++	nss_dtlsmgr_metadata_set_seq(ndm, nl_rule->msg.tx_pkts.seq_num);
++	nss_dtlsmgr_metadata_set_ctype(ndm, ctype);
+ 
 -	ip6h->saddr.in6_u.u6_addr32[0] = htonl(dtls_rule->msg.create.encap.dip[0]);
 -	ip6h->saddr.in6_u.u6_addr32[1] = htonl(dtls_rule->msg.create.encap.dip[1]);
 -	ip6h->saddr.in6_u.u6_addr32[2] = htonl(dtls_rule->msg.create.encap.dip[2]);
@@ -878,12 +873,14 @@ index e7b9b0f..1421e29 100644
 -
 -	if (nl_rule->msg.tx_pkts.log_en) {
 -		nss_nl_info("%px: DTLS TX pkt len:%d udp_csum:0x%x\n", skb, skb->len, uh->check);
--	}
--
--	return skb;
--}
--
--/*
++	if (unlikely(nl_rule->msg.tx_pkts.log_en)) {
++		nss_nl_info("%px DTLS TX pkt len:%u\n", skb, skb->len);
+ 	}
+ 
+ 	return skb;
+ }
+ 
+ /*
 - * nss_nldtls_tx_ipv4_pkts_host_to_host()
 - *	Handler for sending ipv4 traffic from one host to other
 - */
@@ -927,7 +924,7 @@ index e7b9b0f..1421e29 100644
 -	return true;
 -}
 -
- /*
+-/*
   * nss_nldtls_ops_tx_pkts()
   *	Handler for sending traffic
   */
@@ -950,7 +947,7 @@ index e7b9b0f..1421e29 100644
  
  	/*
  	 * extract the message payload
-@@ -1046,56 +988,149 @@ static int nss_nldtls_ops_tx_pkts(struct sk_buff *skb, struct genl_info *info)
+@@ -1046,56 +988,149 @@ static int nss_nldtls_ops_tx_pkts(struct
  	 */
  	nl_rule = container_of(nl_cm, struct nss_nldtls_rule, cm);
  
@@ -1189,8 +1186,6 @@ index e7b9b0f..1421e29 100644
  		}
  	}
  
-diff --git a/netlink/nss_nldtls.h b/netlink/nss_nldtls.h
-index 04da43e..920f557 100644
 --- a/netlink/nss_nldtls.h
 +++ b/netlink/nss_nldtls.h
 @@ -27,6 +27,27 @@
@@ -1238,15 +1233,12 @@ index 04da43e..920f557 100644
  };
  
  #if (CONFIG_NSS_NLDTLS == 1)
-diff --git a/netlink/nss_nldynamic_interface.c b/netlink/nss_nldynamic_interface.c
-index 3269554..fbd3dd4 100644
 --- a/netlink/nss_nldynamic_interface.c
 +++ b/netlink/nss_nldynamic_interface.c
-@@ -45,20 +45,6 @@
- static int nss_nldynamic_interface_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -46,20 +46,6 @@ static int nss_nldynamic_interface_ops_g
  static int nss_nldynamic_interface_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * dynamic interface family definition
 - */
 -static struct genl_family nss_nldynamic_interface_family = {
@@ -1260,14 +1252,14 @@ index 3269554..fbd3dd4 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -73,6 +59,26 @@ static struct genl_ops nss_nldynamic_interface_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nldynamic_interface_ops_get_stats},
+ static const struct genl_multicast_group nss_nldynamic_interface_mcgrp[] = {
+@@ -74,6 +60,26 @@ static struct genl_ops nss_nldynamic_int
  };
  
-+/*
+ /*
 + * dynamic interface family definition
 + */
 +static struct genl_family nss_nldynamic_interface_family = {
@@ -1287,9 +1279,10 @@ index 3269554..fbd3dd4 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nldynamic_interface_mcgrp)
 +};
 +
- /*
++/*
   * destroy interface call back handler for dynamic interface from NSS
   */
+ static struct notifier_block nss_dynamic_interface_stats_notifier_nb = {
 @@ -125,7 +131,7 @@ bool nss_nldynamic_interface_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -1299,15 +1292,12 @@ index 3269554..fbd3dd4 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register dynamic_interface family\n");
  		return false;
-diff --git a/netlink/nss_nledma.c b/netlink/nss_nledma.c
-index 220958a..d784c0b 100644
 --- a/netlink/nss_nledma.c
 +++ b/netlink/nss_nledma.c
-@@ -44,20 +44,6 @@
- static int nss_nledma_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -45,20 +45,6 @@ static int nss_nledma_ops_get_stats(stru
  static int nss_nledma_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * Edma family definition
 - */
 -static struct genl_family nss_nledma_family = {
@@ -1321,14 +1311,14 @@ index 220958a..d784c0b 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -72,6 +58,26 @@ static struct genl_ops nss_nledma_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nledma_ops_get_stats,},
+ static const struct genl_multicast_group nss_nledma_mcgrp[] = {
+@@ -73,6 +59,26 @@ static struct genl_ops nss_nledma_ops[]
  };
  
-+/*
+ /*
 + * Edma family definition
 + */
 +static struct genl_family nss_nledma_family = {
@@ -1348,9 +1338,10 @@ index 220958a..d784c0b 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nledma_mcgrp)
 +};
 +
- /*
++/*
   * statistics call back handler for edma from NSS
   */
+ static struct notifier_block nss_edma_stats_notifier_nb = {
 @@ -130,7 +136,7 @@ bool nss_nledma_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -1360,15 +1351,12 @@ index 220958a..d784c0b 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register Edma family\n");
  		return false;
-diff --git a/netlink/nss_nlethrx.c b/netlink/nss_nlethrx.c
-index 9ec1bbb..e9a5daf 100644
 --- a/netlink/nss_nlethrx.c
 +++ b/netlink/nss_nlethrx.c
-@@ -45,20 +45,6 @@
- static int nss_nlethrx_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -46,20 +46,6 @@ static int nss_nlethrx_ops_get_stats(str
  static int nss_nlethrx_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * eth_rx family definition
 - */
 -static struct genl_family nss_nlethrx_family = {
@@ -1382,14 +1370,14 @@ index 9ec1bbb..e9a5daf 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -73,6 +59,26 @@ static struct genl_ops nss_nlethrx_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nlethrx_ops_get_stats,},
+ static const struct genl_multicast_group nss_nlethrx_mcgrp[] = {
+@@ -74,6 +60,26 @@ static struct genl_ops nss_nlethrx_ops[]
  };
  
-+/*
+ /*
 + * eth_rx family definition
 + */
 +static struct genl_family nss_nlethrx_family = {
@@ -1409,9 +1397,10 @@ index 9ec1bbb..e9a5daf 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlethrx_mcgrp)
 +};
 +
- /*
++/*
   * statistics call back handler for eth_rx from NSS
   */
+ static struct notifier_block nss_eth_rx_stats_notifier_nb = {
 @@ -125,7 +131,7 @@ bool nss_nlethrx_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -1421,15 +1410,12 @@ index 9ec1bbb..e9a5daf 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register eth_rx family\n");
  		return false;
-diff --git a/netlink/nss_nlgre_redir_cmd.c b/netlink/nss_nlgre_redir_cmd.c
-index a191d5b..8538267 100644
 --- a/netlink/nss_nlgre_redir_cmd.c
 +++ b/netlink/nss_nlgre_redir_cmd.c
-@@ -42,12 +42,47 @@ static DEFINE_SPINLOCK(lock);
-  */
+@@ -43,11 +43,46 @@ static DEFINE_SPINLOCK(lock);
  static enum nss_nlgre_redir_cmd_deploy_mode deploy_mode;
  
-+/*
+ /*
 + * prototypes
 + */
 +static int nss_nlgre_redir_cmd_ops_tun_create(struct sk_buff *skb, struct genl_info *info);
@@ -1462,7 +1448,7 @@ index a191d5b..8538267 100644
 +	{.cmd = NSS_NLGRE_REDIR_CMD_TYPE_DEL_HASH, .doit = nss_nlgre_redir_cmd_ops_del_hash,},
 +};
 +
- /*
++/*
   * nss_nlgre_redir_cmd_family
   * 	Gre_redir family definition
   */
@@ -1473,7 +1459,7 @@ index a191d5b..8538267 100644
  	.name = NSS_NLGRE_REDIR_FAMILY,			/* family name string */
  	.hdrsize = sizeof(struct nss_nlgre_redir_rule),	/* NSS NETLINK gre_redir rule */
  	.version = NSS_NL_VER,				/* Set it to NSS_NLGRE_REDIR version */
-@@ -55,6 +90,10 @@ struct genl_family nss_nlgre_redir_cmd_family = {
+@@ -55,6 +90,10 @@ struct genl_family nss_nlgre_redir_cmd_f
  	.netnsok = true,
  	.pre_doit = NULL,
  	.post_doit = NULL,
@@ -1493,7 +1479,7 @@ index a191d5b..8538267 100644
   * 	Handler to destroy tunnel
   */
  static int nss_nlgre_redir_cmd_ops_tun_destroy(struct sk_buff *skb, struct genl_info *info)
-@@ -287,7 +326,7 @@ static int nss_nlgre_redir_cmd_ops_unmap(struct sk_buff *skb, struct genl_info *
+@@ -287,7 +326,7 @@ static int nss_nlgre_redir_cmd_ops_unmap
  }
  
  /*
@@ -1511,7 +1497,7 @@ index a191d5b..8538267 100644
   * 	Handler for adding hash a value
   */
  static int nss_nlgre_redir_cmd_ops_add_hash(struct sk_buff *skb, struct genl_info *info)
-@@ -373,7 +412,7 @@ static int nss_nlgre_redir_cmd_ops_add_hash(struct sk_buff *skb, struct genl_inf
+@@ -373,7 +412,7 @@ static int nss_nlgre_redir_cmd_ops_add_h
  }
  
  /*
@@ -1520,11 +1506,10 @@ index a191d5b..8538267 100644
   * 	Handler for deleting a hash value
   */
  static int nss_nlgre_redir_cmd_ops_del_hash(struct sk_buff *skb, struct genl_info *info)
-@@ -409,20 +448,6 @@ static int nss_nlgre_redir_cmd_ops_del_hash(struct sk_buff *skb, struct genl_inf
- 	return 0;
+@@ -410,20 +449,6 @@ static int nss_nlgre_redir_cmd_ops_del_h
  }
  
--/*
+ /*
 - * nss_nlgre_redir_cmd_ops
 - * 	Operation table called by the generic netlink layer based on the command
 - */
@@ -1538,34 +1523,30 @@ index a191d5b..8538267 100644
 -	{.cmd = NSS_NLGRE_REDIR_CMD_TYPE_DEL_HASH, .doit = nss_nlgre_redir_cmd_ops_del_hash,},
 -};
 -
- /*
+-/*
   * nss_nlgre_redir_cmd_get_ifnum()
   * 	Get the interface number corresponding to netdev
-diff --git a/netlink/nss_nlgre_redir_cmd.h b/netlink/nss_nlgre_redir_cmd.h
-index 9e759f0..e59bcab 100644
+  */
 --- a/netlink/nss_nlgre_redir_cmd.h
 +++ b/netlink/nss_nlgre_redir_cmd.h
-@@ -37,11 +37,6 @@ enum nss_nlgre_redir_cmd_deploy_mode {
-  */
+@@ -38,11 +38,6 @@ enum nss_nlgre_redir_cmd_deploy_mode {
  extern struct genl_family nss_nlgre_redir_cmd_family;
  
--/*
+ /*
 - * Gre_redir generic netlink operations
 - */
 -extern struct genl_ops nss_nlgre_redir_cmd_ops[NSS_NLGRE_REDIR_CMD_MAX];
 -
- /*
+-/*
   * nss_nlgre_redir_cmd_get_ifnum()
   * 	Get the interface number corresponding to netdev
-diff --git a/netlink/nss_nlgre_redir_cmn.c b/netlink/nss_nlgre_redir_cmn.c
-index 83f1c62..26de548 100644
+  */
 --- a/netlink/nss_nlgre_redir_cmn.c
 +++ b/netlink/nss_nlgre_redir_cmn.c
-@@ -353,6 +353,24 @@ static struct rtnl_link_stats64 *nss_nlgre_redir_cmn_get_stats64(struct net_devi
- 	return stats;
+@@ -354,6 +354,24 @@ static struct rtnl_link_stats64 *nss_nlg
  }
  
-+/*
+ /*
 + * nss_nlgre_redir_cmn_dev_stats64
 + *	Report packet statistics to linux
 + */
@@ -1583,10 +1564,11 @@ index 83f1c62..26de548 100644
 +}
 +#endif
 +
- /*
++/*
   * nss_nlgre_redir_cmn_set_mac_address()
   * 	Sets the mac address of netdev
-@@ -389,7 +407,11 @@ static void nss_nlgre_redir_cmn_dev_setup(struct net_device *dev)
+  */
+@@ -389,7 +407,11 @@ static void nss_nlgre_redir_cmn_dev_setu
  	ether_setup(dev);
  	dev->needed_headroom = NSS_NLGRE_REDIR_CMN_NEEDED_HEADROOM;
  	dev->netdev_ops = &gre_redir_netdev_ops;
@@ -1598,7 +1580,7 @@ index 83f1c62..26de548 100644
  	eth_hw_addr_random(dev);
  }
  
-@@ -401,7 +423,7 @@ static const struct net_device_ops gre_redir_netdev_ops = {
+@@ -401,7 +423,7 @@ static const struct net_device_ops gre_r
  	.ndo_open = nss_nlgre_redir_cmn_open_interface,
  	.ndo_stop = nss_nlgre_redir_cmn_close_interface,
  	.ndo_start_xmit = nss_nlgre_redir_cmn_xmit_data,
@@ -1607,8 +1589,6 @@ index 83f1c62..26de548 100644
  	.ndo_set_mac_address = nss_nlgre_redir_cmn_set_mac_address,
  };
  
-diff --git a/netlink/nss_nlgre_redir_family.c b/netlink/nss_nlgre_redir_family.c
-index 43a8f3d..576f064 100644
 --- a/netlink/nss_nlgre_redir_family.c
 +++ b/netlink/nss_nlgre_redir_family.c
 @@ -1,6 +1,6 @@
@@ -1619,11 +1599,10 @@ index 43a8f3d..576f064 100644
   * Permission to use, copy, modify, and/or distribute this software for
   * any purpose with or without fee is hereby granted, provided that the
   * above copyright notice and this permission notice appear in all copies.
-@@ -27,14 +27,6 @@
- #include "nss_nl.h"
+@@ -28,14 +28,6 @@
  #include "nss_nlgre_redir_cmd.h"
  
--/*
+ /*
 - * nss_nlgre_redir_cmd_mcgrp
 - * 	Multicast group for sending message status & events
 - */
@@ -1631,9 +1610,10 @@ index 43a8f3d..576f064 100644
 -	{.name = NSS_NLGRE_REDIR_MCAST_GRP},
 -};
 -
- /*
+-/*
   * nss_nlgre_redir_family_init()
   * 	handler init
+  */
 @@ -47,7 +39,7 @@ bool nss_nlgre_redir_family_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -1643,15 +1623,12 @@ index 43a8f3d..576f064 100644
  	if (err) {
  		nss_nl_info_always("Error: %d unable to register gre_redir family\n", err);
  		return false;
-diff --git a/netlink/nss_nlipsec.c b/netlink/nss_nlipsec.c
-index cc8e669..a5b1047 100644
 --- a/netlink/nss_nlipsec.c
 +++ b/netlink/nss_nlipsec.c
-@@ -42,6 +42,16 @@
- #include "nss_nlipv6_if.h"
+@@ -43,6 +43,16 @@
  #include "nss_nlipv4_if.h"
  
-+/*
+ /*
 + * Function prototypes
 + */
 +static int nss_nlipsec_op_create_tunnel(struct sk_buff *skb, struct genl_info *info);
@@ -1661,14 +1638,14 @@ index cc8e669..a5b1047 100644
 +// static int nss_nlipsec_op_add_flow(struct sk_buff *skb, struct genl_info *info);
 +// static int nss_nlipsec_op_delete_flow(struct sk_buff *skb, struct genl_info *info);
 +
- /*
++/*
   * Hold netdevice references
   */
-@@ -71,11 +81,50 @@ struct nss_nlipsec_ctx {
-  */
+ struct nss_nlipsec_ref {
+@@ -72,10 +82,49 @@ struct nss_nlipsec_ctx {
  static struct nss_nlipsec_ctx gbl_ctx;
  
-+/*
+ /*
 + * Multicast group for sending message status & events
 + */
 +static const struct genl_multicast_group nss_nlipsec_mcgrp[] = {
@@ -1705,7 +1682,7 @@ index cc8e669..a5b1047 100644
 +	// },
 +};
 +
- /*
++/*
   * IPsec family definition
   */
  static struct genl_family nss_nlipsec_family = {
@@ -1715,7 +1692,7 @@ index cc8e669..a5b1047 100644
  	.name = NSS_NLIPSEC_FAMILY,		/* Family name string */
  	.hdrsize = sizeof(struct nss_nlipsec_rule),/* NSS NETLINK IPsec rule */
  	.version = NSS_NL_VER,			/* Set it to NSS_NL version */
-@@ -83,13 +132,10 @@ static struct genl_family nss_nlipsec_family = {
+@@ -83,13 +132,10 @@ static struct genl_family nss_nlipsec_fa
  	.netnsok = true,
  	.pre_doit = NULL,
  	.post_doit = NULL,
@@ -1733,7 +1710,7 @@ index cc8e669..a5b1047 100644
  };
  
  /*
-@@ -501,7 +547,7 @@ static int nss_nlipsec_op_add_sa(struct sk_buff *skb, struct genl_info *info)
+@@ -501,7 +547,7 @@ static int nss_nlipsec_op_add_sa(struct
  	sa_data->cmn.keys.auth_key = sa_rule->auth_key;
  	sa_data->cmn.keys.nonce = sa_rule->nonce;
  
@@ -1742,7 +1719,7 @@ index cc8e669..a5b1047 100644
  	if (error) {
  		nss_nl_error("%d: Failed to add SA for net device(%s), error:%d\n", pid, nl_rule->ifname, error);
  		goto free_dev;
-@@ -579,102 +625,73 @@ static int nss_nlipsec_op_delete_sa(struct sk_buff *skb, struct genl_info *info)
+@@ -579,102 +625,73 @@ static int nss_nlipsec_op_delete_sa(stru
   * nss_nlipsec_op_add_flow()
   *	Add a flow
   */
@@ -1916,15 +1893,12 @@ index cc8e669..a5b1047 100644
  	if (error != 0) {
  		nss_nl_info_always("Error: unable to register IPsec family\n");
  		return false;
-diff --git a/netlink/nss_nlipv4.c b/netlink/nss_nlipv4.c
-index 3e4720e..589c66b 100644
 --- a/netlink/nss_nlipv4.c
 +++ b/netlink/nss_nlipv4.c
-@@ -70,20 +70,6 @@ static int nss_nlipv4_ops_create_rule(struct sk_buff *skb, struct genl_info *inf
- static int nss_nlipv4_ops_destroy_rule(struct sk_buff *skb, struct genl_info *info);
+@@ -71,20 +71,6 @@ static int nss_nlipv4_ops_destroy_rule(s
  static int nss_nlipv4_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * IPv4 family definition
 - */
 -static struct genl_family nss_nlipv4_family = {
@@ -1938,14 +1912,14 @@ index 3e4720e..589c66b 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -99,6 +85,26 @@ static struct genl_ops nss_nlipv4_ops[] = {
- 	{.cmd = NSS_IPV4_TX_DESTROY_RULE_MSG, .doit = nss_nlipv4_ops_destroy_rule,},	/* rule destroy */
+ static const struct genl_multicast_group nss_nlipv4_mcgrp[] = {
+@@ -100,6 +86,26 @@ static struct genl_ops nss_nlipv4_ops[]
  };
  
-+/*
+ /*
 + * IPv4 family definition
 + */
 +static struct genl_family nss_nlipv4_family = {
@@ -1965,9 +1939,10 @@ index 3e4720e..589c66b 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlipv4_mcgrp)
 +};
 +
- /*
++/*
   * statistics call back handler for ipv4 from NSS
   */
+ static struct notifier_block nss_ipv4_stats_notifier_nb = {
 @@ -915,7 +921,7 @@ bool nss_nlipv4_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -1977,15 +1952,12 @@ index 3e4720e..589c66b 100644
  	if (error != 0) {
  		nss_nl_info_always("Error: unable to register IPv4 family\n");
  		return false;
-diff --git a/netlink/nss_nlipv4_reasm.c b/netlink/nss_nlipv4_reasm.c
-index 4f31d69..5fe4bc4 100644
 --- a/netlink/nss_nlipv4_reasm.c
 +++ b/netlink/nss_nlipv4_reasm.c
-@@ -45,20 +45,6 @@
- static int nss_nlipv4_reasm_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -46,20 +46,6 @@ static int nss_nlipv4_reasm_ops_get_stat
  static int nss_nlipv4_reasm_process_notify(struct notifier_block *nb,  unsigned long val, void *data);
  
--/*
+ /*
 - * ipv4_reasm family definition
 - */
 -static struct genl_family nss_nlipv4_reasm_family = {
@@ -1999,14 +1971,14 @@ index 4f31d69..5fe4bc4 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -73,6 +59,26 @@ static struct genl_ops nss_nlipv4_reasm_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nlipv4_reasm_ops_get_stats},
+ static const struct genl_multicast_group nss_nlipv4_reasm_mcgrp[] = {
+@@ -74,6 +60,26 @@ static struct genl_ops nss_nlipv4_reasm_
  };
  
-+/*
+ /*
 + * ipv4_reasm family definition
 + */
 +static struct genl_family nss_nlipv4_reasm_family = {
@@ -2026,9 +1998,10 @@ index 4f31d69..5fe4bc4 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlipv4_reasm_mcgrp)
 +};
 +
- /*
++/*
   * stats call back handler for ipv4_reasm from NSS
   */
+ static struct notifier_block nss_ipv4_reasm_stats_notifier_nb = {
 @@ -125,7 +131,7 @@ bool nss_nlipv4_reasm_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -2038,15 +2011,12 @@ index 4f31d69..5fe4bc4 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register ipv4_reasm family\n");
  		return false;
-diff --git a/netlink/nss_nlipv6.c b/netlink/nss_nlipv6.c
-index 7163458..5b2e9c4 100644
 --- a/netlink/nss_nlipv6.c
 +++ b/netlink/nss_nlipv6.c
-@@ -78,20 +78,6 @@ static int nss_nlipv6_ops_create_rule(struct sk_buff *skb, struct genl_info *inf
- static int nss_nlipv6_ops_destroy_rule(struct sk_buff *skb, struct genl_info *info);
+@@ -79,20 +79,6 @@ static int nss_nlipv6_ops_destroy_rule(s
  static int nss_nlipv6_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * IPV6 family definition
 - */
 -static struct genl_family nss_nlipv6_family = {
@@ -2060,14 +2030,14 @@ index 7163458..5b2e9c4 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -107,6 +93,26 @@ static struct genl_ops nss_nlipv6_ops[] = {
- 	{.cmd = NSS_IPV6_TX_DESTROY_RULE_MSG, .doit = nss_nlipv6_ops_destroy_rule,},	/* rule destroy */
+ static struct genl_multicast_group nss_nlipv6_mcgrp[] = {
+@@ -108,6 +94,26 @@ static struct genl_ops nss_nlipv6_ops[]
  };
  
-+/*
+ /*
 + * IPV6 family definition
 + */
 +static struct genl_family nss_nlipv6_family = {
@@ -2087,10 +2057,11 @@ index 7163458..5b2e9c4 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlipv6_mcgrp)
 +};
 +
- /*
++/*
   * statistics call back handler for ipv6 from NSS
   */
-@@ -131,7 +137,11 @@ static struct neighbour *nss_nlipv6_get_neigh(uint32_t dst_addr[4])
+ static struct notifier_block nss_ipv6_stats_notifier_nb = {
+@@ -131,7 +137,11 @@ static struct neighbour *nss_nlipv6_get_
  
  	IPV6_ADDR_TO_IN6_ADDR(daddr, dst_addr);
  
@@ -2111,15 +2082,12 @@ index 7163458..5b2e9c4 100644
  	if (error != 0) {
  		nss_nl_info_always("Error: unable to register IPV6 family\n");
  		return false;
-diff --git a/netlink/nss_nlipv6_reasm.c b/netlink/nss_nlipv6_reasm.c
-index 49d9879..4182e53 100644
 --- a/netlink/nss_nlipv6_reasm.c
 +++ b/netlink/nss_nlipv6_reasm.c
-@@ -45,20 +45,6 @@
- static int nss_nlipv6_reasm_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -46,20 +46,6 @@ static int nss_nlipv6_reasm_ops_get_stat
  static int nss_nlipv6_reasm_process_notify(struct notifier_block *nb,  unsigned long val, void *data);
  
--/*
+ /*
 - * ipv6_reasm family definition
 - */
 -static struct genl_family nss_nlipv6_reasm_family = {
@@ -2133,14 +2101,14 @@ index 49d9879..4182e53 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -73,6 +59,26 @@ static struct genl_ops nss_nlipv6_reasm_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nlipv6_reasm_ops_get_stats},
+ static const struct genl_multicast_group nss_nlipv6_reasm_mcgrp[] = {
+@@ -74,6 +60,26 @@ static struct genl_ops nss_nlipv6_reasm_
  };
  
-+/*
+ /*
 + * ipv6_reasm family definition
 + */
 +static struct genl_family nss_nlipv6_reasm_family = {
@@ -2160,9 +2128,10 @@ index 49d9879..4182e53 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlipv6_reasm_mcgrp)
 +};
 +
- /*
++/*
   * stats call back handler for ipv6_reasm from NSS
   */
+ static struct notifier_block nss_ipv6_reasm_stats_notifier_nb = {
 @@ -125,7 +131,7 @@ bool nss_nlipv6_reasm_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -2172,15 +2141,12 @@ index 49d9879..4182e53 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register ipv6_reasm family\n");
  		return false;
-diff --git a/netlink/nss_nll2tpv2.c b/netlink/nss_nll2tpv2.c
-index c4c04f8..711bf74 100644
 --- a/netlink/nss_nll2tpv2.c
 +++ b/netlink/nss_nll2tpv2.c
-@@ -46,20 +46,6 @@
- static int nss_nll2tpv2_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -47,20 +47,6 @@ static int nss_nll2tpv2_ops_get_stats(st
  static int nss_nll2tpv2_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * l2tpv2 family definition
 - */
 -static struct genl_family nss_nll2tpv2_family = {
@@ -2194,14 +2160,14 @@ index c4c04f8..711bf74 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -74,6 +60,26 @@ static struct genl_ops nss_nll2tpv2_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nll2tpv2_ops_get_stats},
+ static const struct genl_multicast_group nss_nll2tpv2_mcgrp[] = {
+@@ -75,6 +61,26 @@ static struct genl_ops nss_nll2tpv2_ops[
  };
  
-+/*
+ /*
 + * l2tpv2 family definition
 + */
 +static struct genl_family nss_nll2tpv2_family = {
@@ -2221,9 +2187,10 @@ index c4c04f8..711bf74 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nll2tpv2_mcgrp)
 +};
 +
- /*
++/*
   * device call back handler for l2tpv2 from NSS
   */
+ static struct notifier_block nss_l2tpv2_stats_notifier_nb = {
 @@ -126,7 +132,7 @@ bool nss_nll2tpv2_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -2233,15 +2200,12 @@ index c4c04f8..711bf74 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register l2tpv2 family\n");
  		return false;
-diff --git a/netlink/nss_nllso_rx.c b/netlink/nss_nllso_rx.c
-index ccea6aa..ccd8c7b 100644
 --- a/netlink/nss_nllso_rx.c
 +++ b/netlink/nss_nllso_rx.c
-@@ -46,20 +46,6 @@
- static int nss_nllso_rx_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -47,20 +47,6 @@ static int nss_nllso_rx_ops_get_stats(st
  static int nss_nllso_rx_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * lso_rx family definition
 - */
 -static struct genl_family nss_nllso_rx_family = {
@@ -2255,14 +2219,14 @@ index ccea6aa..ccd8c7b 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -74,6 +60,26 @@ static struct genl_ops nss_nllso_rx_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nllso_rx_ops_get_stats},
+ static const struct genl_multicast_group nss_nllso_rx_mcgrp[] = {
+@@ -75,6 +61,26 @@ static struct genl_ops nss_nllso_rx_ops[
  };
  
-+/*
+ /*
 + * lso_rx family definition
 + */
 +static struct genl_family nss_nllso_rx_family = {
@@ -2282,9 +2246,10 @@ index ccea6aa..ccd8c7b 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nllso_rx_mcgrp)
 +};
 +
- /*
++/*
   * device call back handler for lso_rx from NSS
   */
+ static struct notifier_block nss_lso_rx_stats_notifier_nb = {
 @@ -126,7 +132,7 @@ bool nss_nllso_rx_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -2294,15 +2259,12 @@ index ccea6aa..ccd8c7b 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register lso_rx family\n");
  		return false;
-diff --git a/netlink/nss_nlmap_t.c b/netlink/nss_nlmap_t.c
-index ac797f8..23e8bc5 100644
 --- a/netlink/nss_nlmap_t.c
 +++ b/netlink/nss_nlmap_t.c
-@@ -46,20 +46,6 @@
- static int nss_nlmap_t_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -47,20 +47,6 @@ static int nss_nlmap_t_ops_get_stats(str
  static int nss_nlmap_t_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * map_t family definition
 - */
 -static struct genl_family nss_nlmap_t_family = {
@@ -2316,14 +2278,14 @@ index ac797f8..23e8bc5 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -74,6 +60,26 @@ static struct genl_ops nss_nlmap_t_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nlmap_t_ops_get_stats},
+ static const struct genl_multicast_group nss_nlmap_t_mcgrp[] = {
+@@ -75,6 +61,26 @@ static struct genl_ops nss_nlmap_t_ops[]
  };
  
-+/*
+ /*
 + * map_t family definition
 + */
 +static struct genl_family nss_nlmap_t_family = {
@@ -2343,9 +2305,10 @@ index ac797f8..23e8bc5 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlmap_t_mcgrp)
 +};
 +
- /*
++/*
   * device call back handler for map_t from NSS
   */
+ static struct notifier_block nss_map_t_stats_notifier_nb = {
 @@ -126,7 +132,7 @@ bool nss_nlmap_t_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -2355,15 +2318,12 @@ index ac797f8..23e8bc5 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register map_t family\n");
  		return false;
-diff --git a/netlink/nss_nln2h.c b/netlink/nss_nln2h.c
-index 9bc2af6..e56d31f 100644
 --- a/netlink/nss_nln2h.c
 +++ b/netlink/nss_nln2h.c
-@@ -45,20 +45,6 @@
- static int nss_nln2h_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -46,20 +46,6 @@ static int nss_nln2h_ops_get_stats(struc
  static int nss_nln2h_process_notify(struct notifier_block *nb,  unsigned long val, void *data);
  
--/*
+ /*
 - * n2h family definition
 - */
 -static struct genl_family nss_nln2h_family = {
@@ -2377,14 +2337,14 @@ index 9bc2af6..e56d31f 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -73,6 +59,26 @@ static struct genl_ops nss_nln2h_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nln2h_ops_get_stats},
+ static const struct genl_multicast_group nss_nln2h_mcgrp[] = {
+@@ -74,6 +60,26 @@ static struct genl_ops nss_nln2h_ops[] =
  };
  
-+/*
+ /*
 + * n2h family definition
 + */
 +static struct genl_family nss_nln2h_family = {
@@ -2404,9 +2364,10 @@ index 9bc2af6..e56d31f 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nln2h_mcgrp)
 +};
 +
- /*
++/*
   * stats call back handler for n2h from NSS
   */
+ static struct notifier_block nss_n2h_stats_notifier_nb = {
 @@ -125,7 +131,7 @@ bool nss_nln2h_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -2416,8 +2377,6 @@ index 9bc2af6..e56d31f 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register n2h family\n");
  		return false;
-diff --git a/netlink/nss_nloam.c b/netlink/nss_nloam.c
-index 4d784c7..e0eb85e 100644
 --- a/netlink/nss_nloam.c
 +++ b/netlink/nss_nloam.c
 @@ -1,6 +1,6 @@
@@ -2428,7 +2387,7 @@ index 4d784c7..e0eb85e 100644
   * Permission to use, copy, modify, and/or distribute this software for
   * any purpose with or without fee is hereby granted, provided that the
   * above copyright notice and this permission notice appear in all copies.
-@@ -82,11 +82,25 @@ struct nss_nloam_msg_map global_nloam_msg_map[] = {
+@@ -82,11 +82,25 @@ struct nss_nloam_msg_map global_nloam_ms
  	},
  };
  
@@ -2454,7 +2413,7 @@ index 4d784c7..e0eb85e 100644
  	.name = NSS_NLOAM_FAMILY,			/* family name string */
  	.hdrsize = sizeof(struct nss_nloam_rule),	/* NLOAM msg size */
  	.version = NSS_NL_VER,				/* nss netlink version */
-@@ -94,18 +108,10 @@ static struct genl_family nss_nloam_family = {
+@@ -94,18 +108,10 @@ static struct genl_family nss_nloam_fami
  	.netnsok = false,
  	.pre_doit = NULL,
  	.post_doit = NULL,
@@ -2486,15 +2445,12 @@ index 4d784c7..e0eb85e 100644
  	if (error != 0) {
  		nss_nl_info_always("unable to register OAM family\n");
  		return false;
-diff --git a/netlink/nss_nlpppoe.c b/netlink/nss_nlpppoe.c
-index fd36385..4cbc93b 100644
 --- a/netlink/nss_nlpppoe.c
 +++ b/netlink/nss_nlpppoe.c
-@@ -46,20 +46,6 @@
- static int nss_nlpppoe_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -47,20 +47,6 @@ static int nss_nlpppoe_ops_get_stats(str
  static int nss_nlpppoe_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * pppoe family definition
 - */
 -static struct genl_family nss_nlpppoe_family = {
@@ -2508,14 +2464,14 @@ index fd36385..4cbc93b 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -74,6 +60,26 @@ static struct genl_ops nss_nlpppoe_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nlpppoe_ops_get_stats},
+ static const struct genl_multicast_group nss_nlpppoe_mcgrp[] = {
+@@ -75,6 +61,26 @@ static struct genl_ops nss_nlpppoe_ops[]
  };
  
-+/*
+ /*
 + * pppoe family definition
 + */
 +static struct genl_family nss_nlpppoe_family = {
@@ -2535,9 +2491,10 @@ index fd36385..4cbc93b 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlpppoe_mcgrp)
 +};
 +
- /*
++/*
   * device call back handler for pppoe from NSS
   */
+ static struct notifier_block nss_pppoe_stats_notifier_nb = {
 @@ -126,7 +132,7 @@ bool nss_nlpppoe_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -2547,15 +2504,12 @@ index fd36385..4cbc93b 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register pppoe family\n");
  		return false;
-diff --git a/netlink/nss_nlpptp.c b/netlink/nss_nlpptp.c
-index 8bffd50..b142b2a 100644
 --- a/netlink/nss_nlpptp.c
 +++ b/netlink/nss_nlpptp.c
-@@ -46,20 +46,6 @@
- static int nss_nlpptp_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -47,20 +47,6 @@ static int nss_nlpptp_ops_get_stats(stru
  static int nss_nlpptp_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * pptp family definition
 - */
 -static struct genl_family nss_nlpptp_family = {
@@ -2569,14 +2523,14 @@ index 8bffd50..b142b2a 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -74,6 +60,26 @@ static struct genl_ops nss_nlpptp_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nlpptp_ops_get_stats},
+ static const struct genl_multicast_group nss_nlpptp_mcgrp[] = {
+@@ -75,6 +61,26 @@ static struct genl_ops nss_nlpptp_ops[]
  };
  
-+/*
+ /*
 + * pptp family definition
 + */
 +static struct genl_family nss_nlpptp_family = {
@@ -2596,9 +2550,10 @@ index 8bffd50..b142b2a 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlpptp_mcgrp)
 +};
 +
- /*
++/*
   * device call back handler for pptp from NSS
   */
+ static struct notifier_block nss_pptp_stats_notifier_nb = {
 @@ -126,7 +132,7 @@ bool nss_nlpptp_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -2608,15 +2563,12 @@ index 8bffd50..b142b2a 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register pptp family\n");
  		return false;
-diff --git a/netlink/nss_nlwifili.c b/netlink/nss_nlwifili.c
-index a20e78e..9c65bd9 100644
 --- a/netlink/nss_nlwifili.c
 +++ b/netlink/nss_nlwifili.c
-@@ -46,20 +46,6 @@
- static int nss_nlwifili_ops_get_stats(struct sk_buff *skb, struct genl_info *info);
+@@ -47,20 +47,6 @@ static int nss_nlwifili_ops_get_stats(st
  static int nss_nlwifili_process_notify(struct notifier_block *nb, unsigned long val, void *data);
  
--/*
+ /*
 - * wifili family definition
 - */
 -static struct genl_family nss_nlwifili_family = {
@@ -2630,14 +2582,14 @@ index a20e78e..9c65bd9 100644
 -	.post_doit = NULL,
 -};
 -
- /*
+-/*
   * multicast group for sending message status & events
   */
-@@ -74,6 +60,26 @@ static struct genl_ops nss_nlwifili_ops[] = {
- 	{.cmd = NSS_STATS_EVENT_NOTIFY, .doit = nss_nlwifili_ops_get_stats},
+ static const struct genl_multicast_group nss_nlwifili_mcgrp[] = {
+@@ -75,6 +61,26 @@ static struct genl_ops nss_nlwifili_ops[
  };
  
-+/*
+ /*
 + * wifili family definition
 + */
 +static struct genl_family nss_nlwifili_family = {
@@ -2657,9 +2609,10 @@ index a20e78e..9c65bd9 100644
 +	.n_mcgrps = ARRAY_SIZE(nss_nlwifili_mcgrp)
 +};
 +
- /*
++/*
   * device call back handler for wifili from NSS
   */
+ static struct notifier_block nss_wifili_stats_notifier_nb = {
 @@ -126,7 +132,7 @@ bool nss_nlwifili_init(void)
  	/*
  	 * register NETLINK ops with the family
@@ -2669,3 +2622,22 @@ index a20e78e..9c65bd9 100644
  	if (error) {
  		nss_nl_info_always("Error: unable to register wifili family\n");
  		return false;
+--- a/netlink/nss_nlcapwap.c
++++ b/netlink/nss_nlcapwap.c
+@@ -36,7 +36,6 @@
+ #include <nss_dtls_cmn.h>
+ #include <nss_nlcmn_if.h>
+ #include <nss_nl_if.h>
+-#include "nss_crypto_defines.h"
+ #include "nss_nl.h"
+ #include "nss_nlcapwap_if.h"
+ #include "nss_nlcapwap.h"
+@@ -1510,7 +1509,7 @@ bool nss_nlcapwap_init(void)
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+-	err = genl_register_family_with_ops_groups(&nss_nlcapwap_family, nss_nlcapwap_cmd_ops, nss_nlcapwap_family_mcgrp);
++	err = genl_register_family(&nss_nlcapwap_family);
+ 	if (err) {
+ 		nss_nl_info_always("Error: %d unable to register capwap family\n", err);
+ 		goto free;
