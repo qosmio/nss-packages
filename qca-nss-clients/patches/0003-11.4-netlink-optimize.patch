@@ -5,7 +5,7 @@
  CAPWAP_ENABLED := $(strip $(if $(filter $(capwapmgr), y), 1 , 0))
  IPSEC_ENABLED := $(strip $(if $(filter $(ipsecmgr), y), 1 , 0))
  DTLS_ENABLED := $(strip $(if $(filter $(dtlsmgr), y), 1 , 0))
-@@ -10,8 +11,8 @@ ccflags-y += -DNSS_CLIENT_BUILD_ID="$(BU
+@@ -10,44 +11,39 @@ ccflags-y += -DNSS_CLIENT_BUILD_ID="$(BU
  
  ccflags-y += -DCONFIG_NSS_NLIPV4=1
  ccflags-y += -DCONFIG_NSS_NLIPV6=1
@@ -16,8 +16,10 @@
  ccflags-y += -DCONFIG_NSS_NLETHRX=1
  ccflags-y += -DCONFIG_NSS_NLDYNAMIC_INTERFACE=1
  ccflags-y += -DCONFIG_NSS_NLN2H=1
-@@ -19,23 +20,18 @@ ccflags-y += -DCONFIG_NSS_NLIPV4_REASM=1
- ccflags-y += -DCONFIG_NSS_NLIPV6_REASM=1
+-ccflags-y += -DCONFIG_NSS_NLIPV4_REASM=1
+-ccflags-y += -DCONFIG_NSS_NLIPV6_REASM=1
++ccflags-y += -DCONFIG_NSS_NLIPV4_REASM=0
++ccflags-y += -DCONFIG_NSS_NLIPV6_REASM=0
  ccflags-y += -DCONFIG_NSS_NLWIFILI=1
  ccflags-y += -DCONFIG_NSS_NLLSO_RX=1
 -ccflags-y += -DCONFIG_NSS_NLMAP_T=1
@@ -45,8 +47,10 @@
  qca-nss-netlink-objs += nss_nlethrx.o
  qca-nss-netlink-objs += nss_nldynamic_interface.o
  qca-nss-netlink-objs += nss_nln2h.o
-@@ -43,11 +39,11 @@ qca-nss-netlink-objs += nss_nlipv4_reasm
- qca-nss-netlink-objs += nss_nlipv6_reasm.o
+-qca-nss-netlink-objs += nss_nlipv4_reasm.o
+-qca-nss-netlink-objs += nss_nlipv6_reasm.o
++# qca-nss-netlink-objs += nss_nlipv4_reasm.o
++# qca-nss-netlink-objs += nss_nlipv6_reasm.o
  qca-nss-netlink-objs += nss_nlwifili.o
  qca-nss-netlink-objs += nss_nllso_rx.o
 -qca-nss-netlink-objs += nss_nlmap_t.o
