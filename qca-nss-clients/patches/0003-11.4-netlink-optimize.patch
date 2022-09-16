@@ -92,7 +92,18 @@
  #include "nss_nlipsec.h"
  #include "nss_nlipsec_if.h"
  #include "nss_nlipv4.h"
-@@ -106,24 +104,6 @@ static struct nss_nl_family family_handl
+@@ -59,10 +57,6 @@
+ #include "nss_nlc2c_tx_if.h"
+ #include "nss_nlc2c_rx.h"
+ #include "nss_nlc2c_rx_if.h"
+-#include "nss_nlipv4_reasm.h"
+-#include "nss_nlipv4_reasm_if.h"
+-#include "nss_nlipv6_reasm.h"
+-#include "nss_nlipv6_reasm_if.h"
+ #include "nss_nlwifili.h"
+ #include "nss_nlwifili_if.h"
+ #include "nss_nllso_rx.h"
+@@ -106,24 +100,6 @@ static struct nss_nl_family family_handl
  	},
  	{
  		/*
@@ -117,7 +128,7 @@
  		 * NSS_NLIPV6
  		 */
  		.name = NSS_NLIPV6_FAMILY,		/* ipv6 */
-@@ -133,15 +113,6 @@ static struct nss_nl_family family_handl
+@@ -133,15 +109,6 @@ static struct nss_nl_family family_handl
  	},
  	{
  		/*
@@ -133,7 +144,7 @@
  		 * NSS_NLCAPWAP
  		 */
  		.name = NSS_NLCAPWAP_FAMILY,		/* capwap */
-@@ -169,15 +140,6 @@ static struct nss_nl_family family_handl
+@@ -169,15 +136,6 @@ static struct nss_nl_family family_handl
  	},
  	{
  		/*
@@ -149,7 +160,32 @@
  		 * NSS_NLDYNAMIC_INTERFACE
  		 */
  		.name = NSS_NLDYNAMIC_INTERFACE_FAMILY,	/* dynamic interface */
-@@ -248,42 +210,6 @@ static struct nss_nl_family family_handl
+@@ -214,24 +172,6 @@ static struct nss_nl_family family_handl
+ 	},
+ 	{
+ 		/*
+-		 * NSS_NLIPV4_REASM
+-		 */
+-		.name = NSS_NLIPV4_REASM_FAMILY,	/* ipv4_reasm */
+-		.entry = NSS_NLIPV4_REASM_INIT,		/* init */
+-		.exit = NSS_NLIPV4_REASM_EXIT,		/* exit */
+-		.valid = CONFIG_NSS_NLIPV4_REASM	/* 1 or 0 */
+-	},
+-	{
+-		/*
+-		 * NSS_NLIPV6_REASM
+-		 */
+-		.name = NSS_NLIPV6_REASM_FAMILY,	/* ipv6_reasm */
+-		.entry = NSS_NLIPV6_REASM_INIT,		/* init */
+-		.exit = NSS_NLIPV6_REASM_EXIT,		/* exit */
+-		.valid = CONFIG_NSS_NLIPV6_REASM	/* 1 or 0 */
+-	},
+-	{
+-		/*
+ 		 * NSS_NLWIFILI
+ 		 */
+ 		.name = NSS_NLWIFILI_FAMILY,		/* wifili */
+@@ -248,42 +188,6 @@ static struct nss_nl_family family_handl
  		.exit = NSS_NLLSO_RX_EXIT,		/* exit */
  		.valid = CONFIG_NSS_NLLSO_RX		/* 1 or 0 */
  	},
