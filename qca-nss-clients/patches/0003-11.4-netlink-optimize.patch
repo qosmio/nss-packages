@@ -128,7 +128,7 @@
  		 * NSS_NLIPV6
  		 */
  		.name = NSS_NLIPV6_FAMILY,		/* ipv6 */
-@@ -133,15 +109,6 @@ static struct nss_nl_family family_handl
+@@ -133,24 +109,6 @@ static struct nss_nl_family family_handl
  	},
  	{
  		/*
@@ -141,10 +141,19 @@
 -	},
 -	{
 -		/*
- 		 * NSS_NLCAPWAP
+-		 * NSS_NLCAPWAP
+-		 */
+-		.name = NSS_NLCAPWAP_FAMILY,		/* capwap */
+-		.entry = NSS_NLCAPWAP_INIT,		/* init */
+-		.exit = NSS_NLCAPWAP_EXIT,		/* exit */
+-		.valid = CONFIG_NSS_NLCAPWAP		/* 1 or 0 */
+-	},
+-	{
+-		/*
+ 		 * NSS_NLDTLS
  		 */
- 		.name = NSS_NLCAPWAP_FAMILY,		/* capwap */
-@@ -169,15 +136,6 @@ static struct nss_nl_family family_handl
+ 		.name = NSS_NLDTLS_FAMILY,		/* dtls */
+@@ -169,15 +127,6 @@ static struct nss_nl_family family_handl
  	},
  	{
  		/*
@@ -160,10 +169,28 @@
  		 * NSS_NLDYNAMIC_INTERFACE
  		 */
  		.name = NSS_NLDYNAMIC_INTERFACE_FAMILY,	/* dynamic interface */
-@@ -214,24 +172,6 @@ static struct nss_nl_family family_handl
+@@ -196,42 +145,6 @@ static struct nss_nl_family family_handl
  	},
  	{
  		/*
+-		 * NSS_NLC2C_TX
+-		 */
+-		.name = NSS_NLC2C_TX_FAMILY,		/* c2c_tx */
+-		.entry = NSS_NLC2C_TX_INIT,		/* init */
+-		.exit = NSS_NLC2C_TX_EXIT,		/* exit */
+-		.valid = CONFIG_NSS_NLC2C_TX		/* 1 or 0 */
+-	},
+-	{
+-		/*
+-		 * NSS_NLC2C_RX
+-		 */
+-		.name = NSS_NLC2C_RX_FAMILY,		/* c2c_rx */
+-		.entry = NSS_NLC2C_RX_INIT,		/* init */
+-		.exit = NSS_NLC2C_RX_EXIT,		/* exit */
+-		.valid = CONFIG_NSS_NLC2C_RX		/* 1 or 0 */
+-	},
+-	{
+-		/*
 -		 * NSS_NLIPV4_REASM
 -		 */
 -		.name = NSS_NLIPV4_REASM_FAMILY,	/* ipv4_reasm */
@@ -185,7 +212,7 @@
  		 * NSS_NLWIFILI
  		 */
  		.name = NSS_NLWIFILI_FAMILY,		/* wifili */
-@@ -248,42 +188,6 @@ static struct nss_nl_family family_handl
+@@ -248,42 +161,6 @@ static struct nss_nl_family family_handl
  		.exit = NSS_NLLSO_RX_EXIT,		/* exit */
  		.valid = CONFIG_NSS_NLLSO_RX		/* 1 or 0 */
  	},
