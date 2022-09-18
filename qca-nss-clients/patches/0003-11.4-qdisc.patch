@@ -9,12 +9,6 @@
  
  obj-m += qca-nss-qdisc.o
  qca-nss-qdisc-objs := 	nss_qdisc.o \
-@@ -25,4 +25,4 @@ qca-nss-qdisc-objs += 	nss_ppe.o \
- 			nss_ppe_mc.o
- endif
- 
--obj-$(igs)+= igs/
-+obj-y += igs/
 --- a/nss_qdisc/igs/Makefile
 +++ b/nss_qdisc/igs/Makefile
 @@ -2,7 +2,7 @@
