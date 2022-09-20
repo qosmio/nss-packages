@@ -16,7 +16,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 
 --- a/nss_core.c
 +++ b/nss_core.c
-@@ -53,7 +53,8 @@
+@@ -47,7 +47,8 @@
  (((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)))) || \
  (((LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)))) || \
  (((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)))) || \
@@ -26,7 +26,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  #error "Check skb recycle code in this file to match Linux version"
  #endif
  
-@@ -2562,7 +2563,11 @@ static inline bool nss_core_skb_can_reus
+@@ -2454,7 +2455,11 @@ static inline bool nss_skb_can_reuse(str
  	if (unlikely(irqs_disabled()))
  		return false;
  

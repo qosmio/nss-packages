@@ -1,77 +1,67 @@
---- a/Makefile
-+++ b/Makefile
-@@ -10,14 +10,11 @@ qca-nss-tun6rd-objs := nss_connmgr_tun6r
- ccflags-y += -DNSS_TUN6RD_DEBUG_LEVEL=0
+--- a/vlan/Makefile
++++ b/vlan/Makefile
+@@ -8,5 +8,5 @@ ifeq ($(SoC),$(filter $(SoC),ipq807x ipq
+ ccflags-y += -DNSS_VLAN_MGR_PPE_SUPPORT
+ endif
+ 
+-ccflags-y += -DNSS_VLAN_MGR_DEBUG_LEVEL=0
++ccflags-y += -DNSS_VLAN_MGR_DEBUG_LEVEL=4
  ccflags-y += -Werror
- 
--KERNELVERSION := $(word 1, $(subst ., ,$(KERNELVERSION))).$(word 2, $(subst ., ,$(KERNELVERSION)))
--
- obj-$(bridge-mgr)+= bridge/
- obj-$(capwapmgr)+= capwapmgr/
- obj-$(dtlsmgr)+= dtls/$(DTLSMGR_DIR)/
- obj-$(gre)+= gre/
- obj-$(ipsecmgr)+= ipsecmgr/$(IPSECMGR_DIR)/
--obj-$(ipsecmgr-klips)+= ipsecmgr/$(IPSECMGR_DIR)/plugins/klips/
- obj-$(l2tpv2)+= l2tp/l2tpv2/
- obj-$(lag-mgr)+= lag/
- obj-$(map-t)+= map/map-t/
---- a/eogremgr/nss_eogremgr.c
-+++ b/eogremgr/nss_eogremgr.c
-@@ -19,6 +19,7 @@
-  *	NSS EOGRE manager
-  */
- 
-+#include <linux/of.h>
- #include <nss_api_if.h>
- #include <nss_cmn.h>
- #include "nss_connmgr_gre_public.h"
---- a/gre/nss_connmgr_gre_v4.c
-+++ b/gre/nss_connmgr_gre_v4.c
-@@ -162,14 +162,6 @@ int nss_connmgr_gre_v4_set_config(struct
- 		}
+\ No newline at end of file
+--- a/bridge/nss_bridge_mgr.c
++++ b/bridge/nss_bridge_mgr.c
+@@ -1209,8 +1209,10 @@ static int nss_bridge_mgr_register_event
+ 	 */
+ 	b_pvt->ifnum = ifnum;
+ 	b_pvt->mtu = dev->mtu;
++#if defined(NSS_BRIDGE_MGR_PPE_SUPPORT)
+ 	b_pvt->wan_if_num = -1;
+ 	b_pvt->wan_if_enabled = false;
++#endif
+ 	ether_addr_copy(b_pvt->dev_addr, dev->dev_addr);
+ 	spin_lock(&br_mgr_ctx.lock);
+ 	list_add(&b_pvt->list, &br_mgr_ctx.list);
+--- a/bridge/nss_bridge_mgr.c
++++ b/bridge/nss_bridge_mgr.c
+@@ -995,6 +995,7 @@ static int nss_bridge_mgr_bond_slave_cha
+ 		return NOTIFY_DONE;
  	}
  
--	/*
--	 * IP address validate
--	 */
--	if ((cfg->src_ip == 0) || (cfg->dest_ip == 0)) {
--		nss_connmgr_gre_warning("Source ip/Destination IP is invalid");
--		return GRE_ERR_INVALID_IP;
--	}
--
- 	memset(t, 0, sizeof(struct ip_tunnel));
++#if defined(NSS_BRIDGE_MGR_PPE_SUPPORT)
+ 	/*
+ 	 * Add or remove the slave based based on linking event
+ 	 */
+--- a/bridge/nss_bridge_mgr.c
++++ b/bridge/nss_bridge_mgr.c
+@@ -1010,6 +1010,7 @@ static int nss_bridge_mgr_bond_slave_cha
+ 					cu_info->upper_dev->name, master->name);
+ 		}
+ 	}
++#endif
  
- 	priv->pad_len =  (cfg->add_padding) ? GRE_HDR_PAD_LEN : 0;
---- a/gre/nss_connmgr_gre_v6.c
-+++ b/gre/nss_connmgr_gre_v6.c
-@@ -95,7 +95,8 @@ static int nss_connmgr_gre_v6_get_mac_ad
- 	/*
- 	 * Find src MAC address
- 	 */
--	local_dev = (struct net_device *)ipv6_dev_find(&init_net, &src_addr, 1);
-+	local_dev = NULL;
-+	local_dev = (struct net_device *)ipv6_dev_find(&init_net, &src_addr, local_dev);
- 	if (!local_dev) {
- 		nss_connmgr_gre_warning("Unable to find local dev for %pI6", src_ip);
- 		return GRE_ERR_NO_LOCAL_NETDEV;
-@@ -106,7 +107,6 @@ static int nss_connmgr_gre_v6_get_mac_ad
- 	/*
- 	 * Find dest MAC address
- 	 */
--
- 	rt = nss_connmgr_gre_v6_route_lookup(&init_net, &dst_addr);
- 	if (!rt) {
- 		nss_connmgr_gre_warning("Unable to find route lookup for %pI6", dest_ip);
-@@ -140,8 +140,7 @@ static int nss_connmgr_gre_v6_get_mac_ad
- 		 * Release hold on existing route entry, and find the route entry again
- 		 */
- 		ip6_rt_put(rt);
--
--		rt = nss_connmgr_gre_v6_route_lookup(&init_net, &dst_addr);
-+		rt = rt6_lookup(&init_net, &dst_addr, NULL, 0, NULL, 0);
- 		if (!rt) {
- 			nss_connmgr_gre_warning("Unable to find route lookup for %pI6\n", dest_ip);
- 			return GRE_ERR_NEIGH_LOOKUP;
+ 	return NOTIFY_DONE;
+ }
+--- a/clmapmgr/nss_clmapmgr.c
++++ b/clmapmgr/nss_clmapmgr.c
+@@ -109,7 +109,6 @@ struct rtnl_link_stats64 *nss_clmapmgr_d
+ 	memcpy(stats, &priv->stats, sizeof(struct rtnl_link_stats64));
+ 	dev_put(dev);
+ 
+-	return stats;
+ }
+ 
+ /*
+--- a/dtls/v1.0/nss_connmgr_dtls_netdev.c
++++ b/dtls/v1.0/nss_connmgr_dtls_netdev.c
+@@ -160,7 +160,7 @@ static void nss_dtlsmgr_dev_setup(struct
+ 	dev->ethtool_ops = NULL;
+ 	dev->header_ops = NULL;
+ 	dev->netdev_ops = &nss_dtlsmgr_session_ops;
+-	dev->destructor = NULL;
++	dev->priv_destructor = NULL;
+ 
+ 	memcpy(dev->dev_addr, "\xaa\xbb\xcc\xdd\xee\xff", dev->addr_len);
+ 	memset(dev->broadcast, 0xff, dev->addr_len);
 --- a/gre/test/nss_connmgr_gre_test.c
 +++ b/gre/test/nss_connmgr_gre_test.c
 @@ -229,10 +229,12 @@ static int nss_connmgr_gre_test_open_pro
@@ -91,53 +81,35 @@
  };
  
  /*
---- a/ipsecmgr/v1.0/nss_ipsecmgr.c
-+++ b/ipsecmgr/v1.0/nss_ipsecmgr.c
-@@ -377,7 +377,7 @@ free:
-  * nss_ipsecmgr_tunnel_stats()
-  * 	get tunnel statistics
-  */
--static struct rtnl_link_stats64 *nss_ipsecmgr_tunnel_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
-+void nss_ipsecmgr_tunnel_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
- {
- 	struct nss_ipsecmgr_priv *priv = netdev_priv(dev);
+--- a/gre/nss_connmgr_gre_v4.c
++++ b/gre/nss_connmgr_gre_v4.c
+@@ -168,14 +168,6 @@ int nss_connmgr_gre_v4_set_config(struct
+ 		}
+ 	}
  
-@@ -389,8 +389,6 @@ static struct rtnl_link_stats64 *nss_ips
- 	read_lock_bh(&ipsecmgr_ctx->lock);
- 	memcpy(stats, &priv->stats, sizeof(struct rtnl_link_stats64));
- 	read_unlock_bh(&ipsecmgr_ctx->lock);
+-	/*
+-	 * IP address validate
+-	 */
+-	if ((cfg->src_ip == 0) || (cfg->dest_ip == 0)) {
+-		nss_connmgr_gre_warning("Source ip/Destination IP is invalid");
+-		return GRE_ERR_INVALID_IP;
+-	}
 -
--	return stats;
- }
+ 	memset(t, 0, sizeof(struct ip_tunnel));
  
- /*
-@@ -442,7 +440,7 @@ static void nss_ipsecmgr_tunnel_setup(st
- 	dev->header_ops = NULL;
- 	dev->netdev_ops = &nss_ipsecmgr_tunnel_ops;
- 
--	dev->destructor = nss_ipsecmgr_tunnel_free;
-+	dev->priv_destructor = nss_ipsecmgr_tunnel_free;
- 
+ 	priv->pad_len =  (cfg->add_padding) ? GRE_HDR_PAD_LEN : 0;
+--- a/gre/nss_connmgr_gre_v6.c
++++ b/gre/nss_connmgr_gre_v6.c
+@@ -81,7 +81,8 @@ static int nss_connmgr_gre_v6_get_mac_ad
  	/*
- 	 * get the MAC address from the ethernet device
---- a/ipsecmgr/v1.0/nss_ipsecmgr_sa.c
-+++ b/ipsecmgr/v1.0/nss_ipsecmgr_sa.c
-@@ -265,6 +265,7 @@ static bool nss_ipsecmgr_sa_del(struct n
- 	write_unlock_bh(&ipsecmgr_ctx->lock);
- 	return true;
- }
-+EXPORT_SYMBOL(nss_ipsecmgr_sa_del);
- 
- /*
-  * nss_ipsecmgr_sa_add()
-@@ -357,6 +358,7 @@ static bool nss_ipsecmgr_sa_add(struct n
- 	write_unlock_bh(&ipsecmgr_ctx->lock);
- 	return true;
- }
-+EXPORT_SYMBOL(nss_ipsecmgr_sa_add);
- 
- /*
-  * nss_ipsecmgr_sa_alloc()
+ 	 * Find src MAC address
+ 	 */
+-	local_dev = (struct net_device *)ipv6_dev_find(&init_net, &src_addr, 1);
++	local_dev = NULL;
++	local_dev = (struct net_device *)ipv6_dev_find(&init_net, &src_addr, local_dev);
+ 	if (!local_dev) {
+ 		nss_connmgr_gre_warning("Unable to find local dev for %pI6", src_ip);
+ 		return GRE_ERR_NO_LOCAL_NETDEV;
 --- a/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
 +++ b/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
 @@ -244,7 +244,7 @@ static struct nss_connmgr_l2tpv2_session
@@ -149,6 +121,8 @@
  	data->l2tpv2.session.hdr_len = session->hdr_len;
  	data->l2tpv2.session.reorder_timeout = session->reorder_timeout;
  	data->l2tpv2.session.recv_seq = session->recv_seq;
+--- a/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
++++ b/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
 @@ -253,7 +253,7 @@ static struct nss_connmgr_l2tpv2_session
  	nss_connmgr_l2tpv2_info("sess %u, peer=%u nr=%u ns=%u off=%u  hdr_len=%u timeout=%x"
  	       " recv_seq=%x send_seq=%x\n",
@@ -175,6 +149,80 @@
  
   /*
    *		----------------------------------------------------------------------------------
+--- a/exports/nss_dtlsmgr.h
++++ b/exports/nss_dtlsmgr.h
+@@ -100,7 +100,7 @@ enum nss_dtlsmgr_metadata_result {
+  * NSS DTLS manager cryptographic structure to represent key and its length.
+  */
+ struct nss_dtlsmgr_crypto_data {
+-	const uint8_t *data;		/**< Pointer to key or nonce. */
++	uint8_t *data;		/**< Pointer to key or nonce. */
+ 	uint16_t len;			/**< Length of the key. */
+ };
+ 
+--- a/eogremgr/nss_eogremgr.c
++++ b/eogremgr/nss_eogremgr.c
+@@ -19,6 +19,7 @@
+  *	NSS EOGRE manager
+  */
+ 
++#include <linux/of.h>
+ #include <nss_api_if.h>
+ #include <nss_cmn.h>
+ #include "nss_connmgr_gre_public.h"
+--- a/ipsecmgr/v1.0/nss_ipsecmgr.c
++++ b/ipsecmgr/v1.0/nss_ipsecmgr.c
+@@ -377,7 +377,7 @@ free:
+  * nss_ipsecmgr_tunnel_stats()
+  * 	get tunnel statistics
+  */
+-static struct rtnl_link_stats64 *nss_ipsecmgr_tunnel_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
++void nss_ipsecmgr_tunnel_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
+ {
+ 	struct nss_ipsecmgr_priv *priv = netdev_priv(dev);
+ 
+--- a/ipsecmgr/v1.0/nss_ipsecmgr.c
++++ b/ipsecmgr/v1.0/nss_ipsecmgr.c
+@@ -389,8 +389,6 @@ void nss_ipsecmgr_tunnel_stats64(struct
+ 	read_lock_bh(&ipsecmgr_ctx->lock);
+ 	memcpy(stats, &priv->stats, sizeof(struct rtnl_link_stats64));
+ 	read_unlock_bh(&ipsecmgr_ctx->lock);
+-
+-	return stats;
+ }
+ 
+ /*
+--- a/ipsecmgr/v1.0/nss_ipsecmgr.c
++++ b/ipsecmgr/v1.0/nss_ipsecmgr.c
+@@ -440,7 +440,7 @@ static void nss_ipsecmgr_tunnel_setup(st
+ 	dev->header_ops = NULL;
+ 	dev->netdev_ops = &nss_ipsecmgr_tunnel_ops;
+ 
+-	dev->destructor = nss_ipsecmgr_tunnel_free;
++	dev->priv_destructor = nss_ipsecmgr_tunnel_free;
+ 
+ 	/*
+ 	 * get the MAC address from the ethernet device
+--- a/ipsecmgr/v1.0/nss_ipsecmgr_sa.c
++++ b/ipsecmgr/v1.0/nss_ipsecmgr_sa.c
+@@ -265,6 +265,7 @@ static bool nss_ipsecmgr_sa_del(struct n
+ 	write_unlock_bh(&ipsecmgr_ctx->lock);
+ 	return true;
+ }
++EXPORT_SYMBOL(nss_ipsecmgr_sa_del);
+ 
+ /*
+  * nss_ipsecmgr_sa_add()
+--- a/ipsecmgr/v1.0/nss_ipsecmgr_sa.c
++++ b/ipsecmgr/v1.0/nss_ipsecmgr_sa.c
+@@ -358,6 +358,7 @@ static bool nss_ipsecmgr_sa_add(struct n
+ 	write_unlock_bh(&ipsecmgr_ctx->lock);
+ 	return true;
+ }
++EXPORT_SYMBOL(nss_ipsecmgr_sa_add);
+ 
+ /*
+  * nss_ipsecmgr_sa_alloc()
 --- a/l2tp/l2tpv2/nss_l2tpv2_stats.c
 +++ b/l2tp/l2tpv2/nss_l2tpv2_stats.c
 @@ -21,6 +21,7 @@
@@ -185,7 +233,9 @@
  #include <linux/ppp_channel.h>
  #include <nss_api_if.h>
  #include <nss_dynamic_interface.h>
-@@ -103,14 +104,14 @@ void nss_l2tpv2_update_dev_stats(struct
+--- a/l2tp/l2tpv2/nss_l2tpv2_stats.c
++++ b/l2tp/l2tpv2/nss_l2tpv2_stats.c
+@@ -104,14 +104,14 @@ void nss_l2tpv2_update_dev_stats(struct
  	/*
  	 * Update tunnel & session stats
  	 */
@@ -202,44 +252,9 @@
  	if (!session) {
  		tunnel_put(tunnel);
  		dev_put(dev);
---- a/match/nss_match.c
-+++ b/match/nss_match.c
-@@ -28,6 +28,7 @@
- #include <linux/types.h>
- #include <nss_api_if.h>
- #include <linux/debugfs.h>
-+#include <linux/of.h>
- 
- /*
-  * nss_match_verify_config_msg()
---- a/match/nss_match_priv.h
-+++ b/match/nss_match_priv.h
-@@ -29,19 +29,19 @@
- /*
-  * Statically compile messages at different levels
-  */
--#if (NSS_match_DEBUG_LEVEL < 2)
-+#if (NSS_MATCH_DEBUG_LEVEL < 2)
- #define nss_match_warn(s, ...)
- #else
- #define nss_match_warn(s, ...) pr_warn("%s[%d]:" s, __FUNCTION__, __LINE__, ##__VA_ARGS__)
- #endif
- 
--#if (NSS_match_DEBUG_LEVEL < 3)
-+#if (NSS_MATCH_DEBUG_LEVEL < 3)
- #define nss_match_info(s, ...)
- #else
- #define nss_match_info(s, ...)   pr_notice("%s[%d]:" s, __FUNCTION__, __LINE__, ##__VA_ARGS__)
- #endif
- 
--#if (NSS_match_DEBUG_LEVEL < 4)
-+#if (NSS_MATCH_DEBUG_LEVEL < 4)
- #define nss_match_trace(s, ...)
- #else
- #define nss_match_trace(s, ...)  pr_info("%s[%d]:" s, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 --- a/portifmgr/nss_portifmgr.c
 +++ b/portifmgr/nss_portifmgr.c
-@@ -187,16 +187,20 @@ drop:
+@@ -188,16 +188,20 @@ drop:
  }
  
  /*
@@ -263,7 +278,9 @@
  }
  
  /*
-@@ -225,7 +229,7 @@ static const struct net_device_ops nss_p
+--- a/portifmgr/nss_portifmgr.c
++++ b/portifmgr/nss_portifmgr.c
+@@ -230,7 +230,7 @@ static const struct net_device_ops nss_p
  	.ndo_start_xmit		= nss_portifmgr_start_xmit,
  	.ndo_set_mac_address	= eth_mac_addr,
  	.ndo_change_mtu		= nss_portifmgr_change_mtu,
@@ -272,6 +289,60 @@
  };
  
  /*
+--- a/vlan/nss_vlan_mgr.c
++++ b/vlan/nss_vlan_mgr.c
+@@ -820,8 +820,10 @@ static struct nss_vlan_pvt *nss_vlan_mgr
+  */
+ static void nss_vlan_mgr_instance_free(struct nss_vlan_pvt *v)
+ {
++#ifdef NSS_VLAN_MGR_PPE_SUPPORT
+ 	int32_t i;
+ 	int ret = 0;
++#endif
+ 
+ 	spin_lock(&vlan_mgr_ctx.lock);
+ 	BUG_ON(--v->refs);
+--- a/vlan/nss_vlan_mgr.c
++++ b/vlan/nss_vlan_mgr.c
+@@ -981,8 +981,11 @@ static int nss_vlan_mgr_register_event(s
+ 	int ret;
+ #endif
+ 	uint32_t vlan_tag;
++#ifdef NSS_VLAN_MGR_PPE_SUPPORT
+ 	struct net_device *slave;
+-	int32_t port, port_if;
++	int32_t port;
++#endif
++	int32_t port_if;
+ 	struct vlan_dev_priv *vlan;
+ 	struct net_device *real_dev;
+ 	bool is_bond_master = false;
+--- a/vlan/nss_vlan_mgr.c
++++ b/vlan/nss_vlan_mgr.c
+@@ -1359,8 +1359,10 @@ return_with_error:
+ int nss_vlan_mgr_join_bridge(struct net_device *dev, uint32_t bridge_vsi)
+ {
+ 	struct nss_vlan_pvt *v = nss_vlan_mgr_instance_find_and_ref(dev);
++#ifdef NSS_VLAN_MGR_PPE_SUPPORT
+ 	struct net_device *real_dev;
+ 	int ret;
++#endif
+ 
+ 	if (!v)
+ 		return 0;
+--- a/vlan/nss_vlan_mgr.c
++++ b/vlan/nss_vlan_mgr.c
+@@ -1422,8 +1422,10 @@ EXPORT_SYMBOL(nss_vlan_mgr_join_bridge);
+ int nss_vlan_mgr_leave_bridge(struct net_device *dev, uint32_t bridge_vsi)
+ {
+ 	struct nss_vlan_pvt *v = nss_vlan_mgr_instance_find_and_ref(dev);
++#ifdef NSS_VLAN_MGR_PPE_SUPPORT
+ 	struct net_device *real_dev;
+ 	int ret;
++#endif
+ 
+ 	if (!v)
+ 		return 0;
 --- a/profiler/profile.c
 +++ b/profiler/profile.c
 @@ -31,6 +31,7 @@
@@ -282,7 +353,9 @@
  #include <asm/uaccess.h>
  #include <asm/page.h>
  #include <asm/thread_info.h>
-@@ -937,12 +938,26 @@ static ssize_t debug_if(struct file *fil
+--- a/profiler/profile.c
++++ b/profiler/profile.c
+@@ -891,12 +891,26 @@ static ssize_t debug_if(struct file *fil
  	return	count;
  }
  
@@ -309,7 +382,9 @@
  
  /*
   * showing sample status on Linux console
-@@ -971,6 +986,15 @@ static ssize_t profile_rate_write(struct
+--- a/profiler/profile.c
++++ b/profiler/profile.c
+@@ -939,6 +939,15 @@ static ssize_t profile_rate_write(struct
  	return 0;
  }
  
@@ -325,7 +400,9 @@
  static const struct file_operations profile_rate_fops = {
  	.open		= profile_rate_open,
  	.read		= seq_read,
-@@ -978,6 +1002,7 @@ static const struct file_operations prof
+--- a/profiler/profile.c
++++ b/profiler/profile.c
+@@ -955,6 +955,7 @@ static const struct file_operations prof
  	.release	= single_release,
  	.write		= profile_rate_write,
  };
@@ -333,158 +410,3 @@
  
  /*
   * hexdump
---- a/vlan/Makefile
-+++ b/vlan/Makefile
-@@ -8,7 +8,7 @@ ifeq ($(SoC),$(filter $(SoC),ipq807x ipq
- ccflags-y += -DNSS_VLAN_MGR_PPE_SUPPORT
- endif
- 
--ccflags-y += -DNSS_VLAN_MGR_DEBUG_LEVEL=0
-+ccflags-y += -DNSS_VLAN_MGR_DEBUG_LEVEL=4
- ccflags-y += -Werror
- 
- ifneq (,$(filter $(CONFIG_BONDING),y m))
---- a/vlan/nss_vlan_mgr.c
-+++ b/vlan/nss_vlan_mgr.c
-@@ -821,8 +821,10 @@ static struct nss_vlan_pvt *nss_vlan_mgr
-  */
- static void nss_vlan_mgr_instance_free(struct nss_vlan_pvt *v)
- {
-+#ifdef NSS_VLAN_MGR_PPE_SUPPORT
- 	int32_t i;
- 	int ret = 0;
-+#endif
- 
- 	spin_lock(&vlan_mgr_ctx.lock);
- 	BUG_ON(--v->refs);
-@@ -980,8 +982,11 @@ static int nss_vlan_mgr_register_event(s
- 	int ret;
- #endif
- 	uint32_t vlan_tag;
-+#ifdef NSS_VLAN_MGR_PPE_SUPPORT
- 	struct net_device *slave;
--	int32_t port, port_if;
-+	int32_t port;
-+#endif
-+	int32_t port_if;
- 	struct vlan_dev_priv *vlan;
- 	struct net_device *real_dev;
- 	bool is_bond_master = false;
-@@ -1355,8 +1360,10 @@ return_with_error:
- int nss_vlan_mgr_join_bridge(struct net_device *dev, uint32_t bridge_vsi)
- {
- 	struct nss_vlan_pvt *v = nss_vlan_mgr_instance_find_and_ref(dev);
-+#ifdef NSS_VLAN_MGR_PPE_SUPPORT
- 	struct net_device *real_dev;
- 	int ret;
-+#endif
- 
- 	if (!v)
- 		return 0;
-@@ -1416,8 +1423,10 @@ EXPORT_SYMBOL(nss_vlan_mgr_join_bridge);
- int nss_vlan_mgr_leave_bridge(struct net_device *dev, uint32_t bridge_vsi)
- {
- 	struct nss_vlan_pvt *v = nss_vlan_mgr_instance_find_and_ref(dev);
-+#ifdef NSS_VLAN_MGR_PPE_SUPPORT
- 	struct net_device *real_dev;
- 	int ret;
-+#endif
- 
- 	if (!v)
- 		return 0;
---- a/bridge/nss_bridge_mgr.c
-+++ b/bridge/nss_bridge_mgr.c
-@@ -1067,8 +1067,10 @@ int nss_bridge_mgr_register_br(struct ne
- 	 */
- 	b_pvt->ifnum = ifnum;
- 	b_pvt->mtu = dev->mtu;
-+#if defined(NSS_BRIDGE_MGR_PPE_SUPPORT)
- 	b_pvt->wan_if_num = -1;
- 	b_pvt->wan_if_enabled = false;
-+#endif
- 	ether_addr_copy(b_pvt->dev_addr, dev->dev_addr);
- 	spin_lock(&br_mgr_ctx.lock);
- 	list_add(&b_pvt->list, &br_mgr_ctx.list);
-@@ -1130,6 +1132,7 @@ static int nss_bridge_mgr_bond_slave_cha
- 		return NOTIFY_DONE;
- 	}
- 
-+#if defined(NSS_BRIDGE_MGR_PPE_SUPPORT)
- 	/*
- 	 * Add or remove the slave based based on linking event
- 	 */
-@@ -1144,6 +1147,7 @@ static int nss_bridge_mgr_bond_slave_cha
- 					cu_info->upper_dev->name, master->name);
- 		}
- 	}
-+#endif
- 
- 	return NOTIFY_DONE;
- }
---- a/dtls/v1.0/nss_connmgr_dtls_netdev.c
-+++ b/dtls/v1.0/nss_connmgr_dtls_netdev.c
-@@ -160,7 +160,7 @@ static void nss_dtlsmgr_dev_setup(struct
- 	dev->ethtool_ops = NULL;
- 	dev->header_ops = NULL;
- 	dev->netdev_ops = &nss_dtlsmgr_session_ops;
--	dev->destructor = NULL;
-+	dev->priv_destructor = NULL;
- 
- 	memcpy(dev->dev_addr, "\xaa\xbb\xcc\xdd\xee\xff", dev->addr_len);
- 	memset(dev->broadcast, 0xff, dev->addr_len);
---- a/exports/nss_dtlsmgr.h
-+++ b/exports/nss_dtlsmgr.h
-@@ -128,7 +128,7 @@ enum nss_dtlsmgr_metadata_result {
-  * NSS DTLS manager cryptographic structure to represent key and its length.
-  */
- struct nss_dtlsmgr_crypto_data {
--	const uint8_t *data;		/**< Pointer to key or nonce. */
-+	uint8_t *data;		/**< Pointer to key or nonce. */
- 	uint16_t len;			/**< Length of the key. */
- };
- 
---- a/clmapmgr/nss_clmapmgr.c
-+++ b/clmapmgr/nss_clmapmgr.c
-@@ -87,14 +87,13 @@ fail:
-  * nss_clmapmgr_dev_stats64()
-  *	Netdev ops function to retrieve stats.
-  */
--struct rtnl_link_stats64 *nss_clmapmgr_dev_stats64(struct net_device *dev,
-+void nss_clmapmgr_dev_stats64(struct net_device *dev,
- 						struct rtnl_link_stats64 *stats)
- {
- 	struct nss_clmapmgr_priv_t *priv;
- 
- 	if (!stats) {
- 		nss_clmapmgr_warning("%px: invalid rtnl structure\n", dev);
--		return stats;
- 	}
- 
- 	dev_hold(dev);
-@@ -109,7 +108,6 @@ struct rtnl_link_stats64 *nss_clmapmgr_d
- 	memcpy(stats, &priv->stats, sizeof(struct rtnl_link_stats64));
- 	dev_put(dev);
- 
--	return stats;
- }
- 
- /*
---- a/tls/nss_tlsmgr_tun.c
-+++ b/tls/nss_tlsmgr_tun.c
-@@ -102,7 +102,7 @@ static int nss_tlsmgr_tun_open(struct ne
-  * nss_tlsmgr_tun_stats64()
-  *	TLS manager tunnel device
-  */
--static struct rtnl_link_stats64 *nss_tlsmgr_tun_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
-+void nss_tlsmgr_tun_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
- {
- 	struct nss_tlsmgr_tun *tun = netdev_priv(dev);
- 
-@@ -113,7 +113,6 @@ static struct rtnl_link_stats64 *nss_tls
- 	nss_tlsmgr_ctx_stats_copy(&tun->ctx_dec, stats);
- 	read_unlock_bh(&tun->lock);
- 
--	return stats;
- }
- 
- /*

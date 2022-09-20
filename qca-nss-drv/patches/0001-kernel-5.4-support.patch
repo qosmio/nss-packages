@@ -9,3 +9,50 @@
  #define NSS_DATA_PLANE_GMAC_MAX_INTERFACES 4
  
  static DEFINE_SPINLOCK(nss_data_plane_gmac_stats_lock);
+--- a/nss_core.c
++++ b/nss_core.c
+@@ -45,7 +45,9 @@
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0)))) || \
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0)))) || \
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)))) || \
+-(((LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0))))))
++(((LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)))) || \
++(((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)))) || \
++(((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0))))))
+ #error "Check skb recycle code in this file to match Linux version"
+ #endif
+ 
+@@ -447,7 +449,11 @@ static void nss_get_ddr_info(struct nss_
+ 	struct device_node *node;
+ 
+ 	si_meminfo(&vals);
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0))
+ 	cached = global_page_state(NR_FILE_PAGES);
++#else
++	cached = global_node_page_state(NR_FILE_PAGES);
++#endif
+ 	avail_ddr = (vals.totalram + cached + vals.sharedram) * vals.mem_unit;
+ 	mmu->num_active_cores = nss_top_main.num_nss;
+ 
+@@ -744,7 +750,11 @@ static inline void nss_core_handle_virt_
+ 	 * Mimic Linux behavior to allow multi-queue netdev choose which queue to use
+ 	 */
+ 	if (ndev->netdev_ops->ndo_select_queue) {
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0))
+ 		queue_offset = ndev->netdev_ops->ndo_select_queue(ndev, nbuf, NULL, NULL);
++#else
++		queue_offset = ndev->netdev_ops->ndo_select_queue(ndev, nbuf, NULL);
++#endif
+ 	}
+ 
+ 	skb_set_queue_mapping(nbuf, queue_offset);
+--- a/nss_tx_rx_common.h
++++ b/nss_tx_rx_common.h
+@@ -23,6 +23,7 @@
+ #define __NSS_TX_RX_COMMON_H
+ 
+ #include <nss_hal.h>
++#include <linux/kmemleak.h>
+ #include <linux/module.h>
+ #include <linux/vmalloc.h>
+ #include "nss_tx_msg_sync.h"

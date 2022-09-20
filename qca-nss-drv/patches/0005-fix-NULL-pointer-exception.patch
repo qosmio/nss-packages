@@ -1,6 +1,6 @@
 --- a/nss_core.c
 +++ b/nss_core.c
-@@ -1599,7 +1599,7 @@ static int32_t nss_core_handle_cause_que
+@@ -1522,7 +1522,7 @@ static int32_t nss_core_handle_cause_que
  		 *
  		 */
  		if (unlikely((buffer_type == N2H_BUFFER_CRYPTO_RESP))) {

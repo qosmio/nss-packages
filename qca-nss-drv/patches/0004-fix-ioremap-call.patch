@@ -1,6 +1,6 @@
 --- a/nss_meminfo.c
 +++ b/nss_meminfo.c
-@@ -711,7 +711,7 @@ bool nss_meminfo_init(struct nss_ctx_ins
+@@ -706,7 +706,7 @@ bool nss_meminfo_init(struct nss_ctx_ins
  	/*
  	 * meminfo_start is the label where the start address of meminfo map is stored.
  	 */
@@ -22,7 +22,7 @@
  		goto out;
 --- a/nss_hal/ipq60xx/nss_hal_pvt.c
 +++ b/nss_hal/ipq60xx/nss_hal_pvt.c
-@@ -207,13 +207,13 @@ static struct nss_platform_data *__nss_h
+@@ -206,13 +206,13 @@ static struct nss_platform_data *__nss_h
  	npd->nphys = res_nphys.start;
  	npd->qgic_phys = res_qgic_phys.start;
  
@@ -38,7 +38,7 @@
  	if (!npd->qgic_map) {
  		nss_info_always("%p: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -434,13 +434,13 @@ static int __nss_hal_common_reset(struct
+@@ -433,13 +433,13 @@ static int __nss_hal_common_reset(struct
  
  	of_node_put(cmn);
  
@@ -76,7 +76,7 @@
  		return -EFAULT;
 --- a/nss_hal/ipq807x/nss_hal_pvt.c
 +++ b/nss_hal/ipq807x/nss_hal_pvt.c
-@@ -234,7 +234,7 @@ static struct nss_platform_data *__nss_h
+@@ -233,7 +233,7 @@ static struct nss_platform_data *__nss_h
  	npd->vphys = res_vphys.start;
  	npd->qgic_phys = res_qgic_phys.start;
  
@@ -85,7 +85,7 @@
  	if (!npd->nmap) {
  		nss_info_always("%p: nss%d: ioremap() fail for nphys\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -246,7 +246,7 @@ static struct nss_platform_data *__nss_h
+@@ -245,7 +245,7 @@ static struct nss_platform_data *__nss_h
  		goto out;
  	}
  
@@ -94,7 +94,7 @@
  	if (!npd->qgic_map) {
  		nss_info_always("%p: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -466,7 +466,7 @@ static int __nss_hal_common_reset(struct
+@@ -465,7 +465,7 @@ static int __nss_hal_common_reset(struct
  	}
  	of_node_put(cmn);
  
