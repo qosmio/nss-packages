@@ -156,7 +156,7 @@ ifeq ($(CONFIG_TARGET_BOARD), "ipq806x")
 endif
 
 define Build/Configure
-	$(CP) $(SOURCE)/files/nss-firmware/nss_fw_version.h $(PKG_BUILD_DIR)/exports/nss_fw_version.h
+	$(CP) $(TOPDIR)/$(SOURCE)/files/nss-firmware/nss_fw_version.h $(PKG_BUILD_DIR)/exports/nss_fw_version.h
 	sed -i "s/define NSS_FW_VERSION_MAJOR.*/define NSS_FW_VERSION_MAJOR 11/" $(PKG_BUILD_DIR)/exports/nss_fw_version.h
 	sed -i "s/define NSS_FW_VERSION_MINOR.*/define NSS_FW_VERSION_MINOR $(TARGET_NSS_MINOR_VERSION)/" $(PKG_BUILD_DIR)/exports/nss_fw_version.h
 	$(LN) arch/nss_$(SOC).h $(PKG_BUILD_DIR)/exports/nss_arch.h
