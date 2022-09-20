@@ -221,19 +221,6 @@ define KernelPackage/qca-nss-drv-portifmgr/Description
 NSS Kernel module for Port interface manager
 endef
 
-define KernelPackage/qca-nss-drv-capwapmgr
-  SECTION:=kernel
-  CATEGORY:=Kernel modules
-  SUBMENU:=Network Devices
-  DEPENDS:=+kmod-qca-nss-drv +kmod-qca-nss-drv-dtlsmgr +PACKAGE_kmod-qca-ssdk-nohnat:kmod-qca-ssdk-nohnat
-  TITLE:=NSS CAPWAP Manager for QCA NSS driver (IPQ806x)
-  FILES:=$(PKG_BUILD_DIR)/capwapmgr/qca-nss-capwapmgr.ko
-endef
-
-define KernelPackage/qca-nss-drv-capwapmgr/description
-This package contains a NSS CAPWAP Manager
-endef
-
 define KernelPackage/qca-nss-drv-bridge-mgr
   SECTION:=kernel
   CATEGORY:=Kernel modules
@@ -517,11 +504,6 @@ ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-profile),)
 MAKE_OPTS+=profile=y
 endif
 
-ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-capwapmgr),)
-MAKE_OPTS+=capwapmgr=y
-EXTRA_CFLAGS += -DNSS_CAPWAPMGR_ONE_NETDEV
-endif
-
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-tun6rd),)
 MAKE_OPTS+=tun6rd=m
 endif
@@ -646,7 +628,6 @@ define Build/Compile
 endef
 
 $(eval $(call KernelPackage,qca-nss-drv-profile))
-$(eval $(call KernelPackage,qca-nss-drv-capwapmgr))
 # $(eval $(call KernelPackage,qca-nss-drv-tun6rd))
 $(eval $(call KernelPackage,qca-nss-drv-dtlsmgr))
 $(eval $(call KernelPackage,qca-nss-drv-l2tpv2))
