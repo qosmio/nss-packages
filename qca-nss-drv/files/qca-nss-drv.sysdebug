@@ -1,0 +1,44 @@
+#!/bin/sh
+
+. /lib/functions.sh
+
+DEBUG_DIR=/lib/debug
+
+log() {
+	echo -n "    "; printf "%0.s*" $(seq 1 76); echo ""
+	echo "    * cmd:" "$@"
+	echo -n "    "; printf "%0.s*" $(seq 1 76); echo ""
+	eval "$@" | sed 's,^\(.*\),    | \1,'
+	echo -n "    \\"; printf "%0.s-" $(seq 1 75); echo ""
+	echo ""
+}
+
+run_pkg_debug() {
+	local pkg="$1"
+	echo -n "/"; printf "%0.s=" $(seq 1 79); echo ""
+	printf "| Start: ${pkg}\n"
+	echo -n "\\"; printf "%0.s=" $(seq 1 79); echo ""
+	. ${DEBUG_DIR}/"${pkg}"
+	echo -n "/"; printf "%0.s=" $(seq 1 79); echo ""
+	printf "| End: ${pkg}\n"
+	echo -n "\\"; printf "%0.s=" $(seq 1 79); echo ""
+	echo ""
+}
+
+help() {
+	cat <<EOF
+Syntax: $0 [package]
+
+List of available package (default: all):
+$(ls -1 /lib/debug | sed 's,^\(.*\),    \1,')
+EOF
+}
+
+[ -d "${DEBUG_DIR}" ] || {
+	echo "Can't find any debuggable package"
+	exit 1
+}
+
+for pkg in $(ls -1 ${DEBUG_DIR}); do
+	run_pkg_debug "${pkg}"
+done
