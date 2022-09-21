@@ -11,10 +11,11 @@
  qca-nss-qdisc-objs := 	nss_qdisc.o \
 --- a/nss_qdisc/igs/Makefile
 +++ b/nss_qdisc/igs/Makefile
-@@ -2,7 +2,7 @@
+@@ -1,8 +1,7 @@
+ # Makefile for IGS (Ingress Shaping)
  
  ccflags-y += $(NSS_CCFLAGS) -I$(obj)/../../exports
- ccflags-y += -DNSS_IGS_DEBUG_LEVEL=2
+-ccflags-y += -DNSS_IGS_DEBUG_LEVEL=2
 -ccflags-y += -Werror
 +ccflags-y += -Wall -Werror
  

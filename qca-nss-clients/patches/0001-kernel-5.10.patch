@@ -120,24 +120,7 @@
  
  	/*
  	 * get the MAC address from the ethernet device
---- a/ipsecmgr/v1.0/nss_ipsecmgr_sa.c
-+++ b/ipsecmgr/v1.0/nss_ipsecmgr_sa.c
-@@ -265,6 +265,7 @@ static bool nss_ipsecmgr_sa_del(struct n
- 	write_unlock_bh(&ipsecmgr_ctx->lock);
- 	return true;
- }
-+EXPORT_SYMBOL(nss_ipsecmgr_sa_del);
- 
- /*
-  * nss_ipsecmgr_sa_add()
-@@ -357,6 +358,7 @@ static bool nss_ipsecmgr_sa_add(struct n
- 	write_unlock_bh(&ipsecmgr_ctx->lock);
- 	return true;
- }
-+EXPORT_SYMBOL(nss_ipsecmgr_sa_add);
- 
- /*
-  * nss_ipsecmgr_sa_alloc()
+
 --- a/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
 +++ b/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
 @@ -244,7 +244,7 @@ static struct nss_connmgr_l2tpv2_session

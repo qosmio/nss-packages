@@ -31,7 +31,7 @@ define KernelPackage/qca-nss-crypto/Default
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   DEPENDS:=@TARGET_ipq806x||TARGET_ipq_ipq806x||TARGET_ipq_ipq807x||TARGET_ipq_ipq807x_64||TARGET_ipq807x||TARGET_ipq807x_64||TARGET_ipq_ipq50xx||TARGET_ipq_ipq50xx_64||TARGET_ipq_ipq60xx||TARGET_ipq_ipq60xx_64 \
-		+kmod-qca-nss-drv @!LINUX_3_18
+		   +@NSS_DRV_CRYPTO_ENABLE +kmod-qca-nss-drv
 endef
 
 define KernelPackage/qca-nss-crypto

@@ -36,12 +36,6 @@ define KernelPackage/qca-nss-ecm/Default
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
-# ifneq ($(CONFIG_PACKAGE_kmod-qca-ovsmgr),)
-#   DEPENDS+=+PACKAGE_kmod-qca-ovsmgr:kmod-qca-ovsmgr
-# endif
-# ifneq ($(CONFIG_PACKAGE_kmod-nat46),)
-#   DEPENDS+=+PACKAGE_kmod-nat46:kmod-nat46
-# endif
   TITLE:=QCA NSS Enhanced Connection Manager (ECM)
   FILES:=$(PKG_BUILD_DIR)/*.ko $(FILES_EXAMPLES)
   KCONFIG:=CONFIG_BRIDGE_NETFILTER=y \
@@ -59,8 +53,15 @@ endef
 
 define AddDepends/qca-nss-ecm/Default
   SUBMENU:=Network Support
-  DEPENDS:=+TARGET_ipq806x:kmod-qca-nss-drv \
-	+TARGET_ipq807x:kmod-qca-nss-drv \
+  DEPENDS:= \
+	+@NSS_DRV_IPV6_ENABLE \
+	+@NSS_DRV_PPE_ENABLE \
+	+@NSS_DRV_TUN6RD_ENABLE \
+	+@NSS_DRV_PPPOE_ENABLE \
+	+@NSS_DRV_PPTP_ENABLE \
+	+@NSS_DRV_VIRT_IF_ENABLE \
+	+@NSS_DRV_WIFI_ENABLE \
+	+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
 	+kmod-nf-conntrack \
 	+kmod-ppp +kmod-pppoe +kmod-pptp $(1)
 endef
