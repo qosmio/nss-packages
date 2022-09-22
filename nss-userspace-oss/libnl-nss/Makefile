@@ -3,6 +3,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=libnl-nss
 PKG_RELEASE:=1
+PKG_BUILD_DEPENDS:=libnl
 
 include $(INCLUDE_DIR)/package.mk
 
