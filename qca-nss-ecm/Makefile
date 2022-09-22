@@ -84,7 +84,13 @@ endif
 endef
 
 define KernelPackage/qca-nss-ecm-standard
-  $(call KernelPackage/qca-nss-ecm/Default,+kmod-qca-mcs)
+  $(call KernelPackage/qca-nss-ecm/Default)
+ifneq ($(CONFIG_PACKAGE_kmod-qca-mcs),)
+  DEPENDS+=+kmod-qca-mcs
+endif
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nat46),)
+  DEPENDS+=+kmod-qca-nat46
+endif
   VARIANT:=standard
 endef
 
@@ -101,7 +107,7 @@ define KernelPackage/qca-nss-ecm-premium/Default
 $(call KernelPackage/qca-nss-ecm/Default)
   TITLE+:= (with premium features)
   VARIANT:=premium
-  DEPENDS+:=+kmod-qca-hyfi-bridge +kmod-qca-mcs +kmod-nat46
+  DEPENDS+:=+kmod-qca-hyfi-bridge +kmod-qca-mcs +kmod-qca-nat46
 ifeq ($(CONFIG_TARGET_ipq_ipq40xx)$(CONFIG_TARGET_ipq40xx),)
   DEPENDS+=+kmod-bonding
 endif
@@ -202,7 +208,7 @@ ECM_MAKE_OPTS+=ECM_INTERFACE_BOND_ENABLE=n
 endif
 endif
 
-ifneq ($(CONFIG_PACKAGE_kmod-nat46),)
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nat46),)
 ECM_MAKE_OPTS+=ECM_INTERFACE_MAP_T_ENABLE=y
 endif
 

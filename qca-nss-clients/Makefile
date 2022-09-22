@@ -129,7 +129,7 @@ define KernelPackage/qca-nss-drv-map-t
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (connection manager) - MAP-T
-  DEPENDS:=+@NSS_DRV_MAPT_ENABLE +kmod-nat46 \
+  DEPENDS:=+@NSS_DRV_MAPT_ENABLE +kmod-qca-nat46 \
 		+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/map/map-t/qca-nss-map-t.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-map-t)
