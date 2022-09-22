@@ -370,3 +370,157 @@
  
  /*
   * nss_if_msg_handler()
+--- a/exports/nss_n2h.h
++++ b/exports/nss_n2h.h
+@@ -73,40 +73,43 @@ struct nss_n2h_cfg_pvt {
+  */
+ enum nss_n2h_stats_types {
+ 	NSS_N2H_STATS_QUEUE_DROPPED = NSS_STATS_NODE_MAX,
+-		/**< Number of packets dropped because the exception queue is too full. */
+-	NSS_N2H_STATS_TOTAL_TICKS,	/**< Total clock ticks spend inside the N2H. */
+-	NSS_N2H_STATS_WORST_CASE_TICKS,	/**< Worst case iteration of the exception path in ticks. */
+-	NSS_N2H_STATS_ITERATIONS,	/**< Number of iterations around the N2H. */
+-	NSS_N2H_STATS_PBUF_OCM_TOTAL_COUNT,	/**< Number of pbuf OCM total count. */
+-	NSS_N2H_STATS_PBUF_OCM_FREE_COUNT,	/**< Number of pbuf OCM free count. */
++					/* Number of packets dropped because the exception queue is too full */
++	NSS_N2H_STATS_TOTAL_TICKS,	/* Total clock ticks spend inside the N2H */
++	NSS_N2H_STATS_WORST_CASE_TICKS,	/* Worst case iteration of the exception path in ticks */
++	NSS_N2H_STATS_ITERATIONS,	/* Number of iterations around the N2H */
++
+ 	NSS_N2H_STATS_PBUF_OCM_ALLOC_FAILS_WITH_PAYLOAD,
+-					/**< Number of pbuf OCM allocations that have failed with payload. */
++						/* Number of pbuf ocm allocations that have failed with payload */
++	NSS_N2H_STATS_PBUF_OCM_FREE_COUNT,	/* Number of pbuf ocm free count */
++	NSS_N2H_STATS_PBUF_OCM_TOTAL_COUNT,	/* Number of pbuf ocm total count */
+ 	NSS_N2H_STATS_PBUF_OCM_ALLOC_FAILS_NO_PAYLOAD,
+-					/**< Number of pbuf OCM allocations that have failed without payload. */
+-	NSS_N2H_STATS_PBUF_DEFAULT_TOTAL_COUNT,	/**< Number of pbuf default total count. */
+-	NSS_N2H_STATS_PBUF_DEFAULT_FREE_COUNT,	/**< Number of pbuf default free count. */
++						/* Number of pbuf ocm allocations that have failed without payload */
++
+ 	NSS_N2H_STATS_PBUF_DEFAULT_ALLOC_FAILS_WITH_PAYLOAD,
+-					/**< Number of pbuf default allocations that have failed with payload. */
++						/* Number of pbuf default allocations that have failed with payload */
++
++	NSS_N2H_STATS_PBUF_DEFAULT_FREE_COUNT,	/* Number of pbuf default free count */
++	NSS_N2H_STATS_PBUF_DEFAULT_TOTAL_COUNT,	/* Number of pbuf default total count */
+ 	NSS_N2H_STATS_PBUF_DEFAULT_ALLOC_FAILS_NO_PAYLOAD,
+-	/**< Number of pbuf default allocations that have failed without payload. */
++						/* Number of pbuf default allocations that have failed without payload */
++
++	NSS_N2H_STATS_PAYLOAD_ALLOC_FAILS,	/* Number of pbuf allocations that have failed because there were no free payloads */
++	NSS_N2H_STATS_PAYLOAD_FREE_COUNT,	/* Number of free payloads that exist */
+ 
+-	NSS_N2H_STATS_PAYLOAD_ALLOC_FAILS,	/**< Number of pbuf allocations that have failed because there were no free payloads. */
+-	NSS_N2H_STATS_PAYLOAD_FREE_COUNT,	/**< Number of free payloads that exist. */
++	NSS_N2H_STATS_H2N_CONTROL_PACKETS,	/* Control packets received from HLOS */
++	NSS_N2H_STATS_H2N_CONTROL_BYTES,	/* Control bytes received from HLOS */
++	NSS_N2H_STATS_N2H_CONTROL_PACKETS,	/* Control packets sent to HLOS */
++	NSS_N2H_STATS_N2H_CONTROL_BYTES,	/* Control bytes sent to HLOS */
+ 
+-	NSS_N2H_STATS_H2N_CONTROL_PACKETS,	/**< Control packets received from HLOS. */
+-	NSS_N2H_STATS_H2N_CONTROL_BYTES,	/**< Control bytes received from HLOS. */
+-	NSS_N2H_STATS_N2H_CONTROL_PACKETS,	/**< Control packets sent to HLOS. */
+-	NSS_N2H_STATS_N2H_CONTROL_BYTES,	/**< Control bytes sent to HLOS. */
+-
+-	NSS_N2H_STATS_H2N_DATA_PACKETS,		/**< Data packets received from HLOS. */
+-	NSS_N2H_STATS_H2N_DATA_BYTES,		/**< Data bytes received from HLOS. */
+-	NSS_N2H_STATS_N2H_DATA_PACKETS,		/**< Data packets sent to HLOS. */
+-	NSS_N2H_STATS_N2H_DATA_BYTES,		/**< Data bytes sent to HLOS. */
+-	NSS_N2H_STATS_N2H_TOT_PAYLOADS,		/**< Number of payloads in NSS. */
+-	NSS_N2H_STATS_N2H_INTERFACE_INVALID,	/**< Number of bad interface access. */
+-	NSS_N2H_STATS_ENQUEUE_RETRIES,		/**< Number of enqueue retries by N2H. */
++	NSS_N2H_STATS_H2N_DATA_PACKETS,		/* Data packets received from HLOS */
++	NSS_N2H_STATS_H2N_DATA_BYTES,		/* Data bytes received from HLOS */
++	NSS_N2H_STATS_N2H_DATA_PACKETS,		/* Data packets sent to HLOS */
++	NSS_N2H_STATS_N2H_DATA_BYTES,		/* Data bytes sent to HLOS */
++	NSS_N2H_STATS_N2H_TOT_PAYLOADS,		/* No. of payloads in NSS */
++	NSS_N2H_STATS_N2H_INTERFACE_INVALID,	/* No. of bad interface access */
++	NSS_N2H_STATS_ENQUEUE_RETRIES,		/* No. of enqueue retries by N2H */
+ 
+-	NSS_N2H_STATS_MAX,			/**< Maximum message type. */
++	NSS_N2H_STATS_MAX,
+ };
+ 
+ /**
+--- a/nss_ipv4_strings.c
++++ b/nss_ipv4_strings.c
+@@ -106,8 +106,10 @@ struct nss_stats_info nss_ipv4_strings_e
+ 	{"mc_pbuf_alloc_failure"		, NSS_STATS_TYPE_EXCEPTION},
+ 	{"pppoe_bridge_no_icme"			, NSS_STATS_TYPE_EXCEPTION},
+ 	{"pppoe_no_session"			, NSS_STATS_TYPE_DROP},
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,0))
+ 	{"icmp_ipv4_gre_hdr_incomplete"		, NSS_STATS_TYPE_EXCEPTION},
+ 	{"icmp_ipv4_esp_hdr_incomplete"		, NSS_STATS_TYPE_EXCEPTION},
++#endif
+ };
+ 
+ /*
+--- a/nss_n2h_stats.c
++++ b/nss_n2h_stats.c
+@@ -38,7 +38,7 @@ static ssize_t nss_n2h_stats_read(struct
+ 	 * Max output lines = #stats + few blank lines for banner printing +
+ 	 * Number of Extra outputlines for future reference to add new stats
+ 	 */
+-	uint32_t max_output_lines = (NSS_N2H_STATS_MAX + 3) * NSS_MAX_CORES + NSS_STATS_EXTRA_OUTPUT_LINES;
++	uint32_t max_output_lines = (NSS_N2H_STATS_MAX + 3) * 2 + 5;
+ 	size_t size_al = NSS_STATS_MAX_STR_LENGTH * max_output_lines;
+ 	size_t size_wr = 0;
+ 	ssize_t bytes_read = 0;
+--- a/exports/nss_ipv6.h
++++ b/exports/nss_ipv6.h
+@@ -276,10 +276,14 @@ enum nss_ipv6_exception_events {
+ 	NSS_IPV6_EXCEPTION_EVENT_TUNIPIP6_NEEDS_FRAGMENTATION,
+ 	NSS_IPV6_EXCEPTION_EVENT_PPPOE_BRIDGE_NO_ICME,
+ 	NSS_IPV6_EXCEPTION_EVENT_DONT_FRAG_SET,
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,0))
+ 	NSS_IPV6_EXCEPTION_EVENT_REASSEMBLY_NOT_SUPPORTED,
++#endif
+ 	NSS_IPV6_EXCEPTION_EVENT_PPPOE_NO_SESSION,
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,0))
+ 	NSS_IPV6_EXCEPTION_EVENT_ICMP_IPV6_GRE_HEADER_INCOMPLETE,
+ 	NSS_IPV6_EXCEPTION_EVENT_ICMP_IPV6_ESP_HEADER_INCOMPLETE,
++#endif
+ 	NSS_IPV6_EXCEPTION_EVENT_MAX
+ };
+ 
+@@ -469,20 +473,24 @@ enum nss_ipv6_error_response_types {
+ 		/**< Invalid interface for updating multicast. */
+ 	NSS_IPV6_CR_ACCEL_MODE_CONFIG_INVALID,
+ 		/**< Invalid config value for acceleration mode. */
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,0))
+ 	NSS_IPV6_CR_INVALID_MSG_ERROR,
+ 		/**< Invalid message size error. */
+ 	NSS_IPV6_CR_DSCP2PRI_PRI_INVALID,
+ 		/**< Priority value out of range error. */
+ 	NSS_IPV6_CR_DSCP2PRI_CONFIG_INVALID,
+ 		/**< Invalid DSCP value. */
++#endif
+ 	NSS_IPV6_CR_INVALID_RPS,
+ 		/**< Invalid RPS Value. */
+ 	NSS_IPV6_HASH_BITMAP_INVALID,
+ 		/**< Invalid hash bitmap. */
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,0))
+ 	NSS_IPV6_DR_HW_DECEL_FAIL_ERROR,
+ 		/**< Hardware deceleration fail error. */
+ 	NSS_IPV6_CR_RETURN_EXIST_ERROR,
+ 		/**< Rule creation failed because a 5-tuple return already exists. */
++#endif
+ 	NSS_IPV6_LAST
+ 		/**< Maximum number of error responses. */
+ };
+--- a/nss_ipv6_strings.c
++++ b/nss_ipv6_strings.c
+@@ -81,10 +81,12 @@ struct nss_stats_info nss_ipv6_strings_e
+ 	{"tunipip6_needs_fragmentation"			, NSS_STATS_TYPE_EXCEPTION},
+ 	{"pppoe_bridge_no_icme"				, NSS_STATS_TYPE_EXCEPTION},
+ 	{"dont_frag_set"				, NSS_STATS_TYPE_EXCEPTION},
++#if (NSS_FW_VERSION_CODE > NSS_FW_VERSION(11,0))
+ 	{"reassembly_not_supported"			, NSS_STATS_TYPE_EXCEPTION},
+ 	{"pppoe_no_session"				, NSS_STATS_TYPE_DROP},
+ 	{"icmp_gre_header_incomplete"			, NSS_STATS_TYPE_EXCEPTION},
+ 	{"icmp_esp_header_incomplete"			, NSS_STATS_TYPE_EXCEPTION},
++#endif
+ };
+ 
+ /*
