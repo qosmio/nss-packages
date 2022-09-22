@@ -84,7 +84,13 @@ endif
 endef
 
 define KernelPackage/qca-nss-ecm-standard
-  $(call KernelPackage/qca-nss-ecm/Default,+kmod-qca-mcs)
+  $(call KernelPackage/qca-nss-ecm/Default)
+ifneq ($(CONFIG_PACKAGE_kmod-qca-mcs),)
+  DEPENDS+=+kmod-qca-mcs
+endif
+ifneq ($(CONFIG_PACKAGE_kmod-nat46),)
+  DEPENDS+=+kmod-nat46
+endif
   VARIANT:=standard
 endef
 
