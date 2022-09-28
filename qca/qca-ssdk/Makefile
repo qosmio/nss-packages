@@ -5,25 +5,25 @@ PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-ssdk.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2022-04-07
-PKG_SOURCE_VERSION:=62955de3c838028d3f72313eef99c57fa4babb71
-PKG_MIRROR_HASH:=84c7de6d1ce82fb15acebea0e44158695a33ed6f18335da32ec9f248dcb4b285
+PKG_SOURCE_DATE:=2022-09-12
+PKG_SOURCE_VERSION:=628b22bc3d5ee81414b75ab3de6a255c82754dec
+PKG_MIRROR_HASH:=859344f79504b9953639dc5aa27042249f68e3a9a269e66d7f7a25e1ab38c110
 
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
-define KernelPackage/qca-ssdk-nohnat
+define KernelPackage/qca-ssdk
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
-  TITLE:=Kernel driver for QCA SSDK
+  TITLE:=Qualcom SSDK switch driver
   DEPENDS:=@(TARGET_ipq807x)
   FILES:=$(PKG_BUILD_DIR)/build/bin/qca-ssdk.ko
   AUTOLOAD:=$(call AutoLoad,30,qca-ssdk)
 endef
 
-define KernelPackage/qca-ssdk-nohnat/Description
-This package contains a qca-ssdk driver for QCA chipset
+define KernelPackage/qca-ssdk/Description
+  Driver for Qualcomm Atheros switches.
 endef
 
 GCC_VERSION=$(shell echo "$(CONFIG_GCC_VERSION)" | sed 's/[^0-9.]*\([0-9.]*\).*/\1/')
@@ -46,14 +46,8 @@ MAKE_FLAGS+= \
 	EXTRA_CFLAGS=-fno-stack-protector -I$(STAGING_DIR)/usr/include \
 	$(KERNEL_MAKE_FLAGS)
 
-ifneq (, $(findstring $(CONFIG_TARGET_BOARD), "ipq60xx" "ipq807x"))
-    MAKE_FLAGS+= PTP_FEATURE=disable SWCONFIG_FEATURE=disable
-endif
-
 ifeq ($(CONFIG_TARGET_BOARD), "ipq807x")
-    MAKE_FLAGS+= CHIP_TYPE=HPPE
-else ifeq ($(CONFIG_TARGET_BOARD), "ipq60xx")
-    MAKE_FLAGS+= CHIP_TYPE=CPPE
+    MAKE_FLAGS+= CHIP_TYPE=HPPE PTP_FEATURE=disable SWCONFIG_FEATURE=disable
 endif
 
 define Build/InstallDev
@@ -83,9 +77,9 @@ define Build/InstallDev
 
 endef
 
-define KernelPackage/qca-ssdk-nohnat/install
+define KernelPackage/qca-ssdk/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/qca-ssdk $(1)/etc/init.d/qca-ssdk
 endef
 
-$(eval $(call KernelPackage,qca-ssdk-nohnat))
+$(eval $(call KernelPackage,qca-ssdk))
