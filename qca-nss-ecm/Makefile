@@ -85,8 +85,11 @@ endef
 
 define KernelPackage/qca-nss-ecm-standard
   $(call KernelPackage/qca-nss-ecm/Default)
+ifneq ($(CONFIG_PACKAGE_kmod-pppol2tp),)
+  DEPENDS+=+PACKAGE_kmod-pppol2tp:kmod-pppol2tp
+endif
 ifneq ($(CONFIG_PACKAGE_kmod-qca-mcs),)
-  DEPENDS+=+kmod-qca-mcs
+  DEPENDS+=+kmod-qca-mcs 
 endif
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nat46),)
   DEPENDS+=+kmod-qca-nat46
