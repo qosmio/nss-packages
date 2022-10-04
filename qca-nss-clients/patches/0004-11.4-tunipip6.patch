@@ -922,3 +922,15 @@ index fed8d81..3632d62 100644
  			=====end of help=====\n");
  	*lenp = 0;
  	return ret;
+*** a/tunipip6/Makefile	2022-09-28 23:08:52.910000000 +0900
+--- b/tunipip6/Makefile	2022-09-28 23:08:59.670000000 +0900
+***************
+*** 2,8 ****
+  ccflags-y += -I$(obj)/../exports -I$(obj)/..
+  ccflags-y += -DNSS_CLIENT_BUILD_ID="$(BUILD_ID)"
+  ccflags-y += -DNSS_TUNIPIP6_DEBUG_LEVEL=0
+- ccflags-y += -Werror
+  obj-m += qca-nss-tunipip6.o
+  qca-nss-tunipip6-objs := nss_connmgr_tunipip6.o nss_connmgr_tunipip6_sysctl.o nss_connmgr_tunipip6_stats.o
+  ifneq ($(findstring 4.4, $(KERNELVERSION)),)
+--- 2,7 ----

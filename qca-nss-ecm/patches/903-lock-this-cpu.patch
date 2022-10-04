@@ -1,0 +1,19 @@
+*** a/ecm_interface.c	2022-09-29 20:24:35.018679600 +0900
+--- b/ecm_interface.c	2022-09-29 20:24:48.098679600 +0900
+*************** static void ecm_interface_vlan_dev_updat
+*** 327,333 ****
+  	if (!is_vlan_dev(dev))
+  		return;
+  
+! 	stats = per_cpu_ptr(vlan->vlan_pcpu_stats, 0);
+  
+  	u64_stats_update_begin(&stats->syncp);
+  	stats->rx_packets += nlstats->rx_packets;
+--- 327,333 ----
+  	if (!is_vlan_dev(dev))
+  		return;
+  
+! 	stats = this_cpu_ptr(vlan->vlan_pcpu_stats);
+  
+  	u64_stats_update_begin(&stats->syncp);
+  	stats->rx_packets += nlstats->rx_packets;
