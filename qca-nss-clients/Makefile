@@ -163,7 +163,7 @@ define KernelPackage/qca-nss-drv-tunipip6
   TITLE:=Kernel driver for NSS (connection manager) - DS-lite and ipip6 Tunnel
   DEPENDS:=+@NSS_DRV_TUNIPIP6_ENABLE +kmod-iptunnel6 +kmod-ip6-tunnel \
 		+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
-  FILES:=$(PKG_BUILD_DIR)/tunipip6/qca-nss-tunipip6.ko
+  FILES:=$(PKG_BUILD_DIR)/qca-nss-tunipip6.ko
   AUTOLOAD:=$(call AutoLoad,60,qca-nss-tunipip6)
 endef
 
