@@ -3,7 +3,7 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=qca-nss-drv
 PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_SOURCE_URL:=https://source.codeaurora.org/quic/qsdk/oss/lklm/nss-drv
+PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv.git
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_DATE:=2020-03-20
 PKG_SOURCE_VERSION:=3cfb9f43
