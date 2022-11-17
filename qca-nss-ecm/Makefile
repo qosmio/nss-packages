@@ -9,10 +9,10 @@ PKG_SOURCE_DATE:=2022-10-20
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=b0250489
 PKG_MIRROR_HASH:=337514bb34d2594910a65be492b42c268a900143a52c3ee128e4a01dd55bacbd
-PKG_JOBS=-j4
+
+include $(INCLUDE_DIR)/package.mk
 
 LOCAL_VARIANT=$(patsubst qca-nss-ecm-%,%,$(patsubst qca-nss-ecm-%,%,$(BUILD_VARIANT)))
-include $(INCLUDE_DIR)/package.mk
 
 ifeq ($(CONFIG_QCA_NSS_ECM_EXAMPLES_PCC),y)
        ECM_MAKE_OPTS+=ECM_CLASSIFIER_PCC_ENABLE=y
@@ -44,7 +44,7 @@ define KernelPackage/qca-nss-ecm/Default
 	CONFIG_NF_CONNTRACK_DSCPREMARK_EXT=y
   MENU:=1
   PROVIDES:=kmod-qca-nss-ecm
-  $(call AddDepends/qca-nss-ecm/Default,$(1))
+  $(call AddDepends/qca-nss-ecm/Default)
 endef
 
 define KernelPackage/qca-nss-ecm/Description/Default
@@ -61,9 +61,10 @@ define AddDepends/qca-nss-ecm/Default
 	+@NSS_DRV_PPTP_ENABLE \
 	+@NSS_DRV_VIRT_IF_ENABLE \
 	+@NSS_DRV_WIFI_ENABLE \
-	+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
+	+kmod-qca-nss-drv \
+	+PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
 	+kmod-nf-conntrack \
-	+kmod-ppp +kmod-pppoe +kmod-pptp $(1)
+	+kmod-ppp +kmod-pppoe +kmod-pptp
 endef
 
 define KernelPackage/qca-nss-ecm/Default/install
@@ -84,16 +85,10 @@ endif
 endef
 
 define KernelPackage/qca-nss-ecm-standard
-  $(call KernelPackage/qca-nss-ecm/Default)
-ifneq ($(CONFIG_PACKAGE_kmod-pppol2tp),)
-  DEPENDS+=+PACKAGE_kmod-pppol2tp:kmod-pppol2tp
-endif
-ifneq ($(CONFIG_PACKAGE_kmod-qca-mcs),)
-  DEPENDS+=+kmod-qca-mcs 
-endif
-ifneq ($(CONFIG_PACKAGE_kmod-qca-nat46),)
-  DEPENDS+=+kmod-qca-nat46
-endif
+$(call KernelPackage/qca-nss-ecm/Default)
+  DEPENDS+=+PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
+	+PACKAGE_kmod-pppol2tp:kmod-pppol2tp \
+	+PACKAGE_kmod-qca-nat46:kmod-qca-nat46
   VARIANT:=standard
 endef
 

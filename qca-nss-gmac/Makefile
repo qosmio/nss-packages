@@ -8,7 +8,7 @@ PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-gmac.git
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_DATE:=2021-04-20
 PKG_SOURCE_VERSION:=171767947467662f2407d0cfff26dfb136c3fb4a
-PKG_MIRROR_HASH:=b0d6a73aaa4e3617c547c4eed16ab9c0c5bc3cc5057209708ee6475c8733d82a 
+PKG_MIRROR_HASH:=b0d6a73aaa4e3617c547c4eed16ab9c0c5bc3cc5057209708ee6475c8733d82a
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -16,7 +16,7 @@ define KernelPackage/qca-nss-gmac
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
-  DEPENDS:=@TARGET_ipq806x||TARGET_ipq_ipq806x @!LINUX_3_18
+  DEPENDS:=@TARGET_ipq806x||TARGET_ipq_ipq806x
   TITLE:=Kernel driver for NSS gmac
   FILES:=$(PKG_BUILD_DIR)/ipq806x/qca-nss-gmac.ko
   AUTOLOAD:=$(call AutoLoad,31,qca-nss-gmac,1)

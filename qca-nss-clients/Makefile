@@ -9,6 +9,7 @@ PKG_SOURCE_DATE:=2020-10-29
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=ef082a735fad96bd2f6f59b94d6ea81defc4796e
 PKG_MIRROR_HASH:=9375f2bbdd17826b6ddebc77607ec73c98626570243a9831a1e34e1051eb436c
+PKG_BUILD_DEPENDS:=qca-nss-drv
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -55,7 +56,7 @@ define KernelPackage/qca-nss-drv-dtlsmgr
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (connection manager) - dtlsmgr
-  DEPENDS:=+@NSS_DRV_DTLS_ENABLEi \
+  DEPENDS:=+@NSS_DRV_DTLS_ENABLE \
 		+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
 		+PACKAGE_kmod-qca-nss-cfi-cryptoapi:kmod-qca-nss-cfi-cryptoapi
   FILES:=$(PKG_BUILD_DIR)/dtls/$(DTLSMGR_DIR)/qca-nss-dtlsmgr.ko
@@ -195,8 +196,7 @@ define KernelPackage/qca-nss-drv-ipsecmgr
 		   +@NSS_DRV_TSTAMP_ENABLE \
 		   +@NSS_DRV_IPSEC_ENABLE \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
-		   +PACKAGE_kmod-qca-nss-cfi-cryptoapi:kmod-qca-nss-cfi-cryptoapi \
-		   +kmod-qca-nss-ecm-standard
+		   +PACKAGE_kmod-qca-nss-cfi-cryptoapi:kmod-qca-nss-cfi-cryptoapi
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-l2tpv2),)
   DEPENDS+=+kmod-qca-nss-drv-l2tpv2
 endif
@@ -270,7 +270,7 @@ define KernelPackage/qca-nss-drv-qdisc
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Qdisc for configuring shapers in NSS
-  DEPENDS:=+@NSS_DRV_SHAPER_ENABLE \
+  DEPENDS:=+@NSS_DRV_SHAPER_ENABLE +@NSS_DRV_IGS_ENABLE \
 		+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/nss_qdisc/qca-nss-qdisc.ko
   KCONFIG:=CONFIG_NET_CLS_ACT=y

@@ -1,4 +1,5 @@
 include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=qca-nss-drv
 PKG_RELEASE:=$(AUTORELEASE)
@@ -10,9 +11,6 @@ PKG_SOURCE_VERSION:=3cfb9f43
 PKG_MIRROR_HASH:=87ab6dab1c0a441b2df95b6c5d992f86a07c6ecd69a0d13eba35014fadaf98d8
 PKG_JOBS=-j4
 PKG_BUILD_PARALLEL:=1
-
-include $(INCLUDE_DIR)/kernel.mk
-include $(INCLUDE_DIR)/package.mk
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_DRV_BRIDGE_ENABLE \
@@ -56,6 +54,8 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_DRV_VLAN_ENABLE \
 	CONFIG_NSS_DRV_VXLAN_ENABLE \
 	CONFIG_NSS_DRV_WIFI_ENABLE
+
+include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/qca-nss-drv
   SECTION:=kernel
