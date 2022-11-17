@@ -89,7 +89,7 @@ ifneq ($(CONFIG_PACKAGE_kmod-pppol2tp),)
   DEPENDS+=+PACKAGE_kmod-pppol2tp:kmod-pppol2tp
 endif
 ifneq ($(CONFIG_PACKAGE_kmod-qca-mcs),)
-  DEPENDS+=+kmod-qca-mcs 
+  DEPENDS+=+kmod-qca-mcs
 endif
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nat46),)
   DEPENDS+=+kmod-qca-nat46
@@ -293,7 +293,7 @@ define Build/InstallDev
 endef
 
 define Build/Compile
-	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(ECM_MAKE_OPTS)) \
+	+$(MAKE) -j1 -C "$(LINUX_DIR)" $(strip $(ECM_MAKE_OPTS)) \
 		$(KERNEL_MAKE_FLAGS) \
 		$(PKG_MAKE_FLAGS) \
 		M="$(PKG_BUILD_DIR)" \
