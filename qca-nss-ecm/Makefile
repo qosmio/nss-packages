@@ -288,7 +288,7 @@ define Build/InstallDev
 endef
 
 define Build/Compile
-	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(ECM_MAKE_OPTS)) \
+	+$(MAKE) -j1 -C "$(LINUX_DIR)" $(strip $(ECM_MAKE_OPTS)) \
 		$(KERNEL_MAKE_FLAGS) \
 		$(PKG_MAKE_FLAGS) \
 		M="$(PKG_BUILD_DIR)" \
