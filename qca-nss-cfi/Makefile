@@ -9,6 +9,7 @@ PKG_SOURCE_DATE:=2021-12-14
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=a0239b330846770793aefc3debf4be7edad6ffcd
 PKG_MIRROR_HASH:=036bb67b5d497393199958775ea1733a445731d5c5e29c3a8b1e98d49b3721d4
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -66,7 +67,7 @@ EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-nss-clients
 endif
 
 define Build/Compile
-	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
+	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
 		$(KERNEL_MAKE_FLAGS) \
 		$(PKG_MAKE_FLAGS) \
 		M="$(PKG_BUILD_DIR)" \

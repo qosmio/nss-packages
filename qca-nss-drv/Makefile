@@ -9,7 +9,6 @@ PKG_SOURCE_PROTO:=git
 PKG_SOURCE_DATE:=2020-03-20
 PKG_SOURCE_VERSION:=3cfb9f43
 PKG_MIRROR_HASH:=87ab6dab1c0a441b2df95b6c5d992f86a07c6ecd69a0d13eba35014fadaf98d8
-PKG_JOBS=-j4
 PKG_BUILD_PARALLEL:=1
 
 PKG_CONFIG_DEPENDS:= \
@@ -272,13 +271,12 @@ define Build/Configure
 endef
 
 define Build/Compile
-	$(MAKE) -C "$(LINUX_DIR)" $(strip $(DRV_MAKE_OPTS)) \
+	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(DRV_MAKE_OPTS)) \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		ARCH="$(LINUX_KARCH)" \
 		M="$(PKG_BUILD_DIR)" \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" SoC=$(SOC) \
 		$(KERNEL_MAKE_FLAGS) \
-		$(PKG_JOBS) \
 		modules
 endef
 

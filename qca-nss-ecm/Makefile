@@ -9,6 +9,7 @@ PKG_SOURCE_DATE:=2022-10-20
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=b0250489
 PKG_MIRROR_HASH:=337514bb34d2594910a65be492b42c268a900143a52c3ee128e4a01dd55bacbd
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -62,7 +63,6 @@ define AddDepends/qca-nss-ecm/Default
 	+@NSS_DRV_VIRT_IF_ENABLE \
 	+@NSS_DRV_WIFI_ENABLE \
 	+kmod-qca-nss-drv \
-	+PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
 	+kmod-nf-conntrack \
 	+kmod-ppp +kmod-pppoe +kmod-pptp
 endef
@@ -86,7 +86,8 @@ endef
 
 define KernelPackage/qca-nss-ecm-standard
 $(call KernelPackage/qca-nss-ecm/Default)
-  DEPENDS+=+PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
+  DEPENDS+= \
+	+PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
 	+PACKAGE_kmod-pppol2tp:kmod-pppol2tp \
 	+PACKAGE_kmod-qca-nat46:kmod-qca-nat46
   VARIANT:=standard
@@ -288,7 +289,7 @@ define Build/InstallDev
 endef
 
 define Build/Compile
-	+$(MAKE) -j1 -C "$(LINUX_DIR)" $(strip $(ECM_MAKE_OPTS)) \
+	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(ECM_MAKE_OPTS)) \
 		$(KERNEL_MAKE_FLAGS) \
 		$(PKG_MAKE_FLAGS) \
 		M="$(PKG_BUILD_DIR)" \

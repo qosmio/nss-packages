@@ -3,13 +3,13 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=qca-nss-clients
 PKG_RELEASE:=2
-PKG_JOBS=-j4
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-clients.git
 PKG_SOURCE_DATE:=2020-10-29
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=ef082a735fad96bd2f6f59b94d6ea81defc4796e
 PKG_MIRROR_HASH:=9375f2bbdd17826b6ddebc77607ec73c98626570243a9831a1e34e1051eb436c
 PKG_BUILD_DEPENDS:=qca-nss-drv
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -131,7 +131,7 @@ define KernelPackage/qca-nss-drv-map-t
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (connection manager) - MAP-T
-  DEPENDS:=+@NSS_DRV_MAPT_ENABLE +kmod-qca-nat46 \
+  DEPENDS:=+@NSS_DRV_MAPT_ENABLE +PACKAGE_kmod-qca-nat46:kmod-qca-nat46 \
 		+PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/map/map-t/qca-nss-map-t.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-map-t)
@@ -609,7 +609,7 @@ endif
 # endif
 
 define Build/Compile
-	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(MAKE_OPTS)) \
+	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(MAKE_OPTS)) \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		ARCH="$(LINUX_KARCH)" \
 		$(KERNEL_MAKE_FLAGS) \

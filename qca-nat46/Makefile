@@ -8,6 +8,7 @@ PKG_SOURCE_URL:=https://github.com/ayourtch/nat46.git
 PKG_SOURCE_DATE:=2020-06-26
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_VERSION:=1182f30785e4274913f01a8c3d7e1b5437ae3819
+PKG_BUILD_PARALLEL:=1
 
 PKG_MAINTAINER:=Hans Dedecker <dedeckeh@gmail.com>
 PKG_LICENSE:=GPL-2.0
@@ -28,7 +29,7 @@ endef
 include $(INCLUDE_DIR)/kernel-defaults.mk
 
 define Build/Compile
-	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)/nat46/modules" \
+	+$(KERNEL_MAKE) $(PKG_JOBS) M="$(PKG_BUILD_DIR)/nat46/modules" \
 		MODFLAGS="-DMODULE -mlong-calls" \
 		EXTRA_CFLAGS="-DNAT46_VERSION=\\\"$(PKG_SOURCE_VERSION)\\\"" \
 		modules
