@@ -81,7 +81,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  void ecm_interface_send_arp_request(struct net_device *dest_dev, ip_addr_t dest_addr, bool on_link, ip_addr_t gw_addr);
 --- a/frontends/ecm_front_end_common.c
 +++ b/frontends/ecm_front_end_common.c
-@@ -57,11 +57,14 @@
+@@ -58,11 +58,14 @@
  #include "ecm_db.h"
  #include "ecm_front_end_common.h"
  #include "ecm_interface.h"
@@ -97,7 +97,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  #include "ecm_nss_common.h"
  #include "ecm_nss_ported_ipv4.h"
  #include "ecm_nss_ported_ipv6.h"
-@@ -451,7 +454,7 @@ bool ecm_front_end_gre_proto_is_accel_al
+@@ -550,7 +553,7 @@ bool ecm_front_end_gre_proto_is_accel_al
  			return false;
  		}
  
@@ -106,7 +106,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  		if (dev) {
  			/*
  			 * Destination IP address is local
-@@ -508,14 +511,14 @@ void ecm_front_end_tcp_set_dscp_ext(stru
+@@ -607,14 +610,14 @@ void ecm_front_end_tcp_set_dscp_ext(stru
  			dscpcte->flow_priority = skb->priority;
  			dscpcte->flow_mark = skb->mark;
  			dscpcte->flow_dscp = iph->ds >> XT_DSCP_SHIFT;

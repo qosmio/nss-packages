@@ -40,7 +40,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
  
-@@ -1207,9 +1209,13 @@ static void ecm_nss_ported_ipv4_connecti
+@@ -1213,9 +1215,13 @@ static void ecm_nss_ported_ipv4_connecti
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
  #ifdef ECM_OPENWRT_SUPPORT
@@ -81,7 +81,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
  
-@@ -1134,9 +1136,13 @@ static void ecm_nss_ported_ipv6_connecti
+@@ -1139,9 +1141,13 @@ static void ecm_nss_ported_ipv6_connecti
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
  #ifdef ECM_OPENWRT_SUPPORT
@@ -108,7 +108,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
  	ecm_sfe_common_l2_accel_check_callback_t l2_accel_check;
  
-@@ -1291,9 +1293,13 @@ static void ecm_sfe_ported_ipv4_connecti
+@@ -1308,9 +1310,13 @@ static void ecm_sfe_ported_ipv4_connecti
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
  #ifdef ECM_OPENWRT_SUPPORT
@@ -135,7 +135,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
  	ecm_sfe_common_l2_accel_check_callback_t l2_accel_check;
  
-@@ -1252,9 +1254,13 @@ static void ecm_sfe_ported_ipv6_connecti
+@@ -1269,9 +1271,13 @@ static void ecm_sfe_ported_ipv6_connecti
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
  #ifdef ECM_OPENWRT_SUPPORT

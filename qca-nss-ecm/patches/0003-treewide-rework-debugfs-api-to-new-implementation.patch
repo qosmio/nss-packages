@@ -58,7 +58,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  }
 --- a/ecm_classifier_hyfi.c
 +++ b/ecm_classifier_hyfi.c
-@@ -1104,11 +1104,8 @@ int ecm_classifier_hyfi_rules_init(struc
+@@ -1111,11 +1111,8 @@ int ecm_classifier_hyfi_rules_init(struc
  		goto classifier_task_cleanup;
  	}
  
@@ -142,7 +142,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	/*
 --- a/ecm_db/ecm_db_connection.c
 +++ b/ecm_db/ecm_db_connection.c
-@@ -3790,11 +3790,8 @@ static struct file_operations ecm_db_con
+@@ -3782,11 +3782,8 @@ static struct file_operations ecm_db_con
   */
  bool ecm_db_connection_init(struct dentry *dentry)
  {
@@ -174,7 +174,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	if (!ecm_db_host_table) {
 --- a/ecm_db/ecm_db_iface.c
 +++ b/ecm_db/ecm_db_iface.c
-@@ -3688,11 +3688,8 @@ EXPORT_SYMBOL(ecm_db_iface_alloc);
+@@ -3706,11 +3706,8 @@ EXPORT_SYMBOL(ecm_db_iface_alloc);
   */
  bool ecm_db_iface_init(struct dentry *dentry)
  {
@@ -206,7 +206,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	if (!ecm_db_mapping_table) {
 --- a/ecm_db/ecm_db_node.c
 +++ b/ecm_db/ecm_db_node.c
-@@ -1202,11 +1202,8 @@ keep_sni_conn:
+@@ -1211,11 +1211,8 @@ keep_sni_conn:
   */
  bool ecm_db_node_init(struct dentry *dentry)
  {
@@ -514,7 +514,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  }
 --- a/frontends/nss/ecm_nss_ported_ipv4.c
 +++ b/frontends/nss/ecm_nss_ported_ipv4.c
-@@ -1898,12 +1898,8 @@ bool ecm_nss_ported_ipv4_debugfs_init(st
+@@ -1904,12 +1904,8 @@ bool ecm_nss_ported_ipv4_debugfs_init(st
  		return false;
  	}
  
@@ -531,7 +531,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  }
 --- a/frontends/nss/ecm_nss_ported_ipv6.c
 +++ b/frontends/nss/ecm_nss_ported_ipv6.c
-@@ -1812,12 +1812,8 @@ bool ecm_nss_ported_ipv6_debugfs_init(st
+@@ -1817,12 +1817,8 @@ bool ecm_nss_ported_ipv6_debugfs_init(st
  		return false;
  	}
  
@@ -678,7 +678,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  					NULL, &ecm_sfe_ipv6_accel_limit_mode_fops)) {
 --- a/frontends/sfe/ecm_sfe_non_ported_ipv4.c
 +++ b/frontends/sfe/ecm_sfe_non_ported_ipv4.c
-@@ -1860,11 +1860,8 @@ struct ecm_front_end_connection_instance
+@@ -1897,11 +1897,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_sfe_non_ported_ipv4_debugfs_init(struct dentry *dentry)
  {
@@ -694,7 +694,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  }
 --- a/frontends/sfe/ecm_sfe_non_ported_ipv6.c
 +++ b/frontends/sfe/ecm_sfe_non_ported_ipv6.c
-@@ -1684,11 +1684,8 @@ struct ecm_front_end_connection_instance
+@@ -1714,11 +1714,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_sfe_non_ported_ipv6_debugfs_init(struct dentry *dentry)
  {
@@ -710,7 +710,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  }
 --- a/frontends/sfe/ecm_sfe_ported_ipv4.c
 +++ b/frontends/sfe/ecm_sfe_ported_ipv4.c
-@@ -1996,21 +1996,11 @@ struct ecm_front_end_connection_instance
+@@ -2011,21 +2011,11 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_sfe_ported_ipv4_debugfs_init(struct dentry *dentry)
  {
@@ -737,7 +737,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  }
 --- a/frontends/sfe/ecm_sfe_ported_ipv6.c
 +++ b/frontends/sfe/ecm_sfe_ported_ipv6.c
-@@ -1942,21 +1942,11 @@ struct ecm_front_end_connection_instance
+@@ -1957,21 +1957,11 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_sfe_ported_ipv6_debugfs_init(struct dentry *dentry)
  {
@@ -764,7 +764,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  }
 --- a/frontends/ppe/ecm_ppe_ported_ipv4.c
 +++ b/frontends/ppe/ecm_ppe_ported_ipv4.c
-@@ -1423,14 +1423,8 @@ struct ecm_front_end_connection_instance
+@@ -1470,14 +1470,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_ppe_ported_ipv4_debugfs_init(struct dentry *dentry)
  {
@@ -782,7 +782,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  					&ecm_ppe_ported_ipv4_accelerated_count[ECM_FRONT_END_PORTED_PROTO_TCP])) {
 --- a/frontends/ppe/ecm_ppe_ported_ipv6.c
 +++ b/frontends/ppe/ecm_ppe_ported_ipv6.c
-@@ -1396,14 +1396,8 @@ struct ecm_front_end_connection_instance
+@@ -1456,14 +1456,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_ppe_ported_ipv6_debugfs_init(struct dentry *dentry)
  {

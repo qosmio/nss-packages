@@ -1,6 +1,6 @@
---- a/ecm_interface.c	2022-10-31 16:48:41.815648590 -0400
-+++ b/ecm_interface.c	2022-10-31 16:50:04.840443311 -0400
-@@ -327,7 +327,7 @@
+--- a/ecm_interface.c
++++ b/ecm_interface.c
+@@ -327,7 +327,7 @@ static void ecm_interface_vlan_dev_updat
  	if (!is_vlan_dev(dev))
  		return;
 
