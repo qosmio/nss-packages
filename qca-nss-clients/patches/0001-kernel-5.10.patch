@@ -120,7 +120,6 @@
  
  	/*
  	 * get the MAC address from the ethernet device
-
 --- a/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
 +++ b/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
 @@ -244,7 +244,7 @@ static struct nss_connmgr_l2tpv2_session

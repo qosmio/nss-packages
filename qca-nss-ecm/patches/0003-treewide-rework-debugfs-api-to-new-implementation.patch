@@ -142,7 +142,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	/*
 --- a/ecm_db/ecm_db_connection.c
 +++ b/ecm_db/ecm_db_connection.c
-@@ -3782,11 +3782,8 @@ static struct file_operations ecm_db_con
+@@ -3776,11 +3776,8 @@ static struct file_operations ecm_db_con
   */
  bool ecm_db_connection_init(struct dentry *dentry)
  {

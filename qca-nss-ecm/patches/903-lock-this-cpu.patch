@@ -3,9 +3,9 @@
 @@ -327,7 +327,7 @@ static void ecm_interface_vlan_dev_updat
  	if (!is_vlan_dev(dev))
  		return;
-
+ 
 -	stats = per_cpu_ptr(vlan->vlan_pcpu_stats, 0);
 +	stats = this_cpu_ptr(vlan->vlan_pcpu_stats);
-
+ 
  	u64_stats_update_begin(&stats->syncp);
  	stats->rx_packets += nlstats->rx_packets;

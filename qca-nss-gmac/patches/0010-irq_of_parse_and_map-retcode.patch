@@ -1,5 +1,5 @@
---- a/ipq806x/nss_gmac_ctrl.c	2022-10-05 20:55:15.080000000 +0900
-+++ b/ipq806x/nss_gmac_ctrl.c	2022-10-05 20:55:46.050000000 +0900
+--- a/ipq806x/nss_gmac_ctrl.c
++++ b/ipq806x/nss_gmac_ctrl.c
 @@ -1027,7 +1027,7 @@ static int32_t nss_gmac_of_get_pdata(str
  
  	gmaccfg->phy_mii_type = of_get_phy_mode(np, &phyif);

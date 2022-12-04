@@ -1,5 +1,5 @@
---- a/Makefile	2022-10-11 21:56:36.290000000 +0900
-+++ b/Makefile	2022-10-11 21:59:11.130000000 +0900
+--- a/Makefile
++++ b/Makefile
 @@ -5,8 +5,10 @@ ccflags-y := -I$(obj) -I$(obj)/..
  export BUILD_ID = \"Build Id: $(shell date +'%m/%d/%y, %H:%M:%S')\"
  ccflags-y += -DNSS_CLIENT_BUILD_ID="$(BUILD_ID)"
@@ -20,8 +20,8 @@
  obj-$(tun6rd)+= qca-nss-tun6rd.o
  obj-$(qdisc)+= nss_qdisc/
  obj-$(vlan-mgr)+= vlan/
---- /dev/null	2022-10-04 19:54:04.170000000 +0900
-+++ b/nss_connmgr_tunipip6.c	2022-10-11 21:54:01.000000000 +0900
+--- /dev/null
++++ b/nss_connmgr_tunipip6.c
 @@ -0,0 +1,503 @@
 +/*
 + **************************************************************************

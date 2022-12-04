@@ -1,5 +1,3 @@
-diff --git a/exports/nss_connmgr_tunipip6.h b/exports/nss_connmgr_tunipip6.h
-index 7f8bd2c..e1a5e21 100644
 --- a/exports/nss_connmgr_tunipip6.h
 +++ b/exports/nss_connmgr_tunipip6.h
 @@ -28,12 +28,13 @@ enum nss_connmgr_tunipip6_err_codes {
@@ -19,21 +17,19 @@ index 7f8bd2c..e1a5e21 100644
  };
  
  /*
-diff --git a/tunipip6/Makefile b/tunipip6/Makefile
-index 4c22939..1500a9d 100644
 --- a/tunipip6/Makefile
 +++ b/tunipip6/Makefile
-@@ -4,7 +4,7 @@ ccflags-y += -DNSS_CLIENT_BUILD_ID="$(BUILD_ID)"
+@@ -2,9 +2,8 @@
+ ccflags-y += -I$(obj)/../exports -I$(obj)/..
+ ccflags-y += -DNSS_CLIENT_BUILD_ID="$(BUILD_ID)"
  ccflags-y += -DNSS_TUNIPIP6_DEBUG_LEVEL=0
- ccflags-y += -Werror
+-ccflags-y += -Werror
  obj-m += qca-nss-tunipip6.o
 -qca-nss-tunipip6-objs := nss_connmgr_tunipip6.o nss_connmgr_tunipip6_sysctl.o
 +qca-nss-tunipip6-objs := nss_connmgr_tunipip6.o nss_connmgr_tunipip6_sysctl.o nss_connmgr_tunipip6_stats.o
  ifneq ($(findstring 4.4, $(KERNELVERSION)),)
  ccflags-y += -DDRAFT03_SUPPORT
  endif
-diff --git a/tunipip6/nss_connmgr_tunipip6.c b/tunipip6/nss_connmgr_tunipip6.c
-index 5391724..a7d24c6 100644
 --- a/tunipip6/nss_connmgr_tunipip6.c
 +++ b/tunipip6/nss_connmgr_tunipip6.c
 @@ -20,7 +20,6 @@
@@ -211,7 +207,7 @@ index 5391724..a7d24c6 100644
  
  /*
   * nss_tunipip6_encap_exception()
-@@ -289,20 +340,29 @@ static void nss_tunipip6_decap_exception(struct net_device *dev, struct sk_buff
+@@ -289,20 +340,29 @@ static void nss_tunipip6_decap_exception
  
  /*
   *  nss_tunipip6_update_dev_stats
@@ -250,7 +246,7 @@ index 5391724..a7d24c6 100644
  	dev->stats.rx_dropped += nss_cmn_rx_dropped_sum(&sync_stats->node_stats);
  
  	/* TODO: Update rx_dropped stats in ip6_update_offload_stats() */
-@@ -316,11 +376,20 @@ static void nss_tunipip6_update_dev_stats(struct net_device *dev,
+@@ -316,11 +376,20 @@ static void nss_tunipip6_update_dev_stat
  void nss_tunipip6_event_receive(void *if_ctx, struct nss_tunipip6_msg *tnlmsg)
  {
  	struct net_device *netdev = NULL;
@@ -272,7 +268,7 @@ index 5391724..a7d24c6 100644
  		break;
  
  	default:
-@@ -415,7 +484,7 @@ static void nss_tunipip6_dev_parse_param(struct net_device *netdev, struct nss_c
+@@ -415,7 +484,7 @@ static void nss_tunipip6_dev_parse_param
  	tnlcfg->ttl_inherit = false;
  	tnlcfg->tos_inherit = true;
  	tnlcfg->frag_id_update = frag_id_update;
@@ -281,7 +277,7 @@ index 5391724..a7d24c6 100644
  	/*
  	 * Flow Label In kernel is stored in big endian format.
  	 */
-@@ -454,9 +523,9 @@ static void nss_connmgr_tunipip6_configure_fmr(struct net_device *netdev)
+@@ -454,9 +523,9 @@ static void nss_connmgr_tunipip6_configu
  	tunnel = (struct ip6_tnl *)netdev_priv(netdev);
  
  	/*
@@ -293,7 +289,7 @@ index 5391724..a7d24c6 100644
  		/*
  		 * Prepare "rulecfg"
  		 */
-@@ -497,6 +566,7 @@ enum nss_connmgr_tunipip6_err_codes nss_connmgr_tunipip6_create_interface(struct
+@@ -497,6 +566,7 @@ enum nss_connmgr_tunipip6_err_codes nss_
  	int inner_ifnum, outer_ifnum;
  	uint32_t features = 0;
  	nss_tx_status_t status;
@@ -341,7 +337,7 @@ index 5391724..a7d24c6 100644
  	nss_unregister_tunipip6_if(outer_ifnum);
  outer_reg_fail:
  	nss_unregister_tunipip6_if(inner_ifnum);
-@@ -675,6 +761,8 @@ EXPORT_SYMBOL(nss_connmgr_tunipip6_create_interface);
+@@ -675,6 +761,8 @@ EXPORT_SYMBOL(nss_connmgr_tunipip6_creat
   */
  enum nss_connmgr_tunipip6_err_codes nss_connmgr_tunipip6_destroy_interface(struct net_device *netdev)
  {
@@ -350,7 +346,7 @@ index 5391724..a7d24c6 100644
  	/*
  	 * Validate netdev for ipv6-in-ipv4  Tunnel
  	 */
-@@ -682,7 +770,20 @@ enum nss_connmgr_tunipip6_err_codes nss_connmgr_tunipip6_destroy_interface(struc
+@@ -682,7 +770,20 @@ enum nss_connmgr_tunipip6_err_codes nss_
  		return NSS_CONNMGR_TUNIPIP6_NETDEV_TYPE_FAILURE;
  	}
  
@@ -372,11 +368,10 @@ index 5391724..a7d24c6 100644
  }
  EXPORT_SYMBOL(nss_connmgr_tunipip6_destroy_interface);
  
-@@ -940,6 +1041,39 @@ static int nss_tunipip6_dev_event(struct notifier_block  *nb,
- 	return NOTIFY_DONE;
+@@ -941,6 +1042,39 @@ static int nss_tunipip6_dev_event(struct
  }
  
-+/*
+ /*
 + * nss_tunipip6_destroy_interface_all()
 + * 	Destroy NSS interfaces and free instance for all tunipip6 interfaces.
 + */
@@ -409,14 +404,14 @@ index 5391724..a7d24c6 100644
 +	spin_unlock_bh(&tunipip6_ctx.lock);
 +}
 +
- /*
++/*
   * Linux Net device Notifier
   */
-@@ -964,6 +1098,20 @@ int __init nss_tunipip6_init_module(void)
- 	nss_tunipip6_info("module (platform - IPQ806x , %s) loaded\n",
+ struct notifier_block nss_tunipip6_notifier = {
+@@ -965,6 +1099,20 @@ int __init nss_tunipip6_init_module(void
  			  NSS_CLIENT_BUILD_ID);
  
-+	/*
+ 	/*
 +	 * Initialize lock and dev list.
 +	 */
 +	INIT_LIST_HEAD(&tunipip6_ctx.dev_list);
@@ -430,14 +425,14 @@ index 5391724..a7d24c6 100644
 +		return -1;
 +	}
 +
- 	/*
++	/*
  	 * Do not register net device notification for
  	 * custom tunnel. Net device notification is used only
-@@ -999,6 +1147,16 @@ void __exit nss_tunipip6_exit_module(void)
- 	}
+ 	 * for standard tunnel.
+@@ -1000,6 +1148,16 @@ void __exit nss_tunipip6_exit_module(voi
  #endif
  
-+	/*
+ 	/*
 +	 * Free Host and NSS tunipip6 instances.
 +	 */
 +	nss_tunipip6_destroy_interface_all();
@@ -447,12 +442,10 @@ index 5391724..a7d24c6 100644
 +	 */
 +	nss_tunipip6_stats_dentry_deinit();
 +
- 	/*
++	/*
  	 * Unregister net device notification for standard tunnel.
  	 */
-diff --git a/tunipip6/nss_connmgr_tunipip6_priv.h b/tunipip6/nss_connmgr_tunipip6_priv.h
-new file mode 100644
-index 0000000..3893038
+ 	if (!enable_custom) {
 --- /dev/null
 +++ b/tunipip6/nss_connmgr_tunipip6_priv.h
 @@ -0,0 +1,94 @@
@@ -550,9 +543,6 @@ index 0000000..3893038
 +struct nss_tunipip6_instance *nss_tunipip6_find_instance(struct net_device *dev);
 +
 +#endif /* __NSS_CONNMGR_TUNIPIP6_PRIV_H_ */
-diff --git a/tunipip6/nss_connmgr_tunipip6_stats.c b/tunipip6/nss_connmgr_tunipip6_stats.c
-new file mode 100644
-index 0000000..0843300
 --- /dev/null
 +++ b/tunipip6/nss_connmgr_tunipip6_stats.c
 @@ -0,0 +1,225 @@
@@ -781,9 +771,6 @@ index 0000000..0843300
 +
 +	return true;
 +}
-diff --git a/tunipip6/nss_connmgr_tunipip6_stats.h b/tunipip6/nss_connmgr_tunipip6_stats.h
-new file mode 100644
-index 0000000..bbe7311
 --- /dev/null
 +++ b/tunipip6/nss_connmgr_tunipip6_stats.h
 @@ -0,0 +1,73 @@
@@ -860,8 +847,6 @@ index 0000000..bbe7311
 +extern bool nss_tunipip6_stats_dentry_create(struct nss_tunipip6_instance *tun_inst);
 +
 +#endif /* _NSS_CONNMGR_TUNIPIP6_STATS_H_ */
-diff --git a/tunipip6/nss_connmgr_tunipip6_sysctl.c b/tunipip6/nss_connmgr_tunipip6_sysctl.c
-index fed8d81..3632d62 100644
 --- a/tunipip6/nss_connmgr_tunipip6_sysctl.c
 +++ b/tunipip6/nss_connmgr_tunipip6_sysctl.c
 @@ -1,6 +1,6 @@
@@ -872,7 +857,7 @@ index fed8d81..3632d62 100644
  
   * Permission to use, copy, modify, and/or distribute this software for any
   * purpose with or without fee is hereby granted, provided that the above
-@@ -61,7 +61,7 @@ static int nss_tunipip6_data_parser(struct ctl_table *ctl, int write, void __use
+@@ -61,7 +61,7 @@ static int nss_tunipip6_data_parser(stru
  	bool ipv4_prefix_valid = false, ipv4_prefix_len_valid = false, ipv6_suffix_len_valid = false;
  	bool rule_type_valid = false, ea_len_valid = false, psid_offset_valid = false, netdev_valid = false;
  	struct nss_connmgr_tunipip6_maprule_cfg mrcfg = {0};
@@ -881,7 +866,7 @@ index fed8d81..3632d62 100644
  	enum nss_connmgr_tunipip6_err_codes status;
  	struct net_device *dev = NULL;
  	char *pfree;
-@@ -69,7 +69,11 @@ static int nss_tunipip6_data_parser(struct ctl_table *ctl, int write, void __use
+@@ -69,7 +69,11 @@ static int nss_tunipip6_data_parser(stru
  	int ret;
  	int count;
  
@@ -893,7 +878,7 @@ index fed8d81..3632d62 100644
  	if (!buf) {
  		return -ENOMEM;
  	}
-@@ -122,6 +126,7 @@ static int nss_tunipip6_data_parser(struct ctl_table *ctl, int write, void __use
+@@ -122,6 +126,7 @@ static int nss_tunipip6_data_parser(stru
  
  			if ((rule_type !=NSS_CONNMGR_TUNIPIP6_RULE_BMR) &&
  				       (rule_type != NSS_CONNMGR_TUNIPIP6_RULE_FMR)) {
@@ -901,7 +886,7 @@ index fed8d81..3632d62 100644
  				goto fail;
  			}
  			rule_type_valid = true;
-@@ -135,6 +140,7 @@ static int nss_tunipip6_data_parser(struct ctl_table *ctl, int write, void __use
+@@ -135,6 +140,7 @@ static int nss_tunipip6_data_parser(stru
  			}
  
  			if (frag_id != 0 && frag_id != 1) {
@@ -909,7 +894,7 @@ index fed8d81..3632d62 100644
  				goto fail;
  			}
  			continue;
-@@ -396,9 +402,9 @@ static int nss_tunipip6_cmd_procfs_read_help(struct ctl_table *ctl, int write, v
+@@ -396,9 +402,9 @@ static int nss_tunipip6_cmd_procfs_read_
  			b. To delete maprule(BMR):\n\
  			echo dev=<map-mape/MAP-E netdevice> rule_type=<1> > remove_map_rule\n\
  			3. To flush FMR entries:\n\
@@ -922,15 +907,3 @@ index fed8d81..3632d62 100644
  			=====end of help=====\n");
  	*lenp = 0;
  	return ret;
-*** a/tunipip6/Makefile	2022-09-28 23:08:52.910000000 +0900
---- b/tunipip6/Makefile	2022-09-28 23:08:59.670000000 +0900
-***************
-*** 2,8 ****
-  ccflags-y += -I$(obj)/../exports -I$(obj)/..
-  ccflags-y += -DNSS_CLIENT_BUILD_ID="$(BUILD_ID)"
-  ccflags-y += -DNSS_TUNIPIP6_DEBUG_LEVEL=0
-- ccflags-y += -Werror
-  obj-m += qca-nss-tunipip6.o
-  qca-nss-tunipip6-objs := nss_connmgr_tunipip6.o nss_connmgr_tunipip6_sysctl.o nss_connmgr_tunipip6_stats.o
-  ifneq ($(findstring 4.4, $(KERNELVERSION)),)
---- 2,7 ----

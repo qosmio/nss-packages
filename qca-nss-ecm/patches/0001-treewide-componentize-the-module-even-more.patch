@@ -173,7 +173,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  # #############################################################################
 --- a/ecm_db/ecm_db_connection.c
 +++ b/ecm_db/ecm_db_connection.c
-@@ -454,7 +454,9 @@ EXPORT_SYMBOL(ecm_db_connection_make_def
+@@ -441,7 +441,9 @@ EXPORT_SYMBOL(ecm_db_connection_make_def
   */
  void ecm_db_connection_data_totals_update(struct ecm_db_connection_instance *ci, bool is_from, uint64_t size, uint64_t packets)
  {
@@ -183,7 +183,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	DEBUG_CHECK_MAGIC(ci, ECM_DB_CONNECTION_INSTANCE_MAGIC, "%px: magic failed\n", ci);
  
-@@ -553,7 +555,9 @@ EXPORT_SYMBOL(ecm_db_connection_data_tot
+@@ -540,7 +542,9 @@ EXPORT_SYMBOL(ecm_db_connection_data_tot
   */
  void ecm_db_connection_data_totals_update_dropped(struct ecm_db_connection_instance *ci, bool is_from, uint64_t size, uint64_t packets)
  {
@@ -193,7 +193,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	DEBUG_CHECK_MAGIC(ci, ECM_DB_CONNECTION_INSTANCE_MAGIC, "%px: magic failed\n", ci);
  
-@@ -1532,6 +1536,7 @@ void ecm_db_connection_defunct_all(void)
+@@ -1526,6 +1530,7 @@ void ecm_db_connection_defunct_all(void)
  }
  EXPORT_SYMBOL(ecm_db_connection_defunct_all);
  
@@ -201,7 +201,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  /*
   * ecm_db_connection_defunct_by_classifier()
   *	Make defunct based on masked fields
-@@ -1698,6 +1703,7 @@ next_ci:
+@@ -1692,6 +1697,7 @@ next_ci:
  				ECM_IP_ADDR_TO_OCTAL(dest_addr_mask), dest_port_mask, proto_mask, cnt);
  	}
  }
@@ -209,7 +209,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  /*
   * ecm_db_connection_defunct_by_port()
-@@ -1987,6 +1993,7 @@ struct ecm_db_node_instance *ecm_db_conn
+@@ -1981,6 +1987,7 @@ struct ecm_db_node_instance *ecm_db_conn
  }
  EXPORT_SYMBOL(ecm_db_connection_node_get_and_ref);
  
@@ -217,7 +217,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  /*
   * ecm_db_connection_mapping_get_and_ref_next()
   *	Return reference to next connection in the mapping chain in the specified direction.
-@@ -2028,6 +2035,7 @@ struct ecm_db_connection_instance *ecm_d
+@@ -2022,6 +2029,7 @@ struct ecm_db_connection_instance *ecm_d
  	return nci;
  }
  EXPORT_SYMBOL(ecm_db_connection_iface_get_and_ref_next);
