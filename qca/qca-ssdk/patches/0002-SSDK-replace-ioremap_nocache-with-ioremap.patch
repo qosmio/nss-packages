@@ -15,7 +15,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 
 --- a/src/init/ssdk_clk.c
 +++ b/src/init/ssdk_clk.c
-@@ -721,7 +721,7 @@ ssdk_mp_tcsr_get(a_uint32_t tcsr_offset,
+@@ -721,7 +721,7 @@ ssdk_mp_tcsr_get(a_uint32_t tcsr_offset, a_uint32_t *tcsr_val)
  {
  	void __iomem *tcsr_base = NULL;
  
@@ -24,7 +24,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	if (!tcsr_base)
  	{
  		SSDK_ERROR("Failed to map tcsr eth address!\n");
-@@ -738,7 +738,7 @@ ssdk_mp_tcsr_set(a_uint32_t tcsr_offset,
+@@ -738,7 +738,7 @@ ssdk_mp_tcsr_set(a_uint32_t tcsr_offset, a_uint32_t tcsr_val)
  {
  	void __iomem *tcsr_base = NULL;
  
@@ -42,7 +42,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	if (!pll_lock) {
  		SSDK_ERROR("Failed to map CMN PLL LOCK register!\n");
  		return A_FALSE;
-@@ -843,7 +843,7 @@ static void ssdk_cmnblk_pll_src_set(enum
+@@ -843,7 +843,7 @@ static void ssdk_cmnblk_pll_src_set(enum cmnblk_pll_src_type pll_source)
  	void __iomem *cmn_pll_src_base = NULL;
  	a_uint32_t reg_val;
  
@@ -51,7 +51,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	if (!cmn_pll_src_base) {
  		SSDK_ERROR("Failed to map cmn pll source address!\n");
  		return;
-@@ -869,7 +869,7 @@ static void ssdk_cmnblk_init(enum cmnblk
+@@ -869,7 +869,7 @@ static void ssdk_cmnblk_init(enum cmnblk_clk_type mode)
  		return;
  	}
  
@@ -62,7 +62,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		return;
 --- a/src/init/ssdk_init.c
 +++ b/src/init/ssdk_init.c
-@@ -3134,7 +3134,7 @@ static int ssdk_dess_mac_mode_init(a_uin
+@@ -3134,7 +3134,7 @@ static int ssdk_dess_mac_mode_init(a_uint32_t dev_id, a_uint32_t mac_mode)
  							(a_uint8_t *)&reg_value, 4);
  			mdelay(10);
  			/*softreset psgmii, fixme*/
@@ -73,7 +73,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  				return 0;
 --- a/src/init/ssdk_plat.c
 +++ b/src/init/ssdk_plat.c
-@@ -1708,7 +1708,7 @@ ssdk_plat_init(ssdk_init_cfg *cfg, a_uin
+@@ -1708,7 +1708,7 @@ ssdk_plat_init(ssdk_init_cfg *cfg, a_uint32_t dev_id)
  	reg_mode = ssdk_uniphy_reg_access_mode_get(dev_id);
  	if(reg_mode == HSL_REG_LOCAL_BUS) {
  		ssdk_uniphy_reg_map_info_get(dev_id, &map);
@@ -82,7 +82,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  									map.size);
  		if (!qca_phy_priv_global[dev_id]->uniphy_hw_addr) {
  			SSDK_ERROR("%s ioremap fail.", __func__);
-@@ -1723,7 +1723,7 @@ ssdk_plat_init(ssdk_init_cfg *cfg, a_uin
+@@ -1723,7 +1723,7 @@ ssdk_plat_init(ssdk_init_cfg *cfg, a_uint32_t dev_id)
  	reg_mode = ssdk_switch_reg_access_mode_get(dev_id);
  	if (reg_mode == HSL_REG_LOCAL_BUS) {
  		ssdk_switch_reg_map_info_get(dev_id, &map);
@@ -91,7 +91,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  								map.size);
  		if (!qca_phy_priv_global[dev_id]->hw_addr) {
  			SSDK_ERROR("%s ioremap fail.", __func__);
-@@ -1764,7 +1764,7 @@ ssdk_plat_init(ssdk_init_cfg *cfg, a_uin
+@@ -1764,7 +1764,7 @@ ssdk_plat_init(ssdk_init_cfg *cfg, a_uint32_t dev_id)
  			return -1;
  		}
  
