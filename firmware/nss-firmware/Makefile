@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2021 OpenWrt.org
+# Copyright (C) 2022 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,10 +8,10 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nss-firmware
-PKG_SOURCE_DATE:=2022-05-16
-PKG_SOURCE_VERSION:=20c9a9b7e0ea2935b0a54f112104e433009312ca
-PKG_MIRROR_HASH:=376b3605776f75bccb1da2b30dd522cc22d3f6b17dff6c954dd9b7222418d6c6
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_SOURCE_DATE:=2022-07-12
+PKG_SOURCE_VERSION:=ade6bff594377c9d9c79b45e39bf104303d919bc
+PKG_MIRROR_HASH:=af0521893064b7bc52baab263e12c7db5462461ddac30d02647ed76d999b59fb
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/quic/qca-sdk-nss-fw.git
@@ -22,7 +22,10 @@ PKG_MAINTAINER:=Robert Marko <robimarko@gmail.com>
 
 include $(INCLUDE_DIR)/package.mk
 
-VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking.SPF_11.5.0/CS
+RSTRIP:=:
+STRIP:=:
+
+VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_12.0.0/ED1
 
 define Package/nss-firmware-default
   SECTION:=firmware
@@ -34,13 +37,13 @@ endef
 define Package/nss-firmware-ipq6018
 $(Package/nss-firmware-default)
   TITLE:=NSS firmware for IPQ6018 devices
-  NSS_ARCHIVE:=$(VERSION_PATH)/IPQ6018.ATH.11.4/BIN-NSS.CP.11.4.0.5-5-R.tar.bz2
+  NSS_ARCHIVE:=$(VERSION_PATH)/IPQ6018.ATH.12.0/BIN-NSS.FW.12.1-022-CP-R.tar.bz2
 endef
 
 define Package/nss-firmware-ipq8074
 $(Package/nss-firmware-default)
   TITLE:=NSS firmware for IPQ8074 devices
-  NSS_ARCHIVE:=$(VERSION_PATH)/IPQ8074.ATH.11.5.0/BIN-NSS.FW.12.0.r1-002-HK.R.tar.bz2
+  NSS_ARCHIVE:=$(VERSION_PATH)/IPQ8074.ATH.12.0.0/BIN-NSS.FW.12.1-022-HK.R.tar.bz2
 endef
 
 define Build/Compile
