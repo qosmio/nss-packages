@@ -18,7 +18,7 @@ define KernelPackage/nss-ifb
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=NSS IFB Interface
-  DEPENDS:=+kmod-qca-nss-drv @!LINUX_3_18
+  DEPENDS:=@TARGET_ipq807x +kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/nss-ifb.ko
   KCONFIG:=
 endef
@@ -46,4 +46,3 @@ define Build/Compile
 endef
 
 $(eval $(call KernelPackage,nss-ifb))
-
