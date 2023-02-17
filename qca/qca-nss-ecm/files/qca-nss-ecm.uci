@@ -1,2 +1,5 @@
 config ecm 'global'
 	option acceleration_engine 'auto'
+
+config general
+	option enable_bridge_filtering	'1'

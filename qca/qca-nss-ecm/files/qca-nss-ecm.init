@@ -41,23 +41,42 @@ support_bridge() {
 	[ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && [ -d /sys/kernel/debug/ecm/ecm_nss_ipv6 ] && return 0
 }
 
+enable_bridge_filtering() {
+	sysctl -w net.bridge.bridge-nf-call-arptables=1
+	sysctl -w net.bridge.bridge-nf-call-iptables=1
+	sysctl -w net.bridge.bridge-nf-call-ip6tables=1
+
+	if ([ -z "$(grep "net.bridge.bridge-nf-call-arptables=1" /etc/sysctl.d/qca-nss-ecm.conf)" ] && \
+		[ -z "$(grep "net.bridge.bridge-nf-call-iptables=1" /etc/sysctl.d/qca-nss-ecm.conf)" ] && \
+		[ -z "$(grep "net.bridge.bridge-nf-call-ip6tables=1" /etc/sysctl.d/qca-nss-ecm.conf)" ] \
+	); then
+		echo 'net.bridge.bridge-nf-call-arptables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
+		echo 'net.bridge.bridge-nf-call-iptables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
+		echo 'net.bridge.bridge-nf-call-ip6tables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
+	fi
+}
+
+disable_bridge_filtering() {
+	sysctl -w net.bridge.bridge-nf-call-arptables=0
+	sysctl -w net.bridge.bridge-nf-call-iptables=0
+	sysctl -w net.bridge.bridge-nf-call-ip6tables=0
+
+	sed '/net.bridge.bridge-nf-call-arptables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
+	sed '/net.bridge.bridge-nf-call-iptables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
+	sed '/net.bridge.bridge-nf-call-ip6tables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
+}
+
 load_ecm() {
 	[ -d /sys/module/ecm ] || {
 		insmod ecm front_end_selection=$(get_front_end_mode)
 		echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
 	}
 
-	support_bridge && {
-		sysctl -w net.bridge.bridge-nf-call-arptables=1
-		sysctl -w net.bridge.bridge-nf-call-iptables=1
-		sysctl -w net.bridge.bridge-nf-call-ip6tables=1
-	}
+	support_bridge && enable_bridge_filtering
 }
 
 unload_ecm() {
-	sysctl -w net.bridge.bridge-nf-call-arptables=0
-	sysctl -w net.bridge.bridge-nf-call-iptables=0
-	sysctl -w net.bridge.bridge-nf-call-ip6tables=0
+	disable_bridge_filtering
 
 	if [ -d /sys/module/ecm ]; then
 		#
@@ -83,13 +102,12 @@ start() {
 	# If the acceleration engine is NSS, enable wifi redirect
 	[ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=1
 
-	support_bridge && {
-		if ([ -z "$(grep "net.bridge.bridge-nf-call-iptables=1" /etc/sysctl.d/qca-nss-ecm.conf)" ] && [ -z "$(grep "net.bridge.bridge-nf-call-ip6tables=1" /etc/sysctl.d/qca-nss-ecm.conf)" ]); then
-			echo 'net.bridge.bridge-nf-call-arptables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
-			echo 'net.bridge.bridge-nf-call-iptables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
-			echo 'net.bridge.bridge-nf-call-ip6tables=1' >> /etc/sysctl.d/qca-nss-ecm.conf
-		fi
-	}
+	# If bridge filtering is enabled, apply and persist the sysctl flags
+	local bridge_filtering_enabled="$(uci_get ecm @general[0] enable_bridge_filtering)"
+	if [ "$bridge_filtering_enabled" -eq 1 ]; then
+		echo "Bridge filtering is enabled in the ECM config, this will cause issues with NAT loopback!"
+		enable_bridge_filtering
+	fi
 
 	if [ -d /sys/module/qca_ovsmgr ]; then
 		insmod ecm_ovs
@@ -105,9 +123,11 @@ stop() {
 	# If the acceleration engine is NSS, disable wifi redirect
 	[ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=0
 
-	sed '/net.bridge.bridge-nf-call-arptables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
-	sed '/net.bridge.bridge-nf-call-iptables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
-	sed '/net.bridge.bridge-nf-call-ip6tables=1/d' -i /etc/sysctl.d/qca-nss-ecm.conf
+	# If bridge filtering is enabled, reset the sysctl flags
+	local bridge_filtering_enabled="$(uci_get ecm @general[0] enable_bridge_filtering)"
+	if [ "$bridge_filtering_enabled" -eq 1 ]; then
+		disable_bridge_filtering
+	fi
 
 	if [ -d /sys/module/ecm_ovs ]; then
 		rmmod ecm_ovs
