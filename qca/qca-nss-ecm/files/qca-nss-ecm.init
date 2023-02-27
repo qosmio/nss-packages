@@ -72,7 +72,7 @@ load_ecm() {
 		echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
 	}
 
-	support_bridge && enable_bridge_filtering
+	support_bridge
 }
 
 unload_ecm() {
@@ -103,10 +103,12 @@ start() {
 	[ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=1
 
 	# If bridge filtering is enabled, apply and persist the sysctl flags
-	local bridge_filtering_enabled="$(uci_get ecm @general[0] enable_bridge_filtering)"
+	local bridge_filtering_enabled="$(uci get ecm.@general[0].enable_bridge_filtering)"
 	if [ "$bridge_filtering_enabled" -eq 1 ]; then
 		echo "Bridge filtering is enabled in the ECM config, this will cause issues with NAT loopback!"
 		enable_bridge_filtering
+	else
+		disable_bridge_filtering
 	fi
 
 	if [ -d /sys/module/qca_ovsmgr ]; then
@@ -122,12 +124,6 @@ stop() {
 
 	# If the acceleration engine is NSS, disable wifi redirect
 	[ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=0
-
-	# If bridge filtering is enabled, reset the sysctl flags
-	local bridge_filtering_enabled="$(uci_get ecm @general[0] enable_bridge_filtering)"
-	if [ "$bridge_filtering_enabled" -eq 1 ]; then
-		disable_bridge_filtering
-	fi
 
 	if [ -d /sys/module/ecm_ovs ]; then
 		rmmod ecm_ovs
