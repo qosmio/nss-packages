@@ -5,12 +5,12 @@ Subject: [PATCH 01/12] treewide: componentize the module even more
 
 Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 ---
- Makefile                         | 56 +++++++++++++++++++++++++-------
+ Makefile                         | 57 +++++++++++++++++++++++++-------
  ecm_db/ecm_db_connection.c       |  8 +++++
  ecm_db/ecm_db_node.c             |  4 +++
  ecm_interface.c                  |  8 +++++
  frontends/ecm_front_end_common.c |  7 ++++
- 5 files changed, 72 insertions(+), 11 deletions(-)
+ 5 files changed, 72 insertions(+), 12 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index a59cbce..f7e40f8 100644
@@ -153,6 +153,14 @@ index a59cbce..f7e40f8 100644
  ccflags-$(ECM_BAND_STEERING_ENABLE) += -DECM_BAND_STEERING_ENABLE
 
  # #############################################################################
+@@ -488,7 +488,6 @@ ccflags-y += -DECM_TRACKER_UDP_DEBUG_LEVEL=1
+ ccflags-y += -DECM_BOND_NOTIFIER_DEBUG_LEVEL=1
+ ccflags-y += -DECM_INTERFACE_DEBUG_LEVEL=1
+ ccflags-y += -DECM_STATE_DEBUG_LEVEL=1
+-ccflags-y += -DECM_OPENWRT_SUPPORT=1
+ ccflags-y += -DECM_NOTIFIER_DEBUG_LEVEL=1
+ ccflags-y += -DECM_AE_CLASSIFIER_DEBUG_LEVEL=1
+
 diff --git a/ecm_db/ecm_db_connection.c b/ecm_db/ecm_db_connection.c
 index 6d0bff4..77e5f3f 100644
 --- a/ecm_db/ecm_db_connection.c

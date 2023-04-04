@@ -73,28 +73,6 @@ ECM_MAKE_OPTS+=ECM_FRONT_END_NSS_ENABLE=y \
 		ECM_BAND_STEERING_ENABLE=n
 endif
 
-# Variant with additional features enabled for noload profile
-define KernelPackage/qca-nss-ecm-noload
-$(call KernelPackage/qca-nss-ecm)
-  TITLE+= (with noload features)
-  PROVIDES:=kmod-qca-nss-ecm
-  VARIANT:=noload
-endef
-
-define KernelPackage/qca-nss-ecm-noload/Description
-  $(call KernelPackage/qca-nss-ecm/Description)
-  When selected, this package installs the driver, but does not load it at init.
-endef
-
-define KernelPackage/qca-nss-ecm-noload/install
-	$(call KernelPackage/qca-nss-ecm/install, $(1))
-	#
-	# Remove the START line from the init script, so that the symlink
-	# in the /etc/rc.d directory is not created.
-	#
-	sed -i '/START=/d' $(1)/etc/init.d/qca-nss-ecm
-endef
-
 # Disable ECM IPv6 support when global IPv6 support is disabled.
 ifneq ($(CONFIG_IPV6),)
 ECM_MAKE_OPTS+=ECM_IPV6_ENABLE=y
@@ -176,4 +154,3 @@ define Build/Compile
 endef
 
 $(eval $(call KernelPackage,qca-nss-ecm))
-$(eval $(call KernelPackage,qca-nss-ecm-noload))
