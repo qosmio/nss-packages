@@ -34,7 +34,7 @@
  
  	if (ecm_nss_ipv4_vlan_passthrough_enable && !ecm_db_connection_is_routed_get(feci->ci) &&
  	   (nircm->vlan_primary_rule.ingress_vlan_tag == ECM_FRONT_END_VLAN_ID_NOT_CONFIGURED) &&
-@@ -1901,14 +1903,8 @@ struct ecm_front_end_connection_instance
+@@ -1902,14 +1904,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_nss_ported_ipv4_debugfs_init(struct dentry *dentry)
  {
@@ -68,7 +68,7 @@
  
  	if (ecm_nss_ipv6_vlan_passthrough_enable && !ecm_db_connection_is_routed_get(feci->ci) &&
  	   (nircm->vlan_primary_rule.ingress_vlan_tag == ECM_FRONT_END_VLAN_ID_NOT_CONFIGURED) &&
-@@ -1814,14 +1816,8 @@ struct ecm_front_end_connection_instance
+@@ -1815,14 +1817,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_nss_ported_ipv6_debugfs_init(struct dentry *dentry)
  {
