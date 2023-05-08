@@ -57,7 +57,7 @@ index 5f802b7..50e8566 100644
  #endif
 
  /*
-@@ -440,12 +427,16 @@ int ecm_conntrack_notifier_init(struct dentry *dentry)
+@@ -436,12 +423,16 @@ int ecm_conntrack_notifier_init(struct dentry *dentry)
  	/*
  	 * Eventing subsystem is available so we register a notifier hook to get fast notifications of expired connections
  	 */
@@ -75,7 +75,7 @@ index 5f802b7..50e8566 100644
  #endif
 
  	return 0;
-@@ -459,7 +450,11 @@ void ecm_conntrack_notifier_exit(void)
+@@ -455,7 +446,11 @@ void ecm_conntrack_notifier_exit(void)
  {
  	DEBUG_INFO("ECM Conntrack Notifier exit\n");
  #ifdef CONFIG_NF_CONNTRACK_EVENTS
@@ -87,5 +87,3 @@ index 5f802b7..50e8566 100644
  #endif
  	/*
  	 * Remove the debugfs files recursively.
---
-2.40.0

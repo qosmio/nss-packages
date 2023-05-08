@@ -17,7 +17,7 @@ diff --git a/frontends/nss/ecm_nss_ipv4.c b/frontends/nss/ecm_nss_ipv4.c
 index 5b0ce29..719a747 100644
 --- a/frontends/nss/ecm_nss_ipv4.c
 +++ b/frontends/nss/ecm_nss_ipv4.c
-@@ -697,7 +697,7 @@ static void ecm_nss_ipv4_stats_sync_req_work(struct work_struct *work)
+@@ -700,7 +700,7 @@ static void ecm_nss_ipv4_stats_sync_req_work(struct work_struct *work)
  	}
  	spin_unlock_bh(&ecm_nss_ipv4_lock);
 
@@ -26,7 +26,7 @@ index 5b0ce29..719a747 100644
 
  	/*
  	 * If index is 0, we are starting a new round, but if we still have time remain
-@@ -711,7 +711,7 @@ static void ecm_nss_ipv4_stats_sync_req_work(struct work_struct *work)
+@@ -714,7 +714,7 @@ static void ecm_nss_ipv4_stats_sync_req_work(struct work_struct *work)
  		}
 
  		if (time_after(ecm_nss_ipv4_next_req_time, current_jiffies)) {
@@ -39,7 +39,7 @@ diff --git a/frontends/nss/ecm_nss_ipv6.c b/frontends/nss/ecm_nss_ipv6.c
 index 8d13f68..67ee364 100644
 --- a/frontends/nss/ecm_nss_ipv6.c
 +++ b/frontends/nss/ecm_nss_ipv6.c
-@@ -675,7 +675,7 @@ static void ecm_nss_ipv6_stats_sync_req_work(struct work_struct *work)
+@@ -676,7 +676,7 @@ static void ecm_nss_ipv6_stats_sync_req_work(struct work_struct *work)
  	}
  	spin_unlock_bh(&ecm_nss_ipv6_lock);
 
@@ -48,7 +48,7 @@ index 8d13f68..67ee364 100644
 
  	/*
  	 * If index is 0, we are starting a new round, but if we still have time remain
-@@ -689,7 +689,7 @@ static void ecm_nss_ipv6_stats_sync_req_work(struct work_struct *work)
+@@ -690,7 +690,7 @@ static void ecm_nss_ipv6_stats_sync_req_work(struct work_struct *work)
  		}
 
  		if (time_after(ecm_nss_ipv6_next_req_time, current_jiffies)) {
@@ -57,5 +57,3 @@ index 8d13f68..67ee364 100644
  		}
  		ecm_nss_ipv6_roll_check_jiffies = jiffies;
  		ecm_nss_ipv6_next_req_time = ecm_nss_ipv6_roll_check_jiffies + ECM_NSS_IPV6_STATS_SYNC_PERIOD;
---
-2.34.1

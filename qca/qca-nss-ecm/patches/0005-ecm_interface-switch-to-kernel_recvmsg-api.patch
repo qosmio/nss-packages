@@ -15,7 +15,7 @@ diff --git a/ecm_interface.c b/ecm_interface.c
 index b461456..6be872a 100644
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -7617,9 +7617,13 @@ static int ecm_interface_wifi_event_hand
+@@ -7775,9 +7775,13 @@ static int ecm_interface_wifi_event_handler(unsigned char *buf, int len)
  static int ecm_interface_wifi_event_rx(struct socket *sock, struct sockaddr_nl *addr, unsigned char *buf, int len)
  {
  	struct msghdr msg;
@@ -30,7 +30,7 @@ index b461456..6be872a 100644
 
  	iov.iov_base = buf;
  	iov.iov_len  = len;
-@@ -7629,7 +7633,8 @@ static int ecm_interface_wifi_event_rx(s
+@@ -7787,7 +7791,8 @@ static int ecm_interface_wifi_event_rx(struct socket *sock, struct sockaddr_nl *
  	msg.msg_namelen = sizeof(struct sockaddr_nl);
  	msg.msg_control = NULL;
  	msg.msg_controllen = 0;
@@ -40,7 +40,7 @@ index b461456..6be872a 100644
  	set_fs(KERNEL_DS);
  	iov_iter_init(&msg.msg_iter, READ, &iov, 1, len);
  #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0))
-@@ -7640,6 +7645,9 @@ static int ecm_interface_wifi_event_rx(s
+@@ -7798,6 +7803,9 @@ static int ecm_interface_wifi_event_rx(struct socket *sock, struct sockaddr_nl *
  	set_fs(oldfs);
 
  	return size;
@@ -50,5 +50,3 @@ index b461456..6be872a 100644
  }
 
  /*
---
-2.34.1

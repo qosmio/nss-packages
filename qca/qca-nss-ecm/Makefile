@@ -5,9 +5,10 @@ PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-nss-ecm.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2022-07-09
-PKG_SOURCE_VERSION:=83b4e6266f94e1084acc69c97706d0c86a44cfe3
-PKG_MIRROR_HASH:=62d87358f3cbb8266ebc04000980516cc4c95025ed6d6d332e54d6c18f2e2510
+PKG_SOURCE_DATE:=2023-01-20
+PKG_SOURCE_VERSION:=db66c472e07990600bec9f01fb79e103540b0ca3
+PKG_MIRROR_HASH:=613fa9f8ff20984db5296763c35dea8a9ac0a5f507a0c125ea2814a6d4047a3a
+PKG_RELEASE=1
 
 PKG_BUILD_PARALLEL:=1
 PKG_FLAGS:=nonshared
@@ -32,7 +33,8 @@ define KernelPackage/qca-nss-ecm
 		   +kmod-ppp +kmod-pppoe +kmod-pptp +kmod-bonding \
 		   +PACKAGE_kmod-pppol2tp:kmod-pppol2tp \
 		   +PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
-		   +PACKAGE_kmod-nat46:kmod-nat46
+		   +PACKAGE_kmod-nat46:kmod-nat46 \
+		   +PACKAGE_kmod-vxlan:kmod-vxlan
   TITLE:=QCA NSS Enhanced Connection Manager (ECM)
   FILES:=$(PKG_BUILD_DIR)/ecm.ko
   KCONFIG:=CONFIG_BRIDGE_NETFILTER=y \
@@ -53,7 +55,6 @@ define KernelPackage/qca-nss-ecm/install
 	$(INSTALL_DATA) ./files/qca-nss-ecm.uci $(1)/etc/config/ecm
 	$(INSTALL_DATA) ./files/qca-nss-ecm.defaults $(1)/etc/uci-defaults/99-qca-nss-ecm
 	$(INSTALL_BIN) ./files/qca-nss-ecm.sysctl $(1)/etc/sysctl.d/qca-nss-ecm.conf
-	echo 'net.netfilter.nf_conntrack_max=32768' >> $(1)/etc/sysctl.d/qca-nss-ecm.conf
 endef
 
 EXTRA_CFLAGS+= \

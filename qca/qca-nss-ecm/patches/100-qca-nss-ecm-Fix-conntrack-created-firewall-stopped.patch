@@ -2,9 +2,9 @@ diff --git a/ecm_conntrack_notifier.c b/ecm_conntrack_notifier.c
 index 50e8566..cf8bd33 100644
 --- a/ecm_conntrack_notifier.c
 +++ b/ecm_conntrack_notifier.c
-@@ -437,6 +437,26 @@ int ecm_conntrack_notifier_init(struct dentry *dentry)
+@@ -433,6 +433,26 @@ int ecm_conntrack_notifier_init(struct dentry *dentry)
  #else
-     nf_conntrack_register_notifier(&init_net, &ecm_conntrack_notifier);
+    nf_conntrack_register_notifier(&init_net, &ecm_conntrack_notifier);
  #endif
 +
 +    /*
@@ -29,7 +29,7 @@ index 50e8566..cf8bd33 100644
  #endif
 
  	return 0;
-@@ -450,6 +470,13 @@ void ecm_conntrack_notifier_exit(void)
+@@ -446,6 +466,13 @@ void ecm_conntrack_notifier_exit(void)
  {
  	DEBUG_INFO("ECM Conntrack Notifier exit\n");
  #ifdef CONFIG_NF_CONNTRACK_EVENTS

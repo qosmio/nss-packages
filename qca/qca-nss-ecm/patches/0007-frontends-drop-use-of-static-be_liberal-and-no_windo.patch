@@ -14,8 +14,8 @@ diff --git a/frontends/nss/ecm_nss_ported_ipv4.c b/frontends/nss/ecm_nss_ported_
 index 6375b6b..ed9c10b 100644
 --- a/frontends/nss/ecm_nss_ported_ipv4.c
 +++ b/frontends/nss/ecm_nss_ported_ipv4.c
-@@ -125,14 +125,6 @@ struct ecm_nss_ported_ipv4_connection_instance {
- static int ecm_nss_ported_ipv4_accelerated_count[ECM_NSS_PORTED_IPV4_PROTO_MAX] = {0};
+@@ -99,14 +99,6 @@
+ static int ecm_nss_ported_ipv4_accelerated_count[ECM_FRONT_END_PORTED_PROTO_MAX] = {0};
  						/* Array of Number of TCP and UDP connections currently offloaded */
 
 -/*
@@ -29,7 +29,7 @@ index 6375b6b..ed9c10b 100644
  /*
   * ecm_nss_ported_ipv4_connection_callback()
   *	Callback for handling create ack/nack calls.
-@@ -372,6 +364,12 @@ static void ecm_nss_ported_ipv4_connection_accelerate(struct ecm_front_end_conne
+@@ -343,6 +335,12 @@ static void ecm_nss_ported_ipv4_connection_accelerate(struct ecm_front_end_conne
  	uint8_t dest_mac_xlate[ETH_ALEN];
  	ecm_db_direction_t ecm_dir;
  	ecm_front_end_acceleration_mode_t result_mode;
@@ -40,9 +40,9 @@ index 6375b6b..ed9c10b 100644
 +       tn = nf_tcp_pernet(net);
 +   }
 
- 	DEBUG_CHECK_MAGIC(npci, ECM_NSS_PORTED_IPV4_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", npci);
+	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
 
-@@ -1235,12 +1233,8 @@ static void ecm_nss_ported_ipv4_connection_accelerate(struct ecm_front_end_conne
+@@ -1212,12 +1210,8 @@ static void ecm_nss_ported_ipv4_connection_accelerate(struct ecm_front_end_conne
  			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
@@ -61,8 +61,8 @@ diff --git a/frontends/nss/ecm_nss_ported_ipv6.c b/frontends/nss/ecm_nss_ported_
 index 1be8a58..3062c12 100644
 --- a/frontends/nss/ecm_nss_ported_ipv6.c
 +++ b/frontends/nss/ecm_nss_ported_ipv6.c
-@@ -125,14 +125,6 @@ struct ecm_nss_ported_ipv6_connection_instance {
- static int ecm_nss_ported_ipv6_accelerated_count[ECM_NSS_PORTED_IPV6_PROTO_MAX] = {0};
+@@ -100,14 +100,6 @@
+ static int ecm_nss_ported_ipv6_accelerated_count[ECM_FRONT_END_PORTED_PROTO_MAX] = {0};
  						/* Array of Number of TCP and UDP connections currently offloaded */
 
 -/*
@@ -76,7 +76,7 @@ index 1be8a58..3062c12 100644
  /*
   * ecm_nss_ported_ipv6_connection_callback()
   *	Callback for handling create ack/nack calls.
-@@ -376,6 +368,12 @@ static void ecm_nss_ported_ipv6_connection_accelerate(struct ecm_front_end_conne
+@@ -348,6 +340,12 @@ static void ecm_nss_ported_ipv6_connection_accelerate(struct ecm_front_end_conne
  	ip_addr_t src_ip;
  	ip_addr_t dest_ip;
  	ecm_front_end_acceleration_mode_t result_mode;
@@ -87,9 +87,9 @@ index 1be8a58..3062c12 100644
 +       tn = nf_tcp_pernet(net);
 +   }
 
- 	DEBUG_CHECK_MAGIC(npci, ECM_NSS_PORTED_IPV6_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", npci);
+	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
 
-@@ -1161,11 +1159,7 @@ static void ecm_nss_ported_ipv6_connection_accelerate(struct ecm_front_end_conne
+@@ -1138,11 +1136,7 @@ static void ecm_nss_ported_ipv6_connection_accelerate(struct ecm_front_end_conne
  			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
@@ -106,8 +106,8 @@ diff --git a/frontends/sfe/ecm_sfe_ported_ipv4.c b/frontends/sfe/ecm_sfe_ported_
 index 6e375f8..e5ae593 100644
 --- a/frontends/sfe/ecm_sfe_ported_ipv4.c
 +++ b/frontends/sfe/ecm_sfe_ported_ipv4.c
-@@ -123,14 +123,6 @@ struct ecm_sfe_ported_ipv4_connection_instance {
- static int ecm_sfe_ported_ipv4_accelerated_count[ECM_SFE_PORTED_IPV4_PROTO_MAX] = {0};
+@@ -92,14 +92,6 @@
+ static int ecm_sfe_ported_ipv4_accelerated_count[ECM_FRONT_END_PORTED_PROTO_MAX] = {0};
  						/* Array of Number of TCP and UDP connections currently offloaded */
 
 -/*
@@ -119,13 +119,15 @@ index 6e375f8..e5ae593 100644
 -extern int nf_ct_tcp_be_liberal;
 -
  /*
-  * ecm_sfe_ported_ipv4_get_stats_bitmap()
-  *	Get bit map
-@@ -357,9 +357,15 @@ static void ecm_sfe_ported_ipv4_connecti
+  * ecm_sfe_ported_ipv4_connection_callback()
+  *	Callback for handling create ack/nack calls.
+@@ -336,11 +328,17 @@ static void ecm_sfe_ported_ipv4_connection_accelerate(struct ecm_front_end_conne
  	uint8_t dest_mac_xlate[ETH_ALEN];
  	ecm_db_direction_t ecm_dir;
  	ecm_front_end_acceleration_mode_t result_mode;
 +   struct nf_tcp_net *tn;
+	struct ecm_classifier_instance *aci;
+	struct ecm_classifier_rule_create ecrc;
  	uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
  	ecm_sfe_common_l2_accel_check_callback_t l2_accel_check;
 
@@ -134,10 +136,10 @@ index 6e375f8..e5ae593 100644
 +       tn = nf_tcp_pernet(net);
 +   }
 +
- 	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
+	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
 
  	/*
-@@ -1332,11 +1330,7 @@ static void ecm_sfe_ported_ipv4_connection_accelerate(struct ecm_front_end_conne
+@@ -1286,11 +1284,7 @@ static void ecm_sfe_ported_ipv4_connection_accelerate(struct ecm_front_end_conne
  			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
@@ -154,8 +156,8 @@ diff --git a/frontends/sfe/ecm_sfe_ported_ipv6.c b/frontends/sfe/ecm_sfe_ported_
 index f1885aa..4a6fdbd 100644
 --- a/frontends/sfe/ecm_sfe_ported_ipv6.c
 +++ b/frontends/sfe/ecm_sfe_ported_ipv6.c
-@@ -124,14 +124,6 @@ struct ecm_sfe_ported_ipv6_connection_instance {
- static int ecm_sfe_ported_ipv6_accelerated_count[ECM_SFE_PORTED_IPV6_PROTO_MAX] = {0};
+@@ -92,14 +92,6 @@
+ static int ecm_sfe_ported_ipv6_accelerated_count[ECM_FRONT_END_PORTED_PROTO_MAX] = {0};
  						/* Array of Number of TCP and UDP connections currently offloaded */
 
 -/*
@@ -167,11 +169,11 @@ index f1885aa..4a6fdbd 100644
 -extern int nf_ct_tcp_be_liberal;
 -
  /*
-  * ecm_sfe_ported_ipv6_get_stats_bitmap()
-  *	Get bit map
-@@ -361,9 +361,15 @@ static void ecm_sfe_ported_ipv6_connecti
- 	ip_addr_t src_ip;
- 	ip_addr_t dest_ip;
+  * ecm_sfe_ported_ipv6_connection_callback()
+  *	Callback for handling create ack/nack calls.
+@@ -342,9 +334,15 @@ static void ecm_sfe_ported_ipv6_connection_accelerate(struct ecm_front_end_conne
+	struct ecm_classifier_instance *aci;
+	struct ecm_classifier_rule_create ecrc;
  	ecm_front_end_acceleration_mode_t result_mode;
 -	uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
 +	struct nf_tcp_net *tn;
@@ -183,10 +185,10 @@ index f1885aa..4a6fdbd 100644
 +       tn = nf_tcp_pernet(net);
 +   }
 +
- 	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
+	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
 
  	/*
-@@ -1292,11 +1290,7 @@ static void ecm_sfe_ported_ipv6_connection_accelerate(struct ecm_front_end_conne
+@@ -1247,11 +1245,7 @@ static void ecm_sfe_ported_ipv6_connection_accelerate(struct ecm_front_end_conne
  			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
@@ -199,5 +201,3 @@ index f1885aa..4a6fdbd 100644
  					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
  					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {
  				nircm->rule_flags |= SFE_RULE_CREATE_FLAG_NO_SEQ_CHECK;
---
-2.40.0

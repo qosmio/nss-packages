@@ -17,7 +17,7 @@ diff --git a/frontends/nss/ecm_nss_ipv4.c b/frontends/nss/ecm_nss_ipv4.c
 index 719a747..558819a 100644
 --- a/frontends/nss/ecm_nss_ipv4.c
 +++ b/frontends/nss/ecm_nss_ipv4.c
-@@ -607,7 +607,8 @@ sync_conntrack:
+@@ -610,7 +610,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {
@@ -31,7 +31,7 @@ diff --git a/frontends/nss/ecm_nss_ipv6.c b/frontends/nss/ecm_nss_ipv6.c
 index 67ee364..51eb069 100644
 --- a/frontends/nss/ecm_nss_ipv6.c
 +++ b/frontends/nss/ecm_nss_ipv6.c
-@@ -586,7 +586,8 @@ sync_conntrack:
+@@ -587,7 +587,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {
@@ -45,7 +45,7 @@ diff --git a/frontends/sfe/ecm_sfe_ipv4.c b/frontends/sfe/ecm_sfe_ipv4.c
 index 3f30821..931af5d 100644
 --- a/frontends/sfe/ecm_sfe_ipv4.c
 +++ b/frontends/sfe/ecm_sfe_ipv4.c
-@@ -527,7 +527,8 @@ sync_conntrack:
+@@ -538,7 +538,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {
@@ -59,7 +59,7 @@ diff --git a/frontends/sfe/ecm_sfe_ipv6.c b/frontends/sfe/ecm_sfe_ipv6.c
 index 54fdbf3..63d8888 100644
 --- a/frontends/sfe/ecm_sfe_ipv6.c
 +++ b/frontends/sfe/ecm_sfe_ipv6.c
-@@ -516,7 +516,8 @@ sync_conntrack:
+@@ -527,7 +527,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {
@@ -69,5 +69,3 @@ index 54fdbf3..63d8888 100644
  				}
 
  				spin_lock_bh(&ct->lock);
---
-2.34.1
