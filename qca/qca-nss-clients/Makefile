@@ -524,6 +524,10 @@ NSS_CLIENTS_MAKE_OPTS+=lag-mgr=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-pvxlanmgr),)
+# The memset() call in nss_pvxlanmgr_get_tunnel_stats
+# triggers a compilation error with GCC 13, most likely
+# it is a false positive, disable the warning for now.
+EXTRA_CFLAGS+= -Wno-stringop-overread
 NSS_CLIENTS_MAKE_OPTS+=pvxlanmgr=y
 endif
 
