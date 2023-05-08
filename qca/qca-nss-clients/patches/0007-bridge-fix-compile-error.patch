@@ -1,6 +1,6 @@
 --- a/bridge/nss_bridge_mgr.c
 +++ b/bridge/nss_bridge_mgr.c
-@@ -1062,8 +1062,10 @@ int nss_bridge_mgr_register_br(struct ne
+@@ -1092,8 +1092,10 @@ int nss_bridge_mgr_register_br(struct net_device *dev)
  	 */
  	b_pvt->ifnum = ifnum;
  	b_pvt->mtu = dev->mtu;
@@ -11,7 +11,7 @@
  	ether_addr_copy(b_pvt->dev_addr, dev->dev_addr);
  	spin_lock(&br_mgr_ctx.lock);
  	list_add(&b_pvt->list, &br_mgr_ctx.list);
-@@ -1125,6 +1127,7 @@ static int nss_bridge_mgr_bond_slave_cha
+@@ -1159,6 +1161,7 @@ static int nss_bridge_mgr_bond_slave_changeupper(struct netdev_notifier_changeup
  		return NOTIFY_DONE;
  	}
 
@@ -19,7 +19,7 @@
  	/*
  	 * Add or remove the slave based based on linking event
  	 */
-@@ -1139,6 +1142,7 @@ static int nss_bridge_mgr_bond_slave_cha
+@@ -1173,6 +1176,7 @@ static int nss_bridge_mgr_bond_slave_changeupper(struct netdev_notifier_changeup
  					cu_info->upper_dev->name, master->name);
  		}
  	}
