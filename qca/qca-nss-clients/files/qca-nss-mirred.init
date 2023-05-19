@@ -14,15 +14,15 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ###########################################################################
 
-restart() {
-	rmmod act_nssmirred.ko
-	insmod act_nssmirred.ko
-}
-
 start() {
 	insmod act_nssmirred.ko
 }
 
 stop() {
 	rmmod act_nssmirred.ko
+}
+
+restart() {
+	stop
+	start
 }

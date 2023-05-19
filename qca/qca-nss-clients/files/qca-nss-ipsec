@@ -1,4 +1,4 @@
-#!/bin/sh  /etc/rc.common
+#!/bin/sh /etc/rc.common
 #
 # Copyright (c) 2018-2019, 2021 The Linux Foundation. All rights reserved.
 #
@@ -38,7 +38,6 @@ ecm_unload () {
 }
 
 ecm_disable() {
-
 	if [ ! -d /sys/module/ecm ]; then
 		return;
 	fi
@@ -62,7 +61,17 @@ ecm_enable() {
 kernel_version_check_5_4() {
 	major_ver=$(uname -r | awk -F '.' '{print $1}')
 	minor_ver=$(uname -r | awk -F '.' '{print $2}')
-	if [ $major_ver -lt 5 ] || ([ $major_ver -eq 5 ] && [ $minor_ver -lt 4 ] ) ; then
+	if [ $major_ver -lt 5 ] || ([ $major_ver -eq 5 ] && [ $minor_ver -lt 4 ] ); then
+		return 1
+	else
+		return 0
+	fi
+}
+
+kernel_version_check_5_15() {
+	major_ver=$(uname -r | awk -F '.' '{print $1}')
+	minor_ver=$(uname -r | awk -F '.' '{print $2}')
+	if [ $major_ver -lt 5 ] || ([ $major_ver -eq 5 ] && [ $minor_ver -lt 15 ] ); then
 		return 1
 	else
 		return 0
@@ -70,9 +79,13 @@ kernel_version_check_5_4() {
 }
 
 start_klips() {
-	if kernel_version_check_5_4
-	then
+	if kernel_version_check_5_4; then
 		echo "Kernel 5.4 doesn't support klips stack."
+		return $?
+	fi
+
+	if kernel_version_check_5_15; then
+		echo "Kernel 5.15 doesn't support klips stack."
 		return $?
 	fi
 
@@ -97,9 +110,13 @@ start_klips() {
 }
 
 stop_klips() {
-	if kernel_version_check_5_4
-	then
+	if kernel_version_check_5_4; then
 		echo "Kernel 5.4 doesn't support klips stack."
+		return $?
+	fi
+
+	if kernel_version_check_5_15; then
+		echo "Kernel 5.15 doesn't support klips stack."
 		return $?
 	fi
 
