@@ -1,6 +1,6 @@
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -336,7 +336,7 @@ static struct net_device *ecm_interface_dev_find_by_local_addr_ipv6(ip_addr_t ad
+@@ -336,7 +336,7 @@ static struct net_device *ecm_interface_
  	struct net_device *dev;
 
  	ECM_IP_ADDR_TO_NIN6_ADDR(addr6, addr);
@@ -9,7 +9,7 @@
  	return dev;
  }
  #endif
-@@ -737,7 +737,7 @@ static bool ecm_interface_mac_addr_get_ipv6_no_route(struct net_device *dev, ip_
+@@ -779,7 +779,7 @@ static bool ecm_interface_mac_addr_get_i
  	 * Get the MAC address that corresponds to IP address given.
  	 */
  	ECM_IP_ADDR_TO_NIN6_ADDR(daddr, addr);
@@ -18,11 +18,9 @@
  	if (local_dev) {
  		DEBUG_TRACE("%pi6 is a local address\n", &daddr);
  		memcpy(mac_addr, dev->dev_addr, ETH_ALEN);
-diff --git a/frontends/ecm_front_end_common.c b/frontends/ecm_front_end_common.c
-index 8142be1..927e548 100644
 --- a/frontends/ecm_front_end_common.c
 +++ b/frontends/ecm_front_end_common.c
-@@ -101,6 +101,10 @@
+@@ -102,6 +102,10 @@
  #endif
  #endif
 
@@ -33,7 +31,7 @@ index 8142be1..927e548 100644
  /*
   * Sysctl table header
   */
-@@ -547,7 +551,7 @@ bool ecm_front_end_gre_proto_is_accel_allowed(struct net_device *indev,
+@@ -578,7 +582,7 @@ bool ecm_front_end_gre_proto_is_accel_al
  		}
  	} else {
  #ifdef ECM_IPV6_ENABLE
@@ -42,7 +40,7 @@ index 8142be1..927e548 100644
  		if (dev) {
  			/*
  			 * Source IP address is local
-@@ -557,7 +561,7 @@ bool ecm_front_end_gre_proto_is_accel_allowed(struct net_device *indev,
+@@ -588,7 +592,7 @@ bool ecm_front_end_gre_proto_is_accel_al
  			return false;
  		}
 
@@ -50,4 +48,4 @@ index 8142be1..927e548 100644
 +		dev = ipv6_dev_find_and_hold(&init_net, &(tuple->dst.u3.in6), 1);
  		if (dev) {
  			/*
-			 * Destination IP address is local
+ 			 * Destination IP address is local

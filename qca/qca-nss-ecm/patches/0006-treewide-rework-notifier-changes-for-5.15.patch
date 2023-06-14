@@ -7,8 +7,6 @@ Subject: [PATCH] treewide: rework notifier changes for 5.15
  ecm_conntrack_notifier.c | 35 +++++++++++++++--------------------
  1 file changed, 15 insertions(+), 20 deletions(-)
 
-diff --git a/ecm_conntrack_notifier.c b/ecm_conntrack_notifier.c
-index 5f802b7..50e8566 100644
 --- a/ecm_conntrack_notifier.c
 +++ b/ecm_conntrack_notifier.c
 @@ -332,15 +332,8 @@ EXPORT_SYMBOL(ecm_conntrack_ipv4_event);
@@ -28,7 +26,7 @@ index 5f802b7..50e8566 100644
  	struct nf_conn *ct = item->ct;
 
  	/*
-@@ -387,23 +380,17 @@ static int ecm_conntrack_event(unsigned int events, struct nf_ct_event *item)
+@@ -387,23 +380,17 @@ static int ecm_conntrack_event(unsigned
  	return NOTIFY_DONE;
  }
 
@@ -57,7 +55,7 @@ index 5f802b7..50e8566 100644
  #endif
 
  /*
-@@ -436,12 +423,16 @@ int ecm_conntrack_notifier_init(struct dentry *dentry)
+@@ -436,12 +423,16 @@ int ecm_conntrack_notifier_init(struct d
  	/*
  	 * Eventing subsystem is available so we register a notifier hook to get fast notifications of expired connections
  	 */
@@ -72,13 +70,13 @@ index 5f802b7..50e8566 100644
 +#else
 +   nf_conntrack_register_notifier(&init_net, &ecm_conntrack_notifier);
 +#endif
- #endif
 
- 	return 0;
-@@ -455,7 +446,11 @@ void ecm_conntrack_notifier_exit(void)
- {
- 	DEBUG_INFO("ECM Conntrack Notifier exit\n");
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	/*
+ 	 * Hold netns reference to keep the basic conntrack alive and
+@@ -483,7 +474,11 @@ void ecm_conntrack_notifier_exit(void)
+ #ifdef ECM_IPV6_ENABLE
+ 	nf_ct_netns_put(&init_net, NFPROTO_IPV6);
+ #endif
 +#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0))
  	nf_conntrack_unregister_notifier(&init_net, &ecm_conntrack_notifier);
 +#else

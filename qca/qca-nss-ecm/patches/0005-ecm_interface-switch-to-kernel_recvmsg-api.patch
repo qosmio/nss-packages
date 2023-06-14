@@ -11,11 +11,9 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ecm_interface.c | 9 +++++++++
  1 file changed, 9 insertions(+)
 
-diff --git a/ecm_interface.c b/ecm_interface.c
-index b461456..6be872a 100644
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -7775,9 +7775,13 @@ static int ecm_interface_wifi_event_handler(unsigned char *buf, int len)
+@@ -8012,9 +8012,13 @@ static int ecm_interface_wifi_event_hand
  static int ecm_interface_wifi_event_rx(struct socket *sock, struct sockaddr_nl *addr, unsigned char *buf, int len)
  {
  	struct msghdr msg;
@@ -30,7 +28,7 @@ index b461456..6be872a 100644
 
  	iov.iov_base = buf;
  	iov.iov_len  = len;
-@@ -7787,7 +7791,8 @@ static int ecm_interface_wifi_event_rx(struct socket *sock, struct sockaddr_nl *
+@@ -8024,7 +8028,8 @@ static int ecm_interface_wifi_event_rx(s
  	msg.msg_namelen = sizeof(struct sockaddr_nl);
  	msg.msg_control = NULL;
  	msg.msg_controllen = 0;
@@ -40,7 +38,7 @@ index b461456..6be872a 100644
  	set_fs(KERNEL_DS);
  	iov_iter_init(&msg.msg_iter, READ, &iov, 1, len);
  #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0))
-@@ -7798,6 +7803,9 @@ static int ecm_interface_wifi_event_rx(struct socket *sock, struct sockaddr_nl *
+@@ -8035,6 +8040,9 @@ static int ecm_interface_wifi_event_rx(s
  	set_fs(oldfs);
 
  	return size;

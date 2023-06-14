@@ -40,28 +40,22 @@ Signed-off-By: Francis Le Bourse <francis.lebourse@sfr.fr>
  ecm_db/ecm_db.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/ecm_db/ecm_db.c b/ecm_db/ecm_db.c
-index c6f408d..df04afd 100644
 --- a/ecm_db/ecm_db.c
 +++ b/ecm_db/ecm_db.c
-@@ -298,7 +298,7 @@ static int ecm_db_ipv6_route_table_update_event(struct notifier_block *nb,
+@@ -298,7 +298,7 @@ static int ecm_db_ipv6_route_table_updat
  		 * Compute ECM connection's prefix destination address by masking it with the
  		 * route config's destination address prefix length.
  		 */
 -		ipv6_addr_prefix(&prefix_addr, &ecm_in6, cfg->fc_dst_len);
 +		ipv6_addr_prefix(&prefix_addr, &ecm_in6, min(128, cfg->fc_dst_len));
- 
+
  		DEBUG_TRACE("dest addr prefix: %pI6 prefix_len: %d ecm_in6: %pI6\n", &prefix_addr, cfg->fc_dst_len, &ecm_in6);
- 
-@@ -326,7 +326,7 @@ static int ecm_db_ipv6_route_table_update_event(struct notifier_block *nb,
+
+@@ -326,7 +326,7 @@ static int ecm_db_ipv6_route_table_updat
  			 * Compute ECM connection's prefix source address by masking it with the
  			 * route config's destination address prefix length.
  			 */
 -			ipv6_addr_prefix(&prefix_addr, &ecm_in6, cfg->fc_dst_len);
 +			ipv6_addr_prefix(&prefix_addr, &ecm_in6, min(128, cfg->fc_dst_len));
- 
- 			DEBUG_TRACE("src addr prefix: %pI6 prefix_len: %d ecm_in6: %pI6\n", &prefix_addr, cfg->fc_dst_len, &ecm_in6);
- 
--- 
-2.1.4
 
+ 			DEBUG_TRACE("src addr prefix: %pI6 prefix_len: %d ecm_in6: %pI6\n", &prefix_addr, cfg->fc_dst_len, &ecm_in6);

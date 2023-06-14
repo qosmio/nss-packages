@@ -13,8 +13,6 @@ instead or relying on a downstream api not present upstream.
  frontends/sfe/ecm_sfe_ipv6.c | 3 ++-
  4 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/frontends/nss/ecm_nss_ipv4.c b/frontends/nss/ecm_nss_ipv4.c
-index 719a747..558819a 100644
 --- a/frontends/nss/ecm_nss_ipv4.c
 +++ b/frontends/nss/ecm_nss_ipv4.c
 @@ -610,7 +610,8 @@ sync_conntrack:
@@ -27,8 +25,6 @@ index 719a747..558819a 100644
  				}
 
  				spin_lock_bh(&ct->lock);
-diff --git a/frontends/nss/ecm_nss_ipv6.c b/frontends/nss/ecm_nss_ipv6.c
-index 67ee364..51eb069 100644
 --- a/frontends/nss/ecm_nss_ipv6.c
 +++ b/frontends/nss/ecm_nss_ipv6.c
 @@ -587,7 +587,8 @@ sync_conntrack:
@@ -41,11 +37,9 @@ index 67ee364..51eb069 100644
  				}
 
  				spin_lock_bh(&ct->lock);
-diff --git a/frontends/sfe/ecm_sfe_ipv4.c b/frontends/sfe/ecm_sfe_ipv4.c
-index 3f30821..931af5d 100644
 --- a/frontends/sfe/ecm_sfe_ipv4.c
 +++ b/frontends/sfe/ecm_sfe_ipv4.c
-@@ -538,7 +538,8 @@ sync_conntrack:
+@@ -562,7 +562,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {
@@ -55,11 +49,9 @@ index 3f30821..931af5d 100644
  				}
 
  				spin_lock_bh(&ct->lock);
-diff --git a/frontends/sfe/ecm_sfe_ipv6.c b/frontends/sfe/ecm_sfe_ipv6.c
-index 54fdbf3..63d8888 100644
 --- a/frontends/sfe/ecm_sfe_ipv6.c
 +++ b/frontends/sfe/ecm_sfe_ipv6.c
-@@ -527,7 +527,8 @@ sync_conntrack:
+@@ -554,7 +554,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {

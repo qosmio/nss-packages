@@ -1,6 +1,6 @@
 --- a/frontends/nss/ecm_nss_common.c
 +++ b/frontends/nss/ecm_nss_common.c
-@@ -67,6 +67,7 @@ bool ecm_nss_ipv6_is_conn_limit_reached(void)
+@@ -67,6 +67,7 @@ bool ecm_nss_ipv6_is_conn_limit_reached(
 
  	return false;
  }
@@ -8,14 +8,14 @@
  #endif
 
  /*
-@@ -116,3 +117,4 @@ bool ecm_nss_ipv4_is_conn_limit_reached(void)
+@@ -116,3 +117,4 @@ bool ecm_nss_ipv4_is_conn_limit_reached(
 
  	return false;
  }
 +EXPORT_SYMBOL(ecm_nss_ipv4_is_conn_limit_reached);
 --- a/frontends/nss/ecm_nss_non_ported_ipv4.c
 +++ b/frontends/nss/ecm_nss_non_ported_ipv4.c
-@@ -1824,6 +1824,7 @@ struct ecm_front_end_connection_instance *ecm_nss_non_ported_ipv4_connection_ins
+@@ -1824,6 +1824,7 @@ struct ecm_front_end_connection_instance
 
  	return feci;
  }
@@ -36,7 +36,7 @@
  								struct ecm_db_connection_instance **nci);
 --- a/frontends/nss/ecm_nss_non_ported_ipv6.c
 +++ b/frontends/nss/ecm_nss_non_ported_ipv6.c
-@@ -1650,6 +1650,7 @@ struct ecm_front_end_connection_instance *ecm_nss_non_ported_ipv6_connection_ins
+@@ -1650,6 +1650,7 @@ struct ecm_front_end_connection_instance
 
  	return feci;
  }
@@ -57,7 +57,7 @@
  								struct ecm_db_connection_instance **nci);
 --- a/frontends/nss/ecm_nss_ported_ipv4.c
 +++ b/frontends/nss/ecm_nss_ported_ipv4.c
-@@ -1884,6 +1884,7 @@ struct ecm_front_end_connection_instance *ecm_nss_ported_ipv4_connection_instanc
+@@ -1884,6 +1884,7 @@ struct ecm_front_end_connection_instance
 
  	return feci;
  }
@@ -78,7 +78,7 @@
  								struct ecm_db_connection_instance **nci);
 --- a/frontends/nss/ecm_nss_ported_ipv6.c
 +++ b/frontends/nss/ecm_nss_ported_ipv6.c
-@@ -1797,6 +1797,7 @@ struct ecm_front_end_connection_instance *ecm_nss_ported_ipv6_connection_instanc
+@@ -1797,6 +1797,7 @@ struct ecm_front_end_connection_instance
 
  	return feci;
  }
