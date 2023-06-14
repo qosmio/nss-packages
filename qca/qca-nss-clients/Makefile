@@ -321,7 +321,7 @@ define KernelPackage/qca-nss-drv-lag-mgr
 		   +TARGET_ipq_ipq60xx_64:kmod-qca-nss-drv-vlan-mgr \
 		   +TARGET_ipq60xx:kmod-qca-nss-drv-vlan-mgr \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
-		   +kmod-bonding
+		   +PACKAGE_kmod-bonding:kmod-bonding
   FILES:=$(PKG_BUILD_DIR)/lag/qca-nss-lag-mgr.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-lag-mgr)
 endef
@@ -368,7 +368,7 @@ define KernelPackage/qca-nss-drv-igs
   SUBMENU:=Network Support
   TITLE:=Action for offloading traffic to an IFB interface to perform ingress shaping.
   DEPENDS:=@(TARGET_ipq806x||TARGET_ipq_ipq807x||TARGET_ipq_ipq807x_64||TARGET_ipq807x||TARGET_ipq_ipq60xx||TARGET_ipq_ipq60xx_64||TARGET_ipq60xx||TARGET_ipq_ipq50xx||TARGET_ipq_ipq50xx_64||TARGET_ipq50xx) \
-		   +@NSS_DRV_IGS_ENABLE +kmod-sched-core +kmod-ifb +kmod-qca-nss-drv-qdisc \
+		   +@NSS_DRV_IGS_ENABLE +kmod-sched-core +kmod-nf-conntrack +kmod-ifb +kmod-qca-nss-drv-qdisc \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/nss_qdisc/igs/act_nssmirred.ko
 endef
