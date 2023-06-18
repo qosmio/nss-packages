@@ -18,7 +18,7 @@
  bool ecm_nss_ipv4_is_conn_limit_reached(void);
 --- a/frontends/nss/ecm_nss_ported_ipv4.c
 +++ b/frontends/nss/ecm_nss_ported_ipv4.c
-@@ -1045,6 +1045,7 @@ static void ecm_nss_ported_ipv4_connecti
+@@ -1043,6 +1043,7 @@ static void ecm_nss_ported_ipv4_connecti
  	}
  #endif
  
@@ -26,7 +26,7 @@
  #ifdef ECM_CLASSIFIER_PCC_ENABLE
  	/*
  	 * Set up the interfaces for mirroring.
-@@ -1069,6 +1070,7 @@ static void ecm_nss_ported_ipv4_connecti
+@@ -1067,6 +1068,7 @@ static void ecm_nss_ported_ipv4_connecti
  		nircm->valid_flags |= NSS_IPV4_RULE_CREATE_MIRROR_VALID;
  	}
  #endif
@@ -34,7 +34,7 @@
  
  	if (ecm_nss_ipv4_vlan_passthrough_enable && !ecm_db_connection_is_routed_get(feci->ci) &&
  	   (nircm->vlan_primary_rule.ingress_vlan_tag == ECM_FRONT_END_VLAN_ID_NOT_CONFIGURED) &&
-@@ -1902,14 +1904,8 @@ struct ecm_front_end_connection_instance
+@@ -1896,14 +1898,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_nss_ported_ipv4_debugfs_init(struct dentry *dentry)
  {
@@ -52,7 +52,7 @@
  					&ecm_nss_ported_ipv4_accelerated_count[ECM_FRONT_END_PORTED_PROTO_TCP]);
 --- a/frontends/nss/ecm_nss_ported_ipv6.c
 +++ b/frontends/nss/ecm_nss_ported_ipv6.c
-@@ -1014,6 +1014,7 @@ static void ecm_nss_ported_ipv6_connecti
+@@ -1012,6 +1012,7 @@ static void ecm_nss_ported_ipv6_connecti
  	}
  #endif
  
@@ -60,7 +60,7 @@
  #ifdef ECM_CLASSIFIER_PCC_ENABLE
  	/*
  	 * Set up the interfaces for mirroring.
-@@ -1038,6 +1039,7 @@ static void ecm_nss_ported_ipv6_connecti
+@@ -1036,6 +1037,7 @@ static void ecm_nss_ported_ipv6_connecti
  		nircm->valid_flags |= NSS_IPV6_RULE_CREATE_MIRROR_VALID;
  	}
  #endif
@@ -68,7 +68,7 @@
  
  	if (ecm_nss_ipv6_vlan_passthrough_enable && !ecm_db_connection_is_routed_get(feci->ci) &&
  	   (nircm->vlan_primary_rule.ingress_vlan_tag == ECM_FRONT_END_VLAN_ID_NOT_CONFIGURED) &&
-@@ -1815,14 +1817,8 @@ struct ecm_front_end_connection_instance
+@@ -1809,14 +1811,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_nss_ported_ipv6_debugfs_init(struct dentry *dentry)
  {

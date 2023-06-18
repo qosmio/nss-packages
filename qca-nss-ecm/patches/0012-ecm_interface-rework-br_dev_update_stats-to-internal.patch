@@ -42,7 +42,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  #ifdef ECM_IPV6_ENABLE
  /* ecm_interface_ipv6_dev_find_and_hold()
   *	Find (and hold) net device that has the given address.
-@@ -6714,7 +6735,11 @@ skip_bridge_refresh:
+@@ -6744,7 +6765,11 @@ skip_bridge_refresh:
  			stats.rx_bytes = rx_bytes;
  			stats.tx_packets = tx_packets;
  			stats.tx_bytes = tx_bytes;

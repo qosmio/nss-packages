@@ -5,7 +5,7 @@
  	int ret;
  
 -	printk(KERN_INFO "ECM init\n");
-+	printk(KERN_INFO "ECM init ( QSDK 12.1.r5_CS1 2022-11-25 1c401a1 )\n");
++	printk(KERN_INFO "ECM init (QSDK 12.1.0.6.r4 2023-02-27 fc9d9a)\n");
  
  	selected_front_end = ecm_front_end_type_select();
  	if (selected_front_end == ECM_FRONT_END_TYPE_MAX) {

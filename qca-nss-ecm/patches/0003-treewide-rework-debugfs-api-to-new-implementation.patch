@@ -764,7 +764,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  }
 --- a/frontends/ppe/ecm_ppe_ported_ipv4.c
 +++ b/frontends/ppe/ecm_ppe_ported_ipv4.c
-@@ -1538,14 +1538,8 @@ struct ecm_front_end_connection_instance
+@@ -1544,14 +1544,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_ppe_ported_ipv4_debugfs_init(struct dentry *dentry)
  {
@@ -782,7 +782,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  					&ecm_ppe_ported_ipv4_accelerated_count[ECM_FRONT_END_PORTED_PROTO_TCP])) {
 --- a/frontends/ppe/ecm_ppe_ported_ipv6.c
 +++ b/frontends/ppe/ecm_ppe_ported_ipv6.c
-@@ -1526,14 +1526,8 @@ struct ecm_front_end_connection_instance
+@@ -1533,14 +1533,8 @@ struct ecm_front_end_connection_instance
   */
  bool ecm_ppe_ported_ipv6_debugfs_init(struct dentry *dentry)
  {

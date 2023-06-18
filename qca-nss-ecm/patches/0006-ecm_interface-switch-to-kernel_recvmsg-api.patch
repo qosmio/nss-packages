@@ -13,7 +13,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -7803,9 +7803,13 @@ static int ecm_interface_wifi_event_hand
+@@ -7840,9 +7840,13 @@ static int ecm_interface_wifi_event_hand
  static int ecm_interface_wifi_event_rx(struct socket *sock, struct sockaddr_nl *addr, unsigned char *buf, int len)
  {
  	struct msghdr msg;
@@ -27,7 +27,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	iov.iov_base = buf;
  	iov.iov_len  = len;
-@@ -7815,6 +7819,8 @@ static int ecm_interface_wifi_event_rx(s
+@@ -7852,6 +7856,8 @@ static int ecm_interface_wifi_event_rx(s
  	msg.msg_namelen = sizeof(struct sockaddr_nl);
  	msg.msg_control = NULL;
  	msg.msg_controllen = 0;
@@ -36,7 +36,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	oldfs = get_fs();
  	set_fs(KERNEL_DS);
  	iov_iter_init(&msg.msg_iter, READ, &iov, 1, len);
-@@ -7826,6 +7832,9 @@ static int ecm_interface_wifi_event_rx(s
+@@ -7863,6 +7869,9 @@ static int ecm_interface_wifi_event_rx(s
  	set_fs(oldfs);
  
  	return size;

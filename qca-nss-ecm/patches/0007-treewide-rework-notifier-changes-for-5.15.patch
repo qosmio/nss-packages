@@ -33,28 +33,20 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  };
  #endif
  #endif
-@@ -439,14 +443,20 @@ int ecm_conntrack_notifier_init(struct d
+@@ -439,7 +443,11 @@ int ecm_conntrack_notifier_init(struct d
  #ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
  	result = nf_conntrack_register_chain_notifier(&init_net, &ecm_conntrack_notifier);
  #else
+-	result = nf_conntrack_register_notifier(&init_net, &ecm_conntrack_notifier);
 +#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0))
- 	result = nf_conntrack_register_notifier(&init_net, &ecm_conntrack_notifier);
++ 	result = nf_conntrack_register_notifier(&init_net, &ecm_conntrack_notifier);
 +#else
 +	nf_conntrack_register_notifier(&init_net, &ecm_conntrack_notifier);
 +#endif
  #endif
-+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 15, 0))
  	if (result < 0) {
  		DEBUG_ERROR("Can't register nf notifier hook.\n");
- 		debugfs_remove_recursive(ecm_conntrack_notifier_dentry);
- 		return result;
- 	}
- #endif
-+#endif
- 
- 	return 0;
- }
-@@ -461,7 +471,11 @@ void ecm_conntrack_notifier_exit(void)
+@@ -490,7 +498,11 @@ void ecm_conntrack_notifier_exit(void)
  #ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
  	nf_conntrack_unregister_chain_notifier(&init_net, &ecm_conntrack_notifier);
  #else
@@ -64,5 +56,5 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 +	nf_conntrack_unregister_notifier(&init_net);
 +#endif
  #endif
+ #endif
  	/*
- 	 * Remove the debugfs files recursively.

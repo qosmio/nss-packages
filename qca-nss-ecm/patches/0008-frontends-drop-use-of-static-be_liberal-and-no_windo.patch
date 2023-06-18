@@ -17,21 +17,20 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 
 --- a/frontends/nss/ecm_nss_ported_ipv4.c
 +++ b/frontends/nss/ecm_nss_ported_ipv4.c
-@@ -102,11 +102,11 @@ static int ecm_nss_ported_ipv4_accelerat
+@@ -102,11 +102,9 @@ static int ecm_nss_ported_ipv4_accelerat
  /*
   * Expose what should be a static flag in the TCP connection tracker.
   */
+-#ifdef ECM_OPENWRT_SUPPORT
 +#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 12, 0))
- #ifdef ECM_OPENWRT_SUPPORT
  extern int nf_ct_tcp_no_window_check;
  #endif
 -extern int nf_ct_tcp_be_liberal;
 -
-+#endif
  /*
   * ecm_nss_ported_ipv4_connection_callback()
   *	Callback for handling create ack/nack calls.
-@@ -343,6 +343,8 @@ static void ecm_nss_ported_ipv4_connecti
+@@ -343,6 +341,8 @@ static void ecm_nss_ported_ipv4_connecti
  	uint8_t dest_mac_xlate[ETH_ALEN];
  	ecm_db_direction_t ecm_dir;
  	ecm_front_end_acceleration_mode_t result_mode;
@@ -40,39 +39,36 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
  
-@@ -1213,9 +1215,13 @@ static void ecm_nss_ported_ipv4_connecti
+@@ -1212,10 +1212,10 @@ static void ecm_nss_ported_ipv4_connecti
+ 			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
- #ifdef ECM_OPENWRT_SUPPORT
+-#ifdef ECM_OPENWRT_SUPPORT
 -			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
 +#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0))
-+			if (tn->tcp_be_liberal || tn->tcp_no_window_check
-+#else
-+			if (tn->tcp_be_liberal || nf_ct_tcp_no_window_check
-+#endif
++			if (tn->tcp_be_liberal
  #else
 -			if (nf_ct_tcp_be_liberal
-+			if (tn->tcp_be_liberal
++			if (tn->tcp_be_liberal || nf_ct_tcp_no_window_check
  #endif
  					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
  					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {
 --- a/frontends/nss/ecm_nss_ported_ipv6.c
 +++ b/frontends/nss/ecm_nss_ported_ipv6.c
-@@ -103,11 +103,11 @@ static int ecm_nss_ported_ipv6_accelerat
+@@ -103,11 +103,9 @@ static int ecm_nss_ported_ipv6_accelerat
  /*
   * Expose what should be a static flag in the TCP connection tracker.
   */
+-#ifdef ECM_OPENWRT_SUPPORT
 +#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 12, 0))
- #ifdef ECM_OPENWRT_SUPPORT
  extern int nf_ct_tcp_no_window_check;
  #endif
 -extern int nf_ct_tcp_be_liberal;
 -
-+#endif
  /*
   * ecm_nss_ported_ipv6_connection_callback()
   *	Callback for handling create ack/nack calls.
-@@ -348,6 +348,8 @@ static void ecm_nss_ported_ipv6_connecti
+@@ -348,6 +346,8 @@ static void ecm_nss_ported_ipv6_connecti
  	ip_addr_t src_ip;
  	ip_addr_t dest_ip;
  	ecm_front_end_acceleration_mode_t result_mode;
@@ -81,19 +77,17 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
  
-@@ -1139,9 +1141,13 @@ static void ecm_nss_ported_ipv6_connecti
+@@ -1138,10 +1138,10 @@ static void ecm_nss_ported_ipv6_connecti
+ 			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
- #ifdef ECM_OPENWRT_SUPPORT
+-#ifdef ECM_OPENWRT_SUPPORT
 -			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
 +#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0))
-+			if (tn->tcp_be_liberal || tn->tcp_no_window_check
-+#else
-+			if (tn->tcp_be_liberal || nf_ct_tcp_no_window_check
-+#endif
++			if (tn->tcp_be_liberal
  #else
 -			if (nf_ct_tcp_be_liberal
-+			if (tn->tcp_be_liberal
++			if (tn->tcp_be_liberal || nf_ct_tcp_no_window_check
  #endif
  					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
  					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {

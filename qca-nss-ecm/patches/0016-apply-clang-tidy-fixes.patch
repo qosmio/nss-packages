@@ -1,0 +1,119 @@
+--- a/ecm_db/ecm_db_connection.c
++++ b/ecm_db/ecm_db_connection.c
+@@ -1237,7 +1237,7 @@ int ecm_db_connection_deref(struct ecm_d
+ 	/*
+ 	 * Remove from database if inserted
+ 	 */
+-	if (!ci->flags & ECM_DB_CONNECTION_FLAGS_INSERTED) {
++	if (!(ci->flags & ECM_DB_CONNECTION_FLAGS_INSERTED)) {
+ 		spin_unlock_bh(&ecm_db_lock);
+ 	} else {
+ 		struct ecm_db_listener_instance *li;
+--- a/ecm_db/ecm_db_host.c
++++ b/ecm_db/ecm_db_host.c
+@@ -249,7 +249,7 @@ int ecm_db_host_deref(struct ecm_db_host
+ 	/*
+ 	 * Remove from database if inserted
+ 	 */
+-	if (!hi->flags & ECM_DB_HOST_FLAGS_INSERTED) {
++	if (!(hi->flags & ECM_DB_HOST_FLAGS_INSERTED)) {
+ 		spin_unlock_bh(&ecm_db_lock);
+ 	} else {
+ 		struct ecm_db_listener_instance *li;
+--- a/ecm_db/ecm_db_iface.c
++++ b/ecm_db/ecm_db_iface.c
+@@ -1035,7 +1035,7 @@ int ecm_db_iface_deref(struct ecm_db_ifa
+ 	/*
+ 	 * Remove from database if inserted
+ 	 */
+-	if (!ii->flags & ECM_DB_IFACE_FLAGS_INSERTED) {
++	if (!(ii->flags & ECM_DB_IFACE_FLAGS_INSERTED)) {
+ 		spin_unlock_bh(&ecm_db_lock);
+ 	} else {
+ 		struct ecm_db_listener_instance *li;
+@@ -1513,7 +1513,7 @@ static void _ecm_db_iface_identifier_has
+ 	/*
+ 	 * Remove from database if inserted
+ 	 */
+-	if (!ii->flags & ECM_DB_IFACE_FLAGS_INSERTED) {
++	if (!(ii->flags & ECM_DB_IFACE_FLAGS_INSERTED)) {
+ 		return;
+ 	}
+ 
+--- a/ecm_db/ecm_db_mapping.c
++++ b/ecm_db/ecm_db_mapping.c
+@@ -390,7 +390,7 @@ int ecm_db_mapping_deref(struct ecm_db_m
+ 	/*
+ 	 * Remove from database if inserted
+ 	 */
+-	if (!mi->flags & ECM_DB_MAPPING_FLAGS_INSERTED) {
++	if (!(mi->flags & ECM_DB_MAPPING_FLAGS_INSERTED)) {
+ 		spin_unlock_bh(&ecm_db_lock);
+ 	} else {
+ 		struct ecm_db_listener_instance *li;
+--- a/ecm_db/ecm_db_node.c
++++ b/ecm_db/ecm_db_node.c
+@@ -256,7 +256,7 @@ int ecm_db_node_deref(struct ecm_db_node
+ 	/*
+ 	 * Remove from database if inserted
+ 	 */
+-	if (!ni->flags & ECM_DB_NODE_FLAGS_INSERTED) {
++	if (!(ni->flags & ECM_DB_NODE_FLAGS_INSERTED)) {
+ 		spin_unlock_bh(&ecm_db_lock);
+ 	} else {
+ 		struct ecm_db_listener_instance *li;
+--- a/frontends/cmn/ecm_multicast_ipv6.c
++++ b/frontends/cmn/ecm_multicast_ipv6.c
+@@ -486,7 +486,7 @@ unsigned int ecm_multicast_ipv6_connecti
+ 	struct ecm_db_multicast_tuple_instance *tuple_instance;
+ 	int src_port;
+ 	int dest_port;
+-	struct ecm_db_connection_instance *ci;
++	struct ecm_db_connection_instance *ci = NULL;
+ 	ecm_db_direction_t ecm_dir = ECM_DB_DIRECTION_NON_NAT;
+ 	ip_addr_t match_addr;
+ 	struct ecm_classifier_instance *assignments[ECM_CLASSIFIER_TYPES];
+--- a/frontends/ecm_front_end_common.c
++++ b/frontends/ecm_front_end_common.c
+@@ -883,7 +883,7 @@ static struct ctl_table ecm_front_end_co
+  * ecm_front_end_common_sysctl_register()
+  *	Function to register sysctl node during front end init
+  */
+-void ecm_front_end_common_sysctl_register()
++void ecm_front_end_common_sysctl_register(void)
+ {
+ 	/*
+ 	 * Register sysctl table.
+@@ -900,7 +900,7 @@ void ecm_front_end_common_sysctl_registe
+  * ecm_front_end_common_sysctl_unregister()
+  *	Function to unregister sysctl node during front end exit
+  */
+-void ecm_front_end_common_sysctl_unregister()
++void ecm_front_end_common_sysctl_unregister(void)
+ {
+ 	/*
+ 	 * Unregister sysctl table.
+--- a/frontends/include/ecm_front_end_common.h
++++ b/frontends/include/ecm_front_end_common.h
+@@ -133,8 +133,8 @@ static inline void ecm_front_end_flow_an
+ 	ip_addr_t ct_src_ip;
+ 
+ 	if (ip_version == 4) {
+-		uint32_t flow_ip_32;
+-		uint32_t ct_src_ip_32;
++		uint32_t flow_ip_32 = 0;
++		uint32_t ct_src_ip_32 = 0;
+ 		ECM_NIN4_ADDR_TO_IP_ADDR(ct_src_ip, ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip);
+ 
+ 		/*
+--- a/frontends/nss/ecm_nss_multicast_ipv4.c
++++ b/frontends/nss/ecm_nss_multicast_ipv4.c
+@@ -1196,7 +1196,7 @@ static void ecm_nss_multicast_ipv4_conne
+ 		 * interface list.
+ 		 */
+ 		if (to_nss_iface_id != -1) {
+-			uint32_t xlate_src_ip, src_ip;
++			uint32_t xlate_src_ip = 0, src_ip = 0;
+ 			bool is_bridge;
+ 			ecm_db_connection_address_get(feci->ci, ECM_DB_OBJ_DIR_FROM_NAT, addr);
+ 			ECM_IP_ADDR_TO_HIN4_ADDR(xlate_src_ip, addr);

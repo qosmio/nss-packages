@@ -301,7 +301,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	return false;
  }
  
-@@ -6898,6 +6904,7 @@ static void ecm_interface_regenerate_con
+@@ -6928,6 +6934,7 @@ static void ecm_interface_regenerate_con
  		return;
  	}
  
@@ -309,7 +309,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	for (dir = 0; dir < ECM_DB_OBJ_DIR_MAX; dir++) {
  		/*
  		 * Re-generate all connections associated with this interface
-@@ -6913,6 +6920,7 @@ static void ecm_interface_regenerate_con
+@@ -6943,6 +6950,7 @@ static void ecm_interface_regenerate_con
  			ci[dir] = cin;
  		}
  	}
@@ -319,7 +319,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	/*
 --- a/frontends/ecm_front_end_common.c
 +++ b/frontends/ecm_front_end_common.c
-@@ -460,6 +460,7 @@ bool ecm_front_end_gre_proto_is_accel_al
+@@ -471,6 +471,7 @@ bool ecm_front_end_gre_proto_is_accel_al
  							     struct nf_conntrack_tuple *tuple,
  							     int ip_version, uint16_t offset)
  {
@@ -327,7 +327,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	struct net_device *dev;
  	struct gre_base_hdr *greh;
  
-@@ -471,10 +472,12 @@ bool ecm_front_end_gre_proto_is_accel_al
+@@ -482,10 +483,12 @@ bool ecm_front_end_gre_proto_is_accel_al
  		/*
  		 * Case 1: PPTP locally terminated
  		 */
@@ -340,7 +340,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  		/*
  		 * Case 2: PPTP pass through
-@@ -582,6 +585,10 @@ bool ecm_front_end_gre_proto_is_accel_al
+@@ -593,6 +596,10 @@ bool ecm_front_end_gre_proto_is_accel_al
  	 */
  	DEBUG_TRACE("%px: GRE IPv%d pass through - allow acceleration\n", skb, ip_version);
  	return true;

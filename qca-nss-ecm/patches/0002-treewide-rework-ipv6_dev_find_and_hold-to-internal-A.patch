@@ -97,7 +97,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  #include "ecm_nss_common.h"
  #include "ecm_nss_ported_ipv4.h"
  #include "ecm_nss_ported_ipv6.h"
-@@ -557,7 +560,7 @@ bool ecm_front_end_gre_proto_is_accel_al
+@@ -568,7 +571,7 @@ bool ecm_front_end_gre_proto_is_accel_al
  			return false;
  		}
  
@@ -106,7 +106,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  		if (dev) {
  			/*
  			 * Destination IP address is local
-@@ -614,14 +617,14 @@ void ecm_front_end_tcp_set_dscp_ext(stru
+@@ -625,14 +628,14 @@ void ecm_front_end_tcp_set_dscp_ext(stru
  			dscpcte->flow_priority = skb->priority;
  			dscpcte->flow_mark = skb->mark;
  			dscpcte->flow_dscp = iph->ds >> XT_DSCP_SHIFT;

@@ -19,9 +19,9 @@
  	if (!ecm_conntrack_notifier_dentry) {
  		DEBUG_ERROR("Failed to create ecm conntrack notifier directory in debugfs\n");
  		return -1;
-@@ -453,11 +456,14 @@ int ecm_conntrack_notifier_init(struct d
- 	if (result < 0) {
- 		DEBUG_ERROR("Can't register nf notifier hook.\n");
+@@ -471,11 +474,14 @@ int ecm_conntrack_notifier_init(struct d
+ 		DEBUG_ERROR("Can't hold ipv6 netns.\n");
+ 		nf_ct_netns_put(&init_net, NFPROTO_IPV4);
  		debugfs_remove_recursive(ecm_conntrack_notifier_dentry);
 -		return result;
 +		mutex_unlock(&ecm_conntrack_notifier_mtx);
@@ -35,17 +35,16 @@
  	return 0;
  }
  EXPORT_SYMBOL(ecm_conntrack_notifier_init);
-@@ -468,6 +474,9 @@ EXPORT_SYMBOL(ecm_conntrack_notifier_ini
- void ecm_conntrack_notifier_exit(void)
+@@ -487,6 +493,8 @@ void ecm_conntrack_notifier_exit(void)
  {
  	DEBUG_INFO("ECM Conntrack Notifier exit\n");
+ 
++	mutex_lock(&ecm_conntrack_notifier_mtx);
 +
-+   mutex_lock(&ecm_conntrack_notifier_mtx);
-+
- #ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
- 	nf_conntrack_unregister_chain_notifier(&init_net, &ecm_conntrack_notifier);
- #else
-@@ -483,5 +492,7 @@ void ecm_conntrack_notifier_exit(void)
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	/*
+ 	 * Release netns reference.
+@@ -511,5 +519,7 @@ void ecm_conntrack_notifier_exit(void)
  	if (ecm_conntrack_notifier_dentry) {
  		debugfs_remove_recursive(ecm_conntrack_notifier_dentry);
  	}
