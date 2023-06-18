@@ -42,8 +42,9 @@ static void nssinfo_lso_rx_stats_display(int core, char *input)
 	pthread_mutex_lock(&lso_rx_lock);
 	lso_rx_node = nodes[core][NSS_LSO_RX_INTERFACE];
 	if (!lso_rx_node) {
+		if(input)
+		    nssinfo_error("%s is not running on the NPU\n", input);
 		pthread_mutex_unlock(&lso_rx_lock);
-		nssinfo_error("%s is not running on the NPU\n", input);
 		return;
 	}
 
