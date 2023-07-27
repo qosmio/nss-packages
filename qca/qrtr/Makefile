@@ -15,7 +15,7 @@ define Package/qrtr
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE:=QRTR tools
-  DEPENDS:=@(TARGET_ipq807x)
+  DEPENDS:=@(TARGET_qualcommax)
 endef
 
 define Package/qrtr/description

@@ -18,7 +18,7 @@ define KernelPackage/nss-ifb
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=NSS IFB Interface
-  DEPENDS:=@TARGET_ipq807x +kmod-qca-nss-drv
+  DEPENDS:=@TARGET_qualcommax +kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/nss-ifb.ko
   KCONFIG:=
 endef

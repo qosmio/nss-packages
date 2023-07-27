@@ -10,7 +10,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/aq-fw-download
 	SECTION:=firmware
 	CATEGORY:=Firmware
-	DEPENDS:=@TARGET_ipq807x
+	DEPENDS:=@TARGET_qualcommax
 	TITLE:=Aquantia FW downloader utitlity
 endef
 

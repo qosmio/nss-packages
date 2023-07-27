@@ -19,7 +19,7 @@ define KernelPackage/qca-nss-ecm
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
-  DEPENDS:=@(TARGET_ipq807x||TARGET_ipq60xx) \
+  DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx) \
   		   +@NSS_DRV_IPV6_ENABLE \
 		   +@NSS_DRV_PPE_ENABLE \
 		   +@NSS_DRV_TUN6RD_ENABLE \
@@ -63,16 +63,16 @@ EXTRA_CFLAGS+= \
 		 -I$(STAGING_DIR)/usr/include/qca-mcs \
 		 -I$(STAGING_DIR)/usr/include/nat46
 
-ifneq (, $(findstring $(CONFIG_TARGET_BOARD), "ipq807x" "ipq60xx"))
+ifneq (, $(findstring $(CONFIG_TARGET_BOARD), "qualcommax" "ipq60xx"))
 ECM_MAKE_OPTS+=ECM_FRONT_END_NSS_ENABLE=y \
-		ECM_FRONT_END_SFE_ENABLE=n \
-		ECM_NON_PORTED_SUPPORT_ENABLE=y \
-		ECM_INTERFACE_BOND_ENABLE=y \
-		ECM_INTERFACE_VLAN_ENABLE=y \
-		ECM_CLASSIFIER_MARK_ENABLE=y \
-		ECM_CLASSIFIER_DSCP_ENABLE=y \
-		ECM_CLASSIFIER_PCC_ENABLE=n \
-		ECM_BAND_STEERING_ENABLE=n
+			   ECM_FRONT_END_SFE_ENABLE=n \
+			   ECM_NON_PORTED_SUPPORT_ENABLE=y \
+			   ECM_INTERFACE_BOND_ENABLE=y \
+			   ECM_INTERFACE_VLAN_ENABLE=y \
+			   ECM_CLASSIFIER_MARK_ENABLE=y \
+			   ECM_CLASSIFIER_DSCP_ENABLE=y \
+			   ECM_CLASSIFIER_PCC_ENABLE=n \
+			   ECM_BAND_STEERING_ENABLE=n
 endif
 
 # Disable ECM IPv6 support when global IPv6 support is disabled.
@@ -97,7 +97,6 @@ endif
 ifneq ($(CONFIG_PACKAGE_kmod-macvlan),)
 ECM_MAKE_OPTS+=ECM_INTERFACE_MACVLAN_ENABLE=y
 endif
-
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-mcs),)
 ECM_MAKE_OPTS+=ECM_MULTICAST_ENABLE=y
@@ -143,13 +142,17 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/exports/* $(1)/usr/include/qca-nss-ecm
 endef
 
+ifeq ($(CONFIG_TARGET_BOARD), "qualcommax")
+    SOC:=$(CONFIG_TARGET_SUBTARGET)
+endif
+
 define Build/Compile
 	+$(MAKE) -C "$(LINUX_DIR)" $(strip $(ECM_MAKE_OPTS)) \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		ARCH="$(LINUX_KARCH)" \
 		M="$(PKG_BUILD_DIR)" \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS) -Wno-error=unused-function " \
-		SoC=$(CONFIG_TARGET_BOARD) \
+		SoC=$(SOC) \
 		$(KERNEL_MAKE_FLAGS) \
 		$(PKG_JOBS) \
 		modules

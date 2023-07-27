@@ -67,7 +67,7 @@ define KernelPackage/qca-nss-drv
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
-  DEPENDS:=@(TARGET_ipq807x||TARGET_ipq60xx) +kmod-qca-nss-dp
+  DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx) +kmod-qca-nss-dp
   TITLE:=Qualcomm NSS core driver
   FILES:=$(PKG_BUILD_DIR)/qca-nss-drv.ko
   AUTOLOAD:=$(call AutoLoad,32,qca-nss-drv)
@@ -96,9 +96,9 @@ define KernelPackage/qca-nss-drv/Description
 This package contains a NSS driver for QCA chipset
 endef
 
-ifeq ($(CONFIG_TARGET_BOARD), "ipq807x")
+ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq807x")
     SOC="ipq807x_64"
-	subtarget:=$(CONFIG_TARGET_BOARD)
+	subtarget:=$(CONFIG_TARGET_SUBTARGET)
 else ifeq ($(CONFIG_TARGET_BOARD), "ipq60xx")
     SOC="ipq60xx_64"
 	subtarget:=$(SUBTARGET)
@@ -119,7 +119,7 @@ EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-nss-gmac \
 			   -I$(STAGING_DIR)/usr/include/qca-ssdk \
 			   -Wno-unused-variable
 
-ifneq (, $(findstring $(CONFIG_TARGET_BOARD), "ipq807x" "ipq60xx"))
+ifneq (, $(findstring $(CONFIG_TARGET_BOARD), "qualcommax" "ipq60xx"))
 EXTRA_CFLAGS+= -DNSS_MEM_PROFILE_MEDIUM
 endif
 
@@ -266,7 +266,8 @@ define Build/Compile
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		ARCH="$(LINUX_KARCH)" \
 		M="$(PKG_BUILD_DIR)" \
-		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" SoC=$(SOC) \
+		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
+		SoC=$(SOC) \
 		$(KERNEL_MAKE_FLAGS) \
 		$(PKG_JOBS) \
 		modules
