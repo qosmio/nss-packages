@@ -25,7 +25,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 +#else
 +    struct kvec iov;
 +#endif
-
+ 
  	iov.iov_base = buf;
  	iov.iov_len  = len;
 @@ -8024,7 +8028,8 @@ static int ecm_interface_wifi_event_rx(s
@@ -40,11 +40,11 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0))
 @@ -8035,6 +8040,9 @@ static int ecm_interface_wifi_event_rx(s
  	set_fs(oldfs);
-
+ 
  	return size;
 +#else
 +   return kernel_recvmsg(sock, &msg, &iov, 1, iov.iov_len, 0);
 +#endif
  }
-
+ 
  /*

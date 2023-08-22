@@ -2,7 +2,7 @@
 +++ b/ecm_interface.c
 @@ -336,7 +336,7 @@ static struct net_device *ecm_interface_
  	struct net_device *dev;
-
+ 
  	ECM_IP_ADDR_TO_NIN6_ADDR(addr6, addr);
 -	dev = (struct net_device *)ipv6_dev_find(&init_net, &addr6, 1);
 +	dev = (struct net_device *)ipv6_dev_find_and_hold(&init_net, &addr6, 1);
@@ -23,7 +23,7 @@
 @@ -102,6 +102,10 @@
  #endif
  #endif
-
+ 
 +#ifdef ECM_IPV6_ENABLE
 +#include "ecm_front_end_ipv6.h"
 +#endif
@@ -43,7 +43,7 @@
 @@ -588,7 +592,7 @@ bool ecm_front_end_gre_proto_is_accel_al
  			return false;
  		}
-
+ 
 -		dev = ipv6_dev_find(&init_net, &(tuple->dst.u3.in6), 1);
 +		dev = ipv6_dev_find_and_hold(&init_net, &(tuple->dst.u3.in6), 1);
  		if (dev) {

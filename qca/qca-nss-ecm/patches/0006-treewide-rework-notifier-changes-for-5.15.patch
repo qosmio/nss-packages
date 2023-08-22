@@ -24,12 +24,12 @@ Subject: [PATCH] treewide: rework notifier changes for 5.15
 -	struct nf_ct_event *item = (struct nf_ct_event *)ptr;
 -#endif
  	struct nf_conn *ct = item->ct;
-
+ 
  	/*
 @@ -387,23 +380,17 @@ static int ecm_conntrack_event(unsigned
  	return NOTIFY_DONE;
  }
-
+ 
 -#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
 -/*
 - * struct notifier_block ecm_conntrack_notifier
@@ -53,7 +53,7 @@ Subject: [PATCH] treewide: rework notifier changes for 5.15
  #endif
 +};
  #endif
-
+ 
  /*
 @@ -436,12 +423,16 @@ int ecm_conntrack_notifier_init(struct d
  	/*
@@ -70,7 +70,7 @@ Subject: [PATCH] treewide: rework notifier changes for 5.15
 +#else
 +   nf_conntrack_register_notifier(&init_net, &ecm_conntrack_notifier);
 +#endif
-
+ 
  	/*
  	 * Hold netns reference to keep the basic conntrack alive and
 @@ -483,7 +474,11 @@ void ecm_conntrack_notifier_exit(void)
