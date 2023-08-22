@@ -1,20 +1,25 @@
-From 6103e80ad89775eee55a97c8f8e07e9f2ac7d332 Mon Sep 17 00:00:00 2001
-From: Bit Thief <bitthief@protonmail.ch>
-Date: Tue, 4 Apr 2023 05:43:43 +0300
-Subject: [PATCH] frontends: drop use of static be_liberal and no_window_check
+From 15530431f3ce3273b3cfc2da356d7fb71ed48020 Mon Sep 17 00:00:00 2001
+From: Ansuel Smith <ansuelsmth@gmail.com>
+Date: Sun, 8 May 2022 16:16:34 +0200
+Subject: [PATCH 08/12] frontends: drop use of static be_liberal and
+ no_window_check
 
+Implementation changed, check these values indirectly instead of relying
+on an extern EXPORT_SYMBOL.
+
+Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 ---
- frontends/nss/ecm_nss_ported_ipv4.c | 22 ++++++++--------------
- frontends/nss/ecm_nss_ported_ipv6.c | 20 +++++++-------------
- frontends/sfe/ecm_sfe_ported_ipv4.c | 22 ++++++++--------------
- frontends/sfe/ecm_sfe_ported_ipv6.c | 22 ++++++++--------------
- 4 files changed, 31 insertions(+), 55 deletions(-)
+ frontends/nss/ecm_nss_ported_ipv4.c | 14 ++++----------
+ frontends/nss/ecm_nss_ported_ipv6.c | 14 ++++----------
+ frontends/sfe/ecm_sfe_ported_ipv4.c |  6 ++++--
+ frontends/sfe/ecm_sfe_ported_ipv6.c |  6 ++++--
+ 4 files changed, 16 insertions(+), 24 deletions(-)
 
 --- a/frontends/nss/ecm_nss_ported_ipv4.c
 +++ b/frontends/nss/ecm_nss_ported_ipv4.c
 @@ -100,14 +100,6 @@ static int ecm_nss_ported_ipv4_accelerat
  						/* Array of Number of TCP and UDP connections currently offloaded */
-
+ 
  /*
 - * Expose what should be a static flag in the TCP connection tracker.
 - */
@@ -27,39 +32,32 @@ Subject: [PATCH] frontends: drop use of static be_liberal and no_window_check
   * ecm_nss_ported_ipv4_connection_callback()
   *	Callback for handling create ack/nack calls.
   */
-@@ -343,6 +335,12 @@ static void ecm_nss_ported_ipv4_connecti
+@@ -343,6 +335,8 @@ static void ecm_nss_ported_ipv4_connecti
  	uint8_t dest_mac_xlate[ETH_ALEN];
  	ecm_db_direction_t ecm_dir;
  	ecm_front_end_acceleration_mode_t result_mode;
-+   struct nf_tcp_net *tn;
-+
-+   if (ct) {
-+       struct net *net = nf_ct_net(ct);
-+       tn = nf_tcp_pernet(net);
-+   }
-
++	struct net *net = nf_ct_net(ct);
++	struct nf_tcp_net *tn = nf_tcp_pernet(net);
+ 
  	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
-
-@@ -1212,12 +1210,8 @@ static void ecm_nss_ported_ipv4_connecti
- 			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
+ 
+@@ -1213,9 +1207,9 @@ static void ecm_nss_ported_ipv4_connecti
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
--#ifdef ECM_OPENWRT_SUPPORT
+ #ifdef ECM_OPENWRT_SUPPORT
 -			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
--#else
++			if (tn->tcp_be_liberal || tn->tcp_no_window_check
+ #else
 -			if (nf_ct_tcp_be_liberal
--#endif
--					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
 +			if (tn->tcp_be_liberal
-+                   || (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
+ #endif
+ 					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
  					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {
- 				nircm->rule_flags |= NSS_IPV4_RULE_CREATE_FLAG_NO_SEQ_CHECK;
- 			}
 --- a/frontends/nss/ecm_nss_ported_ipv6.c
 +++ b/frontends/nss/ecm_nss_ported_ipv6.c
 @@ -101,14 +101,6 @@ static int ecm_nss_ported_ipv6_accelerat
  						/* Array of Number of TCP and UDP connections currently offloaded */
-
+ 
  /*
 - * Expose what should be a static flag in the TCP connection tracker.
 - */
@@ -72,124 +70,72 @@ Subject: [PATCH] frontends: drop use of static be_liberal and no_window_check
   * ecm_nss_ported_ipv6_connection_callback()
   *	Callback for handling create ack/nack calls.
   */
-@@ -348,6 +340,12 @@ static void ecm_nss_ported_ipv6_connecti
+@@ -348,6 +340,8 @@ static void ecm_nss_ported_ipv6_connecti
  	ip_addr_t src_ip;
  	ip_addr_t dest_ip;
  	ecm_front_end_acceleration_mode_t result_mode;
-+   struct nf_tcp_net *tn;
-+
-+   if (ct) {
-+       struct net *net = nf_ct_net(ct);
-+       tn = nf_tcp_pernet(net);
-+   }
-
++	struct net *net = nf_ct_net(ct);
++	struct nf_tcp_net *tn = nf_tcp_pernet(net);
+ 
  	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
-
-@@ -1138,11 +1136,7 @@ static void ecm_nss_ported_ipv6_connecti
- 			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
+ 
+@@ -1139,9 +1133,9 @@ static void ecm_nss_ported_ipv6_connecti
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
--#ifdef ECM_OPENWRT_SUPPORT
+ #ifdef ECM_OPENWRT_SUPPORT
 -			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
--#else
++			if (tn->tcp_be_liberal || tn->tcp_no_window_check
+ #else
 -			if (nf_ct_tcp_be_liberal
--#endif
 +			if (tn->tcp_be_liberal
+ #endif
  					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
  					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {
- 				nircm->rule_flags |= NSS_IPV6_RULE_CREATE_FLAG_NO_SEQ_CHECK;
 --- a/frontends/sfe/ecm_sfe_ported_ipv4.c
 +++ b/frontends/sfe/ecm_sfe_ported_ipv4.c
-@@ -93,14 +93,6 @@ static int ecm_sfe_ported_ipv4_accelerat
- 						/* Array of Number of TCP and UDP connections currently offloaded */
-
- /*
-- * Expose what should be a static flag in the TCP connection tracker.
-- */
--#ifdef ECM_OPENWRT_SUPPORT
--extern int nf_ct_tcp_no_window_check;
--#endif
--extern int nf_ct_tcp_be_liberal;
--
--/*
-  * ecm_sfe_ported_ipv4_connection_callback()
-  *	Callback for handling create ack/nack calls.
-  */
-@@ -339,11 +331,17 @@ static void ecm_sfe_ported_ipv4_connecti
+@@ -339,6 +339,8 @@ static void ecm_sfe_ported_ipv4_connecti
  	uint8_t dest_mac_xlate[ETH_ALEN];
  	ecm_db_direction_t ecm_dir;
  	ecm_front_end_acceleration_mode_t result_mode;
-+   struct nf_tcp_net *tn;
++   struct net *net = nf_ct_net(ct);
++   struct nf_tcp_net *tn = nf_tcp_pernet(net);
  	struct ecm_classifier_instance *aci;
  	struct ecm_classifier_rule_create ecrc;
  	uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
- 	ecm_sfe_common_l2_accel_check_callback_t l2_accel_check;
-
-+   if (ct) {
-+       struct net *net = nf_ct_net(ct);
-+       tn = nf_tcp_pernet(net);
-+   }
-+
- 	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
-
- 	/*
-@@ -1309,11 +1307,7 @@ static void ecm_sfe_ported_ipv4_connecti
- 			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
+@@ -1310,9 +1312,9 @@ static void ecm_sfe_ported_ipv4_connecti
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
--#ifdef ECM_OPENWRT_SUPPORT
+ #ifdef ECM_OPENWRT_SUPPORT
 -			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
--#else
++           if (tn->tcp_be_liberal || tn->tcp_no_window_check)
+ #else
 -			if (nf_ct_tcp_be_liberal
--#endif
-+			if (tn->tcp_be_liberal
++           if (tn->tcp_be_liberal)
+ #endif
  					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
  					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {
- 				nircm->rule_flags |= SFE_RULE_CREATE_FLAG_NO_SEQ_CHECK;
 --- a/frontends/sfe/ecm_sfe_ported_ipv6.c
 +++ b/frontends/sfe/ecm_sfe_ported_ipv6.c
-@@ -93,14 +93,6 @@ static int ecm_sfe_ported_ipv6_accelerat
- 						/* Array of Number of TCP and UDP connections currently offloaded */
-
- /*
-- * Expose what should be a static flag in the TCP connection tracker.
-- */
--#ifdef ECM_OPENWRT_SUPPORT
--extern int nf_ct_tcp_no_window_check;
--#endif
--extern int nf_ct_tcp_be_liberal;
--
--/*
-  * ecm_sfe_ported_ipv6_connection_callback()
-  *	Callback for handling create ack/nack calls.
-  */
-@@ -345,9 +337,15 @@ static void ecm_sfe_ported_ipv6_connecti
+@@ -345,7 +345,9 @@ static void ecm_sfe_ported_ipv6_connecti
  	struct ecm_classifier_instance *aci;
  	struct ecm_classifier_rule_create ecrc;
  	ecm_front_end_acceleration_mode_t result_mode;
 -	uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
-+	struct nf_tcp_net *tn;
++	struct net *net = nf_ct_net(ct);
++   struct nf_tcp_net *tn = nf_tcp_pernet(net);
 +   uint32_t l2_accel_bits = (ECM_SFE_COMMON_FLOW_L2_ACCEL_ALLOWED | ECM_SFE_COMMON_RETURN_L2_ACCEL_ALLOWED);
  	ecm_sfe_common_l2_accel_check_callback_t l2_accel_check;
-
-+   if (ct) {
-+       struct net *net = nf_ct_net(ct);
-+       tn = nf_tcp_pernet(net);
-+   }
-+
+ 
  	DEBUG_CHECK_MAGIC(feci, ECM_FRONT_END_CONNECTION_INSTANCE_MAGIC, "%px: magic failed", feci);
-
- 	/*
-@@ -1271,11 +1269,7 @@ static void ecm_sfe_ported_ipv6_connecti
- 			nircm->tcp_rule.return_max_window = ct->proto.tcp.seen[return_dir].td_maxwin;
+@@ -1272,9 +1274,9 @@ static void ecm_sfe_ported_ipv6_connecti
  			nircm->tcp_rule.return_end = ct->proto.tcp.seen[return_dir].td_end;
  			nircm->tcp_rule.return_max_end = ct->proto.tcp.seen[return_dir].td_maxend;
--#ifdef ECM_OPENWRT_SUPPORT
+ #ifdef ECM_OPENWRT_SUPPORT
 -			if (nf_ct_tcp_be_liberal || nf_ct_tcp_no_window_check
--#else
++           if (tn->tcp_be_liberal || tn->tcp_no_window_check)
+ #else
 -			if (nf_ct_tcp_be_liberal
--#endif
-+			if (tn->tcp_be_liberal
++			if (tn->tcp_be_liberal)
+ #endif
  					|| (ct->proto.tcp.seen[flow_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)
  					|| (ct->proto.tcp.seen[return_dir].flags & IP_CT_TCP_FLAG_BE_LIBERAL)) {
- 				nircm->rule_flags |= SFE_RULE_CREATE_FLAG_NO_SEQ_CHECK;
