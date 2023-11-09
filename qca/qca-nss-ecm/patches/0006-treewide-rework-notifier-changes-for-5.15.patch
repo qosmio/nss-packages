@@ -55,7 +55,7 @@ Subject: [PATCH] treewide: rework notifier changes for 5.15
  #endif
  
  /*
-@@ -436,12 +423,16 @@ int ecm_conntrack_notifier_init(struct d
+@@ -440,12 +427,16 @@ int ecm_conntrack_notifier_init(struct d
  	/*
  	 * Eventing subsystem is available so we register a notifier hook to get fast notifications of expired connections
  	 */
@@ -73,7 +73,7 @@ Subject: [PATCH] treewide: rework notifier changes for 5.15
  
  	/*
  	 * Hold netns reference to keep the basic conntrack alive and
-@@ -483,7 +474,11 @@ void ecm_conntrack_notifier_exit(void)
+@@ -487,7 +478,11 @@ void ecm_conntrack_notifier_exit(void)
  #ifdef ECM_IPV6_ENABLE
  	nf_ct_netns_put(&init_net, NFPROTO_IPV6);
  #endif
