@@ -17,7 +17,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 
 --- a/nss_core.c
 +++ b/nss_core.c
-@@ -1659,7 +1659,7 @@ static int32_t nss_core_handle_cause_que
+@@ -1660,7 +1660,7 @@ static int32_t nss_core_handle_cause_que
  		 *
  		 */
  		if (unlikely((buffer_type == N2H_BUFFER_CRYPTO_RESP))) {
@@ -25,3 +25,4 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 +			dma_unmap_single(nss_ctx->dev, (desc->buffer + desc->payload_offs), desc->payload_len, DMA_FROM_DEVICE);
  			goto consume;
  		}
+ 

@@ -6,6 +6,6 @@
  				int32_t radio_ifnum,
 -				uint32_t radio_priority);
 +				enum nss_wifili_thread_scheme_priority radio_priority);
-
+ 
  /**
   * nss_wifili_thread_scheme_dealloc

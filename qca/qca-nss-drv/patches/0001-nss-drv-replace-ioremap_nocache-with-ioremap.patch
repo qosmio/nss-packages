@@ -24,7 +24,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 @@ -145,7 +145,7 @@ static struct nss_platform_data *__nss_h
  	npd->nphys = res_nphys.start;
  	npd->vphys = res_vphys.start;
-
+ 
 -	npd->nmap = ioremap_nocache(npd->nphys, resource_size(&res_nphys));
 +	npd->nmap = ioremap(npd->nphys, resource_size(&res_nphys));
  	if (!npd->nmap) {
@@ -32,26 +32,26 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		goto out;
 --- a/nss_hal/ipq50xx/nss_hal_pvt.c
 +++ b/nss_hal/ipq50xx/nss_hal_pvt.c
-@@ -184,13 +184,13 @@ static struct nss_platform_data *__nss_h
+@@ -185,13 +185,13 @@ static struct nss_platform_data *__nss_h
  	npd->nphys = res_nphys.start;
  	npd->qgic_phys = res_qgic_phys.start;
-
+ 
 -	npd->nmap = ioremap_nocache(npd->nphys, resource_size(&res_nphys));
 +	npd->nmap = ioremap(npd->nphys, resource_size(&res_nphys));
  	if (!npd->nmap) {
  		nss_info_always("%px: nss%d: ioremap() fail for nphys\n", nss_ctx, nss_ctx->id);
  		goto out;
  	}
-
+ 
 -	npd->qgic_map = ioremap_nocache(npd->qgic_phys, resource_size(&res_qgic_phys));
 +	npd->qgic_map = ioremap(npd->qgic_phys, resource_size(&res_qgic_phys));
  	if (!npd->qgic_map) {
  		nss_info_always("%px: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -348,7 +348,7 @@ static int __nss_hal_common_reset(struct
-
+@@ -349,7 +349,7 @@ static int __nss_hal_common_reset(struct
+ 
  	of_node_put(cmn);
-
+ 
 -	nss_misc_reset = ioremap_nocache(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
 +	nss_misc_reset = ioremap(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
  	if (!nss_misc_reset) {
@@ -59,33 +59,33 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		return -EFAULT;
 --- a/nss_hal/ipq60xx/nss_hal_pvt.c
 +++ b/nss_hal/ipq60xx/nss_hal_pvt.c
-@@ -207,13 +207,13 @@ static struct nss_platform_data *__nss_h
+@@ -208,13 +208,13 @@ static struct nss_platform_data *__nss_h
  	npd->nphys = res_nphys.start;
  	npd->qgic_phys = res_qgic_phys.start;
-
+ 
 -	npd->nmap = ioremap_nocache(npd->nphys, resource_size(&res_nphys));
 +	npd->nmap = ioremap(npd->nphys, resource_size(&res_nphys));
  	if (!npd->nmap) {
  		nss_info_always("%px: nss%d: ioremap() fail for nphys\n", nss_ctx, nss_ctx->id);
  		goto out;
  	}
-
+ 
 -	npd->qgic_map = ioremap_nocache(npd->qgic_phys, resource_size(&res_qgic_phys));
 +	npd->qgic_map = ioremap(npd->qgic_phys, resource_size(&res_qgic_phys));
  	if (!npd->qgic_map) {
  		nss_info_always("%px: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -433,13 +433,13 @@ static int __nss_hal_common_reset(struct
-
+@@ -434,13 +434,13 @@ static int __nss_hal_common_reset(struct
+ 
  	of_node_put(cmn);
-
+ 
 -	nss_misc_reset = ioremap_nocache(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
 +	nss_misc_reset = ioremap(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
  	if (!nss_misc_reset) {
  		pr_err("%px: ioremap fail for nss_misc_reset\n", nss_dev);
  		return -EFAULT;
  	}
-
+ 
 -	nss_misc_reset_flag = ioremap_nocache(res_nss_misc_reset_flag.start, resource_size(&res_nss_misc_reset_flag));
 +	nss_misc_reset_flag = ioremap(res_nss_misc_reset_flag.start, resource_size(&res_nss_misc_reset_flag));
  	if (!nss_misc_reset_flag) {
@@ -93,19 +93,19 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		return -EFAULT;
 --- a/nss_hal/ipq806x/nss_hal_pvt.c
 +++ b/nss_hal/ipq806x/nss_hal_pvt.c
-@@ -458,7 +458,7 @@ static struct nss_platform_data *__nss_h
+@@ -461,7 +461,7 @@ static struct nss_platform_data *__nss_h
  	npd->nphys = res_nphys.start;
  	npd->vphys = res_vphys.start;
-
+ 
 -	npd->nmap = ioremap_nocache(npd->nphys, resource_size(&res_nphys));
 +	npd->nmap = ioremap(npd->nphys, resource_size(&res_nphys));
  	if (!npd->nmap) {
  		nss_info_always("%px: nss%d: ioremap() fail for nphys\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -711,7 +711,7 @@ static int __nss_hal_common_reset(struct
+@@ -714,7 +714,7 @@ static int __nss_hal_common_reset(struct
  	}
  	of_node_put(cmn);
-
+ 
 -	fpb_base = ioremap_nocache(res_nss_fpb_base.start, resource_size(&res_nss_fpb_base));
 +	fpb_base = ioremap(res_nss_fpb_base.start, resource_size(&res_nss_fpb_base));
  	if (!fpb_base) {
@@ -113,28 +113,28 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		return -EFAULT;
 --- a/nss_hal/ipq807x/nss_hal_pvt.c
 +++ b/nss_hal/ipq807x/nss_hal_pvt.c
-@@ -234,7 +234,7 @@ static struct nss_platform_data *__nss_h
+@@ -237,7 +237,7 @@ static struct nss_platform_data *__nss_h
  	npd->vphys = res_vphys.start;
  	npd->qgic_phys = res_qgic_phys.start;
-
+ 
 -	npd->nmap = ioremap_nocache(npd->nphys, resource_size(&res_nphys));
 +	npd->nmap = ioremap(npd->nphys, resource_size(&res_nphys));
  	if (!npd->nmap) {
  		nss_info_always("%px: nss%d: ioremap() fail for nphys\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -247,7 +247,7 @@ static struct nss_platform_data *__nss_h
+@@ -250,7 +250,7 @@ static struct nss_platform_data *__nss_h
  		goto out;
  	}
-
+ 
 -	npd->qgic_map = ioremap_nocache(npd->qgic_phys, resource_size(&res_qgic_phys));
 +	npd->qgic_map = ioremap(npd->qgic_phys, resource_size(&res_qgic_phys));
  	if (!npd->qgic_map) {
  		nss_info_always("%px: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -467,7 +467,7 @@ static int __nss_hal_common_reset(struct
+@@ -470,7 +470,7 @@ static int __nss_hal_common_reset(struct
  	}
  	of_node_put(cmn);
-
+ 
 -	nss_misc_reset = ioremap_nocache(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
 +	nss_misc_reset = ioremap(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
  	if (!nss_misc_reset) {
@@ -145,7 +145,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 @@ -291,7 +291,7 @@ static struct nss_platform_data *__nss_h
  	npd->vphys = res_vphys.start;
  	npd->qgic_phys = res_qgic_phys.start;
-
+ 
 -	npd->nmap = ioremap_nocache(npd->nphys, resource_size(&res_nphys));
 +	npd->nmap = ioremap(npd->nphys, resource_size(&res_nphys));
  	if (!npd->nmap) {
@@ -154,16 +154,16 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 @@ -303,7 +303,7 @@ static struct nss_platform_data *__nss_h
  		goto out;
  	}
-
+ 
 -	npd->qgic_map = ioremap_nocache(npd->qgic_phys, resource_size(&res_qgic_phys));
 +	npd->qgic_map = ioremap(npd->qgic_phys, resource_size(&res_qgic_phys));
  	if (!npd->qgic_map) {
  		nss_info_always("%px: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
  		goto out;
 @@ -608,7 +608,7 @@ static int __nss_hal_common_reset(struct
-
+ 
  	of_node_put(cmn);
-
+ 
 -	nss_misc_reset = ioremap_nocache(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
 +	nss_misc_reset = ioremap(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
  	if (!nss_misc_reset) {
@@ -173,8 +173,8 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 +++ b/nss_hal/nss_hal.c
 @@ -81,9 +81,9 @@ int nss_hal_firmware_load(struct nss_ctx
  	}
-
-
+ 
+ 
 -	load_mem = ioremap_nocache(npd->load_addr, nss_fw->size);
 +	load_mem = ioremap(npd->load_addr, nss_fw->size);
  	if (!load_mem) {
@@ -185,7 +185,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	}
 --- a/nss_meminfo.c
 +++ b/nss_meminfo.c
-@@ -735,7 +735,7 @@ bool nss_meminfo_init(struct nss_ctx_ins
+@@ -736,7 +736,7 @@ bool nss_meminfo_init(struct nss_ctx_ins
  	/*
  	 * meminfo_start is the label where the start address of meminfo map is stored.
  	 */

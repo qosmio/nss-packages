@@ -26,15 +26,15 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 +(((LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0))))))
  #error "Check skb recycle code in this file to match Linux version"
  #endif
-
-@@ -2658,7 +2659,7 @@ static inline bool nss_core_skb_can_reus
+ 
+@@ -2658,7 +2660,7 @@ static inline bool nss_core_skb_can_reus
  	if (unlikely(irqs_disabled()))
  		return false;
-
+ 
 -	if (unlikely(skb_shinfo(nbuf)->tx_flags & SKBTX_DEV_ZEROCOPY))
 +	if (unlikely(skb_shinfo(nbuf)->flags & SKBFL_ZEROCOPY_ENABLE))
  		return false;
-
+ 
  	if (unlikely(skb_is_nonlinear(nbuf)))
 --- a/nss_coredump.c
 +++ b/nss_coredump.c
@@ -49,7 +49,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 +#endif
  #include <linux/jiffies.h>	/* for time */
  #include "nss_tx_rx_common.h"
-
+ 
 --- a/nss_hal/nss_hal.c
 +++ b/nss_hal/nss_hal.c
 @@ -27,6 +27,7 @@
@@ -57,6 +57,6 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  #include <linux/of.h>
  #include <linux/irq.h>
 +#include <linux/ethtool.h>
-
+ 
  #include "nss_hal.h"
  #include "nss_arch.h"
