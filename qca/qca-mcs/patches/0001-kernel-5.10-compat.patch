@@ -11,7 +11,7 @@
  	return NULL;
 --- a/mc_snooping.c
 +++ b/mc_snooping.c
-@@ -3450,6 +3450,18 @@ static int mc_proc_snooper_open(struct i
+@@ -3453,6 +3453,18 @@ static int mc_proc_snooper_open(struct i
          return single_open(file, mc_proc_snooper_show, NULL);
  }
  
@@ -30,7 +30,7 @@
  static const struct file_operations mc_proc_snooper_fops = {
          .owner          = THIS_MODULE,
          .open           = mc_proc_snooper_open,
-@@ -3457,6 +3469,7 @@ static const struct file_operations mc_p
+@@ -3460,6 +3472,7 @@ static const struct file_operations mc_p
          .llseek         = seq_lseek,
          .release        = single_release,
  };
