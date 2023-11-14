@@ -10,14 +10,14 @@
  #else
  #define nss_match_warn(s, ...) pr_warn("%s[%d]:" s, __FUNCTION__, __LINE__, ##__VA_ARGS__)
  #endif
-
+ 
 -#if (NSS_match_DEBUG_LEVEL < 3)
 +#if (NSS_MATCH_DEBUG_LEVEL < 3)
  #define nss_match_info(s, ...)
  #else
  #define nss_match_info(s, ...)   pr_notice("%s[%d]:" s, __FUNCTION__, __LINE__, ##__VA_ARGS__)
  #endif
-
+ 
 -#if (NSS_match_DEBUG_LEVEL < 4)
 +#if (NSS_MATCH_DEBUG_LEVEL < 4)
  #define nss_match_trace(s, ...)

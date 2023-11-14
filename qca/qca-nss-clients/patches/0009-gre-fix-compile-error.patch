@@ -3,7 +3,7 @@
 @@ -172,14 +172,6 @@ int nss_connmgr_gre_v4_set_config(struct
  		}
  	}
-
+ 
 -	/*
 -	 * IP address validate
 -	 */
@@ -13,5 +13,5 @@
 -	}
 -
  	memset(t, 0, sizeof(struct ip_tunnel));
-
+ 
  	priv->pad_len =  (cfg->add_padding) ? GRE_HDR_PAD_LEN : 0;

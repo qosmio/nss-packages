@@ -1,6 +1,6 @@
 --- a/vlan/nss_vlan_mgr.c
 +++ b/vlan/nss_vlan_mgr.c
-@@ -800,8 +800,10 @@ static struct nss_vlan_pvt *nss_vlan_mgr_create_instance(
+@@ -800,8 +800,10 @@ static struct nss_vlan_pvt *nss_vlan_mgr
   */
  static void nss_vlan_mgr_instance_free(struct nss_vlan_pvt *v)
  {
@@ -8,10 +8,10 @@
  	int32_t i;
  	int ret = 0;
 +#endif
-
+ 
  	spin_lock(&vlan_mgr_ctx.lock);
  	BUG_ON(--v->refs);
-@@ -961,8 +963,11 @@ static int nss_vlan_mgr_register_event(struct netdev_notifier_info *info)
+@@ -961,8 +963,11 @@ static int nss_vlan_mgr_register_event(s
  	int ret;
  #endif
  	uint32_t vlan_tag;
@@ -32,7 +32,7 @@
  	struct net_device *real_dev;
  	int ret;
 +#endif
-
+ 
  	if (!v)
  		return 0;
 @@ -1416,8 +1423,10 @@ EXPORT_SYMBOL(nss_vlan_mgr_join_bridge);
@@ -43,17 +43,17 @@
  	struct net_device *real_dev;
  	int ret;
 +#endif
-
+ 
  	if (!v)
  		return 0;
 --- a/vlan/Makefile
 +++ b/vlan/Makefile
-@@ -8,7 +8,7 @@ ifeq ($(SoC),$(filter $(SoC),ipq807x ipq807x_64 ipq60xx ipq60xx_64))
+@@ -8,7 +8,7 @@ ifeq ($(SoC),$(filter $(SoC),ipq807x ipq
  ccflags-y += -DNSS_VLAN_MGR_PPE_SUPPORT
  endif
-
+ 
 -ccflags-y += -DNSS_VLAN_MGR_DEBUG_LEVEL=0
 +ccflags-y += -DNSS_VLAN_MGR_DEBUG_LEVEL=4
  ccflags-y += -Wall -Werror
-
+ 
  ifneq (,$(filter $(CONFIG_BONDING),y m))

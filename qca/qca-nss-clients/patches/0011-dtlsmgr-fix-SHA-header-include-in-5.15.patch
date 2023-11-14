@@ -13,7 +13,7 @@
 +#endif
  #include <crypto/skcipher.h>
  #include <crypto/hash.h>
-
+ 
 --- a/dtls/v2.0/nss_dtlsmgr_ctx.c
 +++ b/dtls/v2.0/nss_dtlsmgr_ctx.c
 @@ -40,7 +40,13 @@
@@ -29,7 +29,7 @@
 +#endif
  #include <crypto/skcipher.h>
  #include <crypto/hash.h>
-
+ 
 --- a/dtls/v2.0/nss_dtlsmgr_ctx_dev.c
 +++ b/dtls/v2.0/nss_dtlsmgr_ctx_dev.c
 @@ -36,7 +36,13 @@
@@ -43,6 +43,6 @@
 +#include <crypto/sha1.h>
 +#include <crypto/sha2.h>
 +#endif
-
+ 
  #include <nss_api_if.h>
  #include <nss_dynamic_interface.h>

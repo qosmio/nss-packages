@@ -6,6 +6,6 @@
  	nss_vxlanmgr_get_ipsec_if_num_by_ip_callback_t ipsec_cb;
 -	struct nss_ctx_instance *nss_ctx = nss_vxlan_get_ctx();
 +	__attribute__((unused)) struct nss_ctx_instance *nss_ctx = nss_vxlan_get_ctx();
-
+ 
  	/*
  	 * Check if the VxLAN interface is applied over an IPsec interface by querying the IPsec.

@@ -6,6 +6,6 @@
  	int cpu;
 -	int8_t ver = skb->data[0] >> 4;
 +	__attribute__((unused)) int8_t ver = skb->data[0] >> 4;
-
+ 
  	nss_tunipip6_trace("%px: received - %d bytes name %s ver %x\n",
  			dev, skb->len, dev->name, ver);

@@ -11,7 +11,7 @@
 +#define nss_dtlsmgr_info(s, ...) pr_debug("%s[%d]:" s "\n", __func__, __LINE__, ##__VA_ARGS__);
 +#define nss_dtlsmgr_trace(s, ...) pr_debug("%s[%d]:" s "\n", __func__, __LINE__, ##__VA_ARGS__);
  #else
-
+ 
  /*
 @@ -46,17 +46,17 @@
   */
@@ -20,17 +20,17 @@
 -		pr_warn("%s[%d]:" s "\n", __func__, __LINE__, ##__VA_ARGS__)	\
 +		pr_warn("%s[%d]:" s "\n", __func__, __LINE__, ##__VA_ARGS__);	\
  }
-
+ 
  #define nss_dtlsmgr_info(s, ...) {	\
  	if (NSS_DTLSMGR_DEBUG_LEVEL > NSS_DTLSMGR_DEBUG_LEVEL_WARN)	\
 -		pr_notice("%s[%d]:" s "\n", __func__, __LINE__, ##__VA_ARGS__)	\
 +		pr_notice("%s[%d]:" s "\n", __func__, __LINE__, ##__VA_ARGS__);	\
  }
-
+ 
  #define nss_dtlsmgr_trace(s, ...) {	\
  	if (NSS_DTLSMGR_DEBUG_LEVEL > NSS_DTLSMGR_DEBUG_LEVEL_INFO)	\
 -		pr_info("%s[%d]:" s "\n", __func__, __LINE__, ##__VA_ARGS__)	\
 +		pr_info("%s[%d]:" s "\n", __func__, __LINE__, ##__VA_ARGS__);	\
  }
-
+ 
  #endif /* CONFIG_DYNAMIC_DEBUG */

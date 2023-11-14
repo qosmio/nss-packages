@@ -27,5 +27,5 @@
 +	.proc_release	= single_release,
 +	.proc_write	= nss_connmgr_gre_test_write_proc,
  };
-
+ 
  /*

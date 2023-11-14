@@ -12,7 +12,7 @@
 +#include <crypto/sha2.h>
 +#endif
  #include <crypto/hash.h>
-
+ 
  #include <nss_api_if.h>
 --- a/openvpn/src/nss_ovpnmgr_route.c
 +++ b/openvpn/src/nss_ovpnmgr_route.c
@@ -28,5 +28,5 @@
 +#include <crypto/sha2.h>
 +#endif
  #include <crypto/hash.h>
-
+ 
  #include <nss_api_if.h>

@@ -6,6 +6,6 @@
  	dev->netdev_ops = &nss_dtlsmgr_session_ops;
 -	dev->destructor = NULL;
 +	dev->priv_destructor = NULL;
-
+ 
  	memcpy(dev->dev_addr, "\xaa\xbb\xcc\xdd\xee\xff", dev->addr_len);
  	memset(dev->broadcast, 0xff, dev->addr_len);
