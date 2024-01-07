@@ -52,7 +52,7 @@ define KernelPackage/qca-nss-drv-l2tpv2
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (connection manager) - l2tp
-  DEPENDS:=@NSS_DRV_L2TP_ENABLE +kmod-ppp +kmod-l2tp \
+  DEPENDS:=+@NSS_DRV_L2TP_ENABLE +kmod-ppp +kmod-l2tp \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/l2tp/l2tpv2/qca-nss-l2tpv2.ko
   KCONFIG:=CONFIG_L2TP=y
@@ -100,7 +100,7 @@ define KernelPackage/qca-nss-drv-map-t
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (connection manager) - MAP-T
   DEPENDS:=+@NSS_DRV_MAPT_ENABLE \
-		   +PACKAGE_kmod-nat46:kmod-nat46 \
+		   +kmod-nat46 \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/map/map-t/qca-nss-map-t.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-map-t)
@@ -407,13 +407,28 @@ define KernelPackage/qca-nss-drv-mirror/Description
 Kernel module for managing NSS Mirror
 endef
 
+define KernelPackage/qca-nss-drv-wifi-meshmgr
+  SECTION:=kernel
+  CATEGORY:=Kernel modules
+  SUBMENU:=Network Devices
+  DEPENDS:=+@NSS_DRV_WIFI_MESH_ENABLE \
+		  +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
+  TITLE:=NSS WiFi-Mesh Manager for QCA NSS driver
+  FILES:=$(PKG_BUILD_DIR)/wifi_meshmgr/qca-nss-wifi-meshmgr.ko
+  AUTOLOAD:=$(call AutoLoad,51,qca-nss-wifi-meshmgr)
+endef
+
+define KernelPackage/qca-nss-drv-wifi-meshmgr/Description
+Kernel module for WiFi Mesh manager
+endef
+
 define KernelPackage/qca-nss-drv-netlink
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=NSS NETLINK Manager for QCA NSS driver
   DEPENDS:=@(TARGET_ipq806x||TARGET_ipq807x||TARGET_ipq_ipq807x_64||TARGET_qualcommax||TARGET_ipq_ipq60xx||TARGET_ipq_ipq60xx_64||TARGET_ipq60xx||TARGET_ipq_ipq50xx||TARGET_ipq_ipq50xx_64||TARGET_ipq50xx) \
-  		   +@NSS_DRV_C2C_ENABLE +@NSS_DRV_GRE_REDIR_ENABLE +@NSS_DRV_IPV4_REASM_ENABLE +@NSS_DRV_IPV6_ENABLE +@NSS_DRV_IPV6_REASM_ENABLE +@NSS_DRV_RMNET_ENABLE +@NSS_DRV_OAM_ENABLE +@NSS_DRV_QRFS_ENABLE \
+  		   +@NSS_DRV_C2C_ENABLE +@NSS_DRV_GRE_ENABLE +@NSS_DRV_GRE_REDIR_ENABLE +@NSS_DRV_IPV4_REASM_ENABLE +@NSS_DRV_IPV6_ENABLE +@NSS_DRV_IPV6_REASM_ENABLE +@NSS_DRV_RMNET_ENABLE +@NSS_DRV_OAM_ENABLE +@NSS_DRV_QRFS_ENABLE +@NSS_DRV_L2TP_ENABLE +@NSS_DRV_MAPT_ENABLE \
 		   +kmod-pppoe +kmod-qca-nss-drv-dtlsmgr \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/netlink/qca-nss-netlink.ko
@@ -428,7 +443,7 @@ define KernelPackage/qca-nss-drv-qdisc
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
   TITLE:=Qdisc for configuring shapers in NSS
-  DEPENDS:=+@NSS_DRV_SHAPER_ENABLE +@NSS_DRV_IGS_ENABLE \
+  DEPENDS:=+@NSS_DRV_SHAPER_ENABLE +@NSS_DRV_IGS_ENABLE +@NSS_DRV_BRIDGE_ENABLE \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/nss_qdisc/qca-nss-qdisc.ko
   KCONFIG:=CONFIG_NET_CLS_ACT=y
@@ -586,6 +601,10 @@ ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-match),)
 NSS_CLIENTS_MAKE_OPTS+=match=y
 endif
 
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-wifi-meshmgr),)
+NSS_CLIENTS_MAKE_OPTS+=wifi-meshmgr=y
+endif
+
 define Build/Compile
 	+$(MAKE) -C "$(LINUX_DIR)" $(strip $(NSS_CLIENTS_MAKE_OPTS)) \
 	  CROSS_COMPILE="$(TARGET_CROSS)" \
@@ -622,3 +641,4 @@ $(eval $(call KernelPackage,qca-nss-drv-tun6rd))
 $(eval $(call KernelPackage,qca-nss-drv-qdisc))
 $(eval $(call KernelPackage,qca-nss-drv-igs))
 $(eval $(call KernelPackage,qca-nss-drv-netlink))
+$(eval $(call KernelPackage,qca-nss-drv-wifi-meshmgr))
