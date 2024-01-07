@@ -20,7 +20,7 @@ define KernelPackage/qca-nss-ecm
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
   DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx) \
-  		   +@NSS_DRV_IPV6_ENABLE \
+		   +@NSS_DRV_IPV6_ENABLE \
 		   +@NSS_DRV_PPE_ENABLE \
 		   +@NSS_DRV_TUN6RD_ENABLE \
 		   +@NSS_DRV_PPPOE_ENABLE \
@@ -28,11 +28,11 @@ define KernelPackage/qca-nss-ecm
 		   +@NSS_DRV_VIRT_IF_ENABLE \
 		   +@NSS_DRV_WIFI_ENABLE \
 		   +kmod-qca-nss-drv \
-    	   +kmod-nf-conntrack \
+		   +kmod-nf-conntrack \
 		   +kmod-ppp +kmod-pppoe +kmod-pptp +kmod-bonding \
 		   +PACKAGE_kmod-pppol2tp:kmod-pppol2tp \
 		   +PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
-		   +PACKAGE_kmod-nat46:kmod-nat46 \
+		   +kmod-nat46 \
 		   +PACKAGE_kmod-vxlan:kmod-vxlan
   TITLE:=QCA NSS Enhanced Connection Manager (ECM)
   FILES:=$(PKG_BUILD_DIR)/ecm.ko
