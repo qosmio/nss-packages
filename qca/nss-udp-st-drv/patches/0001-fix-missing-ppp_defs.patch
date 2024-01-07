@@ -1,0 +1,10 @@
+--- a/nss_udp_st_tx.c
++++ b/nss_udp_st_tx.c
+@@ -23,6 +23,7 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <linux/if_vlan.h>
+ #include <linux/if_pppox.h>
++#include <linux/ppp_defs.h>
+ #include <net/ip6_checksum.h>
+ #include "nss_udp_st_public.h"
+ 

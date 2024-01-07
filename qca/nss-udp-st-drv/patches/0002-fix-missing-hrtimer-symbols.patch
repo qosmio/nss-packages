@@ -1,0 +1,28 @@
+--- a/nss_udp_st_tx.c
++++ b/nss_udp_st_tx.c
+@@ -18,7 +18,7 @@
+ 
+ #include <linux/list.h>
+ #include <linux/string.h>
+-#include <linux/hrtimer.h>
++// #include <linux/hrtimer.h>
+ #include <net/act_api.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <linux/if_vlan.h>
+@@ -34,6 +34,9 @@ static enum hrtimer_restart tx_hr_restar
+ static struct vlan_hdr vh;
+ static struct net_device *xmit_dev;
+ static struct pppoe_opt info;
++extern void hrtimer_start(struct hrtimer *timer, ktime_t tim, const enum hrtimer_mode mode);
++extern void hrtimer_init(struct hrtimer *timer, clockid_t clock_id,enum hrtimer_mode mode);
++extern int hrtimer_cancel(struct hrtimer *timer);
+ 
+ /*
+  * nss_udp_st_generate_ipv4_hdr()
+@@ -576,3 +579,6 @@ bool nss_udp_st_tx(void)
+ 
+ 	return true;
+ }
++MODULE_AUTHOR("Qualcomm Technologies");
++MODULE_DESCRIPTION("NSS UDP Speedtest");
++MODULE_LICENSE("Dual BSD/GPL");
