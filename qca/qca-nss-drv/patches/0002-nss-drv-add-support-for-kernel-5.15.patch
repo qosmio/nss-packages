@@ -60,3 +60,15 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  #include "nss_hal.h"
  #include "nss_arch.h"
+@@ -64,9 +65,9 @@ int nss_hal_firmware_load(struct nss_ctx
+ 	int rc;
+ 
+ 	if (nss_ctx->id == 0) {
+-		rc = request_firmware(&nss_fw, NSS_AP0_IMAGE, &(nss_dev->dev));
++		rc = firmware_request_nowarn(&nss_fw, NSS_AP0_IMAGE, &(nss_dev->dev));
+ 	} else if (nss_ctx->id == 1) {
+-		rc = request_firmware(&nss_fw, NSS_AP1_IMAGE, &(nss_dev->dev));
++		rc = firmware_request_nowarn(&nss_fw, NSS_AP1_IMAGE, &(nss_dev->dev));
+ 	} else {
+ 		nss_warning("%px: Invalid nss dev: %d\n", nss_ctx, nss_ctx->id);
+ 		return -EINVAL;
