@@ -1,0 +1,76 @@
+--- a/exports/nss_wifi_mesh.h
++++ b/exports/nss_wifi_mesh.h
+@@ -274,7 +274,7 @@ struct nss_wifi_mesh_mpath_add_msg {
+ 	uint32_t link_vap_id;			/**< Radio ID of the mesh path. */
+ 	uint32_t expiry_time;			/**< Expiry time in order of ms. */
+ 	uint8_t hop_count;			/**< Hop count. */
+-	uint8_t path_flags;			/**< Mesh path flags. */
++	u16 path_flags;				/**< Mesh path flags. */
+ 	uint8_t is_mesh_gate;			/**< Destination of this path is a mesh gate. */
+ 	uint8_t block_mesh_fwd;			/**< Block intra mesh forward. */
+ 	uint32_t metadata_type;			/**< Indicates if metadata should be enabled when block_mesh_forwarding is true. */
+@@ -302,7 +302,7 @@ struct nss_wifi_mesh_mpath_update_msg {
+ 	uint32_t link_vap_id;			/**< Radio ID of the mesh path. */
+ 	uint32_t expiry_time;			/**< Expiration time of mesh path. */
+ 	uint8_t hop_count;			/**< Hop count. */
+-	uint8_t path_flags;			/**< Mesh path flags. */
++	u16 path_flags;				/**< Mesh path flags. */
+ 	uint8_t is_mesh_gate;			/**< Indicates if the mesh path is a mesh gate. */
+ 	uint8_t update_flags;			/**< Update flags. */
+ 	uint8_t block_mesh_fwd;			/**< Block intra mesh forward. */
+@@ -317,7 +317,7 @@ struct nss_wifi_mesh_mpath_update_msg {
+ struct nss_wifi_mesh_proxy_path_learn_msg {
+ 	uint8_t mesh_dest_mac[ETH_ALEN];	/**< Mesh destination MAC address. */
+ 	uint8_t dest_mac_addr[ETH_ALEN];	/**< Destination MAC address. */
+-	uint8_t path_flags;			/**< Mesh path flags. */
++	u16 path_flags;				/**< Mesh path flags. */
+ 	uint8_t is_update;			/**< Indicates if the learn is an update. */
+ };
+
+@@ -328,7 +328,7 @@ struct nss_wifi_mesh_proxy_path_learn_ms
+ struct nss_wifi_mesh_proxy_path_add_msg {
+ 	uint8_t mesh_dest_mac[ETH_ALEN];	/**< Mesh destination MAC address. */
+ 	uint8_t dest_mac_addr[ETH_ALEN];	/**< Destination MAC address. */
+-	uint8_t path_flags;			/**< Mesh path flags. */
++	u16 path_flags;				/**< Mesh path flags. */
+ };
+
+ /**
+@@ -338,7 +338,7 @@ struct nss_wifi_mesh_proxy_path_add_msg
+ struct nss_wifi_mesh_proxy_path_update_msg {
+ 	uint8_t mesh_dest_mac[ETH_ALEN];	/**< Mesh destination MAC address. */
+ 	uint8_t dest_mac_addr[ETH_ALEN];	/**< Destination MAC address. */
+-	uint8_t path_flags;			/**< Mesh path flags. */
++	u16 path_flags;				/**< Mesh path flags. */
+ 	uint8_t bitmap;				/**< Bitmap indicating valid fields in the update msg. */
+ };
+
+@@ -370,7 +370,7 @@ struct nss_wifi_mesh_path_refresh_msg {
+ 	uint8_t dest_mac_addr[ETH_ALEN];		/**< Destination MAC address. */
+ 	uint8_t next_hop_mac_addr[ETH_ALEN];		/**< Next hop MAC address. */
+ 	uint32_t link_vap_id;				/**< Link VAP of the mesh path. */
+-	uint8_t path_flags;				/**< Mesh path flags. */
++	u16 path_flags;					/**< Mesh path flags. */
+ };
+
+ /**
+@@ -381,7 +381,7 @@ struct nss_wifi_mesh_path_expiry_msg {
+ 	uint8_t mesh_dest_mac_addr[ETH_ALEN];		/**< Destination MAC address. */
+ 	uint8_t next_hop_mac_addr[ETH_ALEN];		/**< Next hop MAC address. */
+ 	uint32_t link_vap_id;				/**< Link VAP of the mesh path. */
+-	uint8_t path_flags;				/**< Mesh path flags. */
++	u16 path_flags;					/**< Mesh path flags. */
+ };
+
+ /*
+--- a/exports/nss_wifi_ext_vdev_if.h
++++ b/exports/nss_wifi_ext_vdev_if.h
+@@ -69,7 +69,7 @@ enum nss_wifi_ext_vdev_error_types {
+  */
+ struct nss_wifi_ext_vdev_wds_msg {
+ 	uint16_t wds_peer_id;	/**< WDS station peer ID. */
+-	uint16_t mac_addr[3];	/**< Remote MAC address. */
++	u8 mac_addr[3];		/**< Remote MAC address. */
+ };
+
+ /**
