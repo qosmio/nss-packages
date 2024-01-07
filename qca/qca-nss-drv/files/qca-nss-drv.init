@@ -18,22 +18,33 @@
 START=70
 
 enable_rps() {
-	irq_nss_rps=`grep nss_queue1 /proc/interrupts | cut -d ':' -f 1 | tr -d ' '`
+	irq_nss_rps=$(grep nss_queue1 /proc/interrupts | cut -d ':' -f 1 | tr -d ' ')
 	for entry in $irq_nss_rps
 	do
 		echo 2 > /proc/irq/$entry/smp_affinity
 	done
 
-	irq_nss_rps=`grep nss_queue2 /proc/interrupts | cut -d ':' -f 1 | tr -d ' '`
+	irq_nss_rps=$(grep nss_queue2 /proc/interrupts | cut -d ':' -f 1 | tr -d ' ')
 	for entry in $irq_nss_rps
 	do
 		echo 4 > /proc/irq/$entry/smp_affinity
 	done
 
-	irq_nss_rps=`grep nss_queue3 /proc/interrupts | cut -d ':' -f 1 | tr -d ' '`
+	irq_nss_rps=$(grep nss_queue3 /proc/interrupts | cut -d ':' -f 1 | tr -d ' ')
 	for entry in $irq_nss_rps
 	do
 		echo 8 > /proc/irq/$entry/smp_affinity
+	done
+
+	irq_nss_rps=$(grep nss_queue0 /proc/interrupts | cut -d ':' -f 1 | tr -d ' ')
+	for entry in $irq_nss_rps
+	do
+		echo 8 > /proc/irq/$entry/smp_affinity
+	done
+
+	awk '/nss_empty_buf/{sub(/:/,""); print $1}' /proc/interrupts|while read -r entry
+	do
+		echo 4 > /proc/irq/$entry/smp_affinity
 	done
 
 	# Enable NSS RPS
