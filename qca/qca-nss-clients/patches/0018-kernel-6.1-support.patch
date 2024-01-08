@@ -139,7 +139,16 @@
  
 --- a/nss_qdisc/nss_qdisc.c
 +++ b/nss_qdisc/nss_qdisc.c
-@@ -2608,12 +2608,14 @@ int nss_qdisc_init(struct Qdisc *sch, st
+@@ -2189,7 +2189,7 @@ int __nss_qdisc_init(struct Qdisc *sch,
+ 	 * This is to prevent mixing NSS and PPE qdisc with linux qdisc.
+ 	 */
+ 	if ((parent != TC_H_ROOT) && (root->ops->owner != THIS_MODULE)) {
+-		nss_qdisc_warning("NSS qdisc %px (type %d) used along with non-nss qdiscs,"
++		nss_qdisc_info("NSS qdisc %px (type %d) used along with non-nss qdiscs,"
+ 			" or the interface is currently down", nq->qdisc, nq->type);
+ 	}
+ 
+@@ -2606,12 +2606,14 @@ int nss_qdisc_init(struct Qdisc *sch, st
   *  Wrapper around gnet_stats_copy_basic()
   */
  int nss_qdisc_gnet_stats_copy_basic(struct Qdisc *sch, struct gnet_dump *d,
