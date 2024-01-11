@@ -28,7 +28,7 @@ ifneq (, $(findstring $(subtarget), "ipq807x" "ipq807x_64" "ipq60xx" "ipq60xx_64
 # IPsec Manager v2.0 for Hawkeye/Cypress
   IPSECMGR_DIR:=v2.0
 # KLIPS plugin
-  IPSECMGR_KLIPS:= $(PKG_BUILD_DIR)/ipsecmgr/$(IPSECMGR_DIR)/plugins/klips/qca-nss-ipsec-klips.ko
+  # IPSECMGR_KLIPS:= $(PKG_BUILD_DIR)/ipsecmgr/$(IPSECMGR_DIR)/plugins/klips/qca-nss-ipsec-klips.ko
 endif
 
 define KernelPackage/qca-nss-drv-gre
@@ -100,7 +100,7 @@ define KernelPackage/qca-nss-drv-map-t
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (connection manager) - MAP-T
   DEPENDS:=+@NSS_DRV_MAPT_ENABLE \
-		   +kmod-nat46 \
+		   +PACKAGE_kmod-nat46:kmod-nat46 \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/map/map-t/qca-nss-map-t.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-map-t)
@@ -367,7 +367,7 @@ endef
 define KernelPackage/qca-nss-drv-igs
   SECTION:=kernel
   CATEGORY:=Kernel modules
-  SUBMENU:=Network Support
+  SUBMENU:=Network Devices
   TITLE:=Action for offloading traffic to an IFB interface to perform ingress shaping.
   DEPENDS:=@(TARGET_ipq806x||TARGET_ipq_ipq807x||TARGET_ipq_ipq807x_64||TARGET_ipq807x||TARGET_qualcommax||TARGET_ipq_ipq60xx||TARGET_ipq_ipq60xx_64||TARGET_ipq60xx||TARGET_ipq_ipq50xx||TARGET_ipq_ipq50xx_64||TARGET_ipq50xx) \
 		   +@NSS_DRV_IGS_ENABLE +kmod-sched-core +kmod-nf-conntrack +kmod-ifb +kmod-qca-nss-drv-qdisc \
@@ -396,7 +396,7 @@ endef
 define KernelPackage/qca-nss-drv-mirror
  SECTION:=kernel
  CATEGORY:=Kernel modules
- SUBMENU:=Network Support
+ SUBMENU:=Network Devices
  TITLE:=Module for mirroring packets from NSS to host.
  DEPENDS:=+@NSS_DRV_MIRROR_ENABLE \
 		  +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
@@ -405,6 +405,20 @@ endef
 
 define KernelPackage/qca-nss-drv-mirror/Description
 Kernel module for managing NSS Mirror
+endef
+
+define KernelPackage/qca-nss-drv-mscs
+ SECTION:=kernel
+ CATEGORY:=Kernel modules
+ SUBMENU:=Network Devices
+ TITLE:=Module to interface wlan host driver and ECM MSCS classifier.
+ DEPENDS:=+@NSS_DRV_WIFI_ENABLE \
+		  +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
+ FILES:=$(PKG_BUILD_DIR)/mscs/qca-nss-mscs.ko
+endef
+
+define KernelPackage/qca-nss-drv-mscs/Description
+Kernel module for Mirrored Stream Classification Signalling(MSCS) NSS client
 endef
 
 define KernelPackage/qca-nss-drv-wifi-meshmgr
@@ -427,10 +441,12 @@ define KernelPackage/qca-nss-drv-netlink
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=NSS NETLINK Manager for QCA NSS driver
-  DEPENDS:=@(TARGET_ipq806x||TARGET_ipq807x||TARGET_ipq_ipq807x_64||TARGET_qualcommax||TARGET_ipq_ipq60xx||TARGET_ipq_ipq60xx_64||TARGET_ipq60xx||TARGET_ipq_ipq50xx||TARGET_ipq_ipq50xx_64||TARGET_ipq50xx) \
-  		   +@NSS_DRV_C2C_ENABLE +@NSS_DRV_GRE_ENABLE +@NSS_DRV_GRE_REDIR_ENABLE +@NSS_DRV_IPV4_REASM_ENABLE +@NSS_DRV_IPV6_ENABLE +@NSS_DRV_IPV6_REASM_ENABLE +@NSS_DRV_RMNET_ENABLE +@NSS_DRV_OAM_ENABLE +@NSS_DRV_QRFS_ENABLE +@NSS_DRV_L2TP_ENABLE +@NSS_DRV_MAPT_ENABLE \
-		   +kmod-pppoe +kmod-qca-nss-drv-dtlsmgr \
-		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
+  DEPENDS:=+@NSS_DRV_C2C_ENABLE +@NSS_DRV_GRE_ENABLE +@NSS_DRV_GRE_REDIR_ENABLE \
+  				 +@NSS_DRV_IPV4_REASM_ENABLE +@NSS_DRV_IPV6_ENABLE +@NSS_DRV_IPV6_REASM_ENABLE \
+  				 +@NSS_DRV_RMNET_ENABLE +@NSS_DRV_OAM_ENABLE +@NSS_DRV_QRFS_ENABLE +@NSS_DRV_L2TP_ENABLE +@NSS_DRV_MAPT_ENABLE \
+  				 +kmod-pppoe +kmod-qca-nss-drv-dtlsmgr \
+  				 +PACKAGE_kmod-qca-nss-drv-ipsecmgr:kmod-qca-nss-drv-ipsecmgr \
+  				 +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/netlink/qca-nss-netlink.ko
 endef
 
@@ -441,7 +457,7 @@ endef
 define KernelPackage/qca-nss-drv-qdisc
   SECTION:=kernel
   CATEGORY:=Kernel modules
-  SUBMENU:=Network Support
+  SUBMENU:=Network Devices
   TITLE:=Qdisc for configuring shapers in NSS
   DEPENDS:=+@NSS_DRV_SHAPER_ENABLE +@NSS_DRV_IGS_ENABLE +@NSS_DRV_BRIDGE_ENABLE \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv
@@ -484,7 +500,7 @@ EXTRA_CFLAGS+= \
 	-I$(STAGING_DIR)/usr/include/qca-nss-drv \
 	-I$(STAGING_DIR)/usr/include/qca-nss-crypto \
 	-I$(STAGING_DIR)/usr/include/qca-nss-cfi \
-  	-I$(STAGING_DIR)/usr/include/qca-nss-ecm \
+	-I$(STAGING_DIR)/usr/include/qca-nss-ecm \
 	-I$(STAGING_DIR)/usr/include/qca-ssdk \
 	-I$(STAGING_DIR)/usr/include/qca-ssdk/fal \
 	-I$(STAGING_DIR)/usr/include/nat46
@@ -530,6 +546,7 @@ ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-ipsecmgr),)
 EXTRA_CFLAGS+= -I$(PKG_BUILD_DIR)/exports \
 			   -I$(STAGING_DIR)/usr/include/qca-nss-ecm
 NSS_CLIENTS_MAKE_OPTS+=ipsecmgr=y
+# NSS_CLIENTS_MAKE_OPTS+=ipsecmgr-klips=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-vlan-mgr),)
@@ -601,6 +618,14 @@ ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-match),)
 NSS_CLIENTS_MAKE_OPTS+=match=y
 endif
 
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-mirror),)
+NSS_CLIENTS_MAKE_OPTS+=mirror=y
+endif
+
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-mscs),)
+NSS_CLIENTS_MAKE_OPTS+=mscs=y
+endif
+
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-wifi-meshmgr),)
 NSS_CLIENTS_MAKE_OPTS+=wifi-meshmgr=y
 endif
@@ -615,6 +640,7 @@ define Build/Compile
 	  IPSECMGR_DIR="$(IPSECMGR_DIR)" \
 	  SoC=$(SOC) \
 	  $(KERNEL_MAKE_FLAGS) \
+	  $(PKG_JOBS) \
 	  modules
 endef
 
@@ -630,8 +656,8 @@ $(eval $(call KernelPackage,qca-nss-drv-lag-mgr))
 $(eval $(call KernelPackage,qca-nss-drv-vlan-mgr))
 $(eval $(call KernelPackage,qca-nss-drv-vxlanmgr))
 $(eval $(call KernelPackage,qca-nss-drv-pvxlanmgr))
-$(eval $(call KernelPackage,qca-nss-drv-ovpn-mgr))
-$(eval $(call KernelPackage,qca-nss-drv-ovpn-link))
+# $(eval $(call KernelPackage,qca-nss-drv-ovpn-mgr))
+# $(eval $(call KernelPackage,qca-nss-drv-ovpn-link))
 $(eval $(call KernelPackage,qca-nss-drv-dtlsmgr))
 $(eval $(call KernelPackage,qca-nss-drv-tlsmgr))
 $(eval $(call KernelPackage,qca-nss-drv-match))
@@ -641,4 +667,6 @@ $(eval $(call KernelPackage,qca-nss-drv-tun6rd))
 $(eval $(call KernelPackage,qca-nss-drv-qdisc))
 $(eval $(call KernelPackage,qca-nss-drv-igs))
 $(eval $(call KernelPackage,qca-nss-drv-netlink))
+$(eval $(call KernelPackage,qca-nss-drv-mirror))
+# $(eval $(call KernelPackage,qca-nss-drv-mscs))
 $(eval $(call KernelPackage,qca-nss-drv-wifi-meshmgr))

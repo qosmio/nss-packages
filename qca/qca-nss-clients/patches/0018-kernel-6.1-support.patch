@@ -308,3 +308,25 @@
  	u64_stats_update_end(&stats.syncp);
  #else
  	struct nss_tun6rd_stats stats;
+--- a/ipsecmgr/v1.0/nss_ipsecmgr.c
++++ b/ipsecmgr/v1.0/nss_ipsecmgr.c
+@@ -445,7 +445,7 @@ static void nss_ipsecmgr_tunnel_setup(st
+ 	/*
+ 	 * get the MAC address from the ethernet device
+ 	 */
+-	random_ether_addr(dev->dev_addr);
++	eth_random_addr((u8 *) dev->dev_addr);
+ 
+ 	memset(dev->broadcast, 0xff, dev->addr_len);
+ 	memcpy(dev->perm_addr, dev->dev_addr, dev->addr_len);
+--- a/ipsecmgr/v2.0/nss_ipsecmgr_tunnel.c
++++ b/ipsecmgr/v2.0/nss_ipsecmgr_tunnel.c
+@@ -445,7 +445,7 @@ static void nss_ipsecmgr_tunnel_setup(st
+ 	/*
+ 	 * Get the MAC address from the ethernet device
+ 	 */
+-	random_ether_addr(dev->dev_addr);
++	eth_random_addr((u8 *) dev->dev_addr);
+ 
+ 	memset(dev->broadcast, 0xff, dev->addr_len);
+ 	memcpy(dev->perm_addr, dev->dev_addr, dev->addr_len);
