@@ -59,8 +59,9 @@ define Build/Compile
 	+$(KERNEL_MAKE) \
 		M="$(PKG_BUILD_DIR)" \
 		SoC="$(subtarget)" \
+		$(PKG_JOBS) \
 		modules
-	+$(MAKE) -C $(PKG_BUILD_DIR) $(strip $(QCA_NSS_MACSEC_CONFIG_OPTS)) -f Makefile.shell
+	+$(MAKE) -C $(PKG_BUILD_DIR) $(strip $(QCA_NSS_MACSEC_CONFIG_OPTS)) $(PKG_JOBS) -f Makefile.shell
 endef
 
 define KernelPackage/qca-nss-macsec/install
