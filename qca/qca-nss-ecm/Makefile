@@ -21,10 +21,6 @@ define KernelPackage/qca-nss-ecm
   SUBMENU:=Network Support
   DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx) \
 		   +@NSS_DRV_IPV6_ENABLE \
-		   +@NSS_DRV_PPE_ENABLE \
-		   +@NSS_DRV_TUN6RD_ENABLE \
-		   +@NSS_DRV_PPPOE_ENABLE \
-		   +@NSS_DRV_PPTP_ENABLE \
 		   +@NSS_DRV_VIRT_IF_ENABLE \
 		   +@NSS_DRV_WIFI_ENABLE \
 		   +kmod-qca-nss-drv \
