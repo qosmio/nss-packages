@@ -1,0 +1,257 @@
+diff --git a/wifi_meshmgr/nss_wifi_meshmgr.c b/wifi_meshmgr/nss_wifi_meshmgr.c
+index 101ecfd..fc4fbd4 100644
+--- a/wifi_meshmgr/nss_wifi_meshmgr.c
++++ b/wifi_meshmgr/nss_wifi_meshmgr.c
+@@ -309,7 +309,7 @@ nss_wifi_meshmgr_status_t nss_wifi_meshmgr_tx_buf(nss_wifi_mesh_handle_t mesh_ha
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_tx_buf)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -343,7 +343,7 @@ nss_wifi_meshmgr_status_t nss_wifi_meshmgr_if_down(nss_wifi_mesh_handle_t mesh_h
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_if_down)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -410,7 +410,7 @@ nss_wifi_meshmgr_status_t nss_wifi_meshmgr_if_up(nss_wifi_mesh_handle_t mesh_han
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_if_up)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -478,7 +478,7 @@ nss_wifi_meshmgr_dump_mesh_path(nss_wifi_mesh_handle_t mesh_handle, nss_wifi_mes
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_dump_mesh_path)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -526,7 +526,7 @@ nss_wifi_meshmgr_dump_mesh_path_sync(nss_wifi_mesh_handle_t mesh_handle)
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_dump_mesh_path_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -573,7 +573,7 @@ nss_wifi_meshmgr_dump_mesh_proxy_path(nss_wifi_mesh_handle_t mesh_handle, nss_wi
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_dump_mesh_proxy_path)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -621,7 +621,7 @@ nss_wifi_meshmgr_dump_mesh_proxy_path_sync(nss_wifi_mesh_handle_t mesh_handle)
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_dump_mesh_proxy_path_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -670,7 +670,7 @@ nss_wifi_meshmgr_assoc_link_vap(nss_wifi_mesh_handle_t mesh_handle, struct nss_w
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_assoc_link_vap)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -739,7 +739,7 @@ nss_wifi_meshmgr_assoc_link_vap_sync(nss_wifi_mesh_handle_t mesh_handle, struct
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_assoc_link_vap_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -788,7 +788,7 @@ nss_wifi_meshmgr_mesh_config_update(nss_wifi_mesh_handle_t mesh_handle, struct n
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_config_update)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -864,7 +864,7 @@ nss_wifi_meshmgr_mesh_config_update_sync(nss_wifi_mesh_handle_t mesh_handle, str
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_config_update_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -913,7 +913,7 @@ nss_wifi_meshmgr_mesh_proxy_path_delete(nss_wifi_mesh_handle_t mesh_handle, stru
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_proxy_path_delete)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -963,7 +963,7 @@ nss_wifi_meshmgr_mesh_proxy_path_delete_sync(nss_wifi_mesh_handle_t mesh_handle,
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_proxy_path_delete_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1012,7 +1012,7 @@ nss_wifi_meshmgr_mesh_proxy_path_update(nss_wifi_mesh_handle_t mesh_handle, stru
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_proxy_path_update)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1062,7 +1062,7 @@ nss_wifi_meshmgr_mesh_proxy_path_update_sync(nss_wifi_mesh_handle_t mesh_handle,
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_proxy_path_update_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1111,7 +1111,7 @@ nss_wifi_meshmgr_mesh_proxy_path_add(nss_wifi_mesh_handle_t mesh_handle, struct
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_proxy_path_add)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1161,7 +1161,7 @@ nss_wifi_meshmgr_mesh_proxy_path_add_sync(nss_wifi_mesh_handle_t mesh_handle, st
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_proxy_path_add_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1210,7 +1210,7 @@ nss_wifi_meshmgr_mesh_path_delete(nss_wifi_mesh_handle_t mesh_handle, struct nss
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_path_delete)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1260,7 +1260,7 @@ nss_wifi_meshmgr_mesh_path_delete_sync(nss_wifi_mesh_handle_t mesh_handle, struc
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_path_delete_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1309,7 +1309,7 @@ nss_wifi_meshmgr_mesh_path_add(nss_wifi_mesh_handle_t mesh_handle, struct nss_wi
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_path_add)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1359,7 +1359,7 @@ nss_wifi_meshmgr_mesh_path_add_sync(nss_wifi_mesh_handle_t mesh_handle, struct n
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_path_add_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1407,7 +1407,7 @@ nss_wifi_meshmgr_mesh_path_update(nss_wifi_mesh_handle_t mesh_handle, struct nss
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_path_update)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1457,7 +1457,7 @@ nss_wifi_meshmgr_mesh_path_update_sync(nss_wifi_mesh_handle_t mesh_handle, struc
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_path_update_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1506,7 +1506,7 @@ nss_wifi_meshmgr_mesh_path_exception(nss_wifi_mesh_handle_t mesh_handle, struct
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_path_exception)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1556,7 +1556,7 @@ nss_wifi_meshmgr_mesh_path_exception_sync(nss_wifi_mesh_handle_t mesh_handle,str
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_mesh_path_exception_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1605,7 +1605,7 @@ nss_wifi_meshmgr_config_mesh_exception(nss_wifi_mesh_handle_t mesh_handle, struc
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_config_mesh_exception)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1680,7 +1680,7 @@ nss_wifi_meshmgr_config_mesh_exception_sync(nss_wifi_mesh_handle_t mesh_handle,s
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_config_mesh_exception_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_NULL_MESH_CTX;
+ 	}
+ 
+@@ -1725,7 +1725,7 @@ nss_wifi_meshmgr_status_t nss_wifi_meshmgr_if_destroy_sync(nss_wifi_mesh_handle_
+ 
+ 	wmesh_ctx = nss_wifi_meshmgr_find_and_ref_inc(mesh_handle);
+ 	if (!wmesh_ctx) {
+-		nss_wifi_meshmgr_warn("%px: Mesh context is null\n", &wmgr_ctx);
++		nss_wifi_meshmgr_warn("%px: Mesh context is null (nss_wifi_meshmgr_if_destroy_sync)\n", &wmgr_ctx);
+ 		return NSS_WIFI_MESHMGR_FAILURE_BAD_PARAM;
+ 	}
+ 
+
