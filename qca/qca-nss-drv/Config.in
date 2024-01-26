@@ -7,6 +7,10 @@ config NSS_DRV_BRIDGE_ENABLE
 	bool
 	default n
 	prompt "Enable BRIDGE"
+config NSS_DRV_CAPWAP_ENABLE
+	bool
+	default n
+	prompt "Enable CAPWAP"
 config NSS_DRV_C2C_ENABLE
 	bool
 	default n
@@ -90,6 +94,10 @@ config NSS_DRV_PORTID_ENABLE
 	bool
 	default n
 	prompt "Enable PORTID"
+config CONFIG_NSS_DRV_LSO_RX_ENABLE
+	bool
+	default n
+	prompt "Enable LSO RX"
 config NSS_DRV_PPE_ENABLE
 	bool
 	default n
@@ -113,11 +121,7 @@ config NSS_DRV_QRFS_ENABLE
 config NSS_DRV_QVPN_ENABLE
 	bool
 	default n
-	prompt "Enable QVPN"
-config NSS_DRV_OVPN_ENABLE
-	bool
-	default n
-	prompt "Enable OVPN"
+	prompt "Enable OpenVpn (QVPN)"
 config NSS_DRV_RMNET_ENABLE
 	bool
 	default n
