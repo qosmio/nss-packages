@@ -19,8 +19,10 @@ START=70
 
 enable_rps() {
 	set_affinity() {
-		irq=$(awk "/$1/{ print substr(\$1, 1, length(\$1)-1); exit }" /proc/interrupts)
+		awk "/$1/{ print substr(\$1, 1, length(\$1)-1) }" /proc/interrupts | while read irq
+	  do
 		[ -n "$irq" ] && echo $2 > /proc/irq/$irq/smp_affinity
+	  done
 	}
 
 	# assign 3 nss queues to each core
