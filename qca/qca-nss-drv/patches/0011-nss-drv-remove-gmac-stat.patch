@@ -1,0 +1,28 @@
+--- a/nss_stats.c
++++ b/nss_stats.c
+@@ -392,9 +392,9 @@ void nss_stats_create_dentry(char *name,
+ /*
+  * gmac_stats_ops
+  */
+-#ifdef NSS_DATA_PLANE_GENERIC_SUPPORT
+-NSS_STATS_DECLARE_FILE_OPERATIONS(gmac);
+-#endif
++// #ifdef NSS_DATA_PLANE_GENERIC_SUPPORT
++// NSS_STATS_DECLARE_FILE_OPERATIONS(gmac);
++// #endif
+ 
+ /*
+  * wt_stats_ops
+@@ -449,9 +449,9 @@ void nss_stats_init(void)
+ 	/*
+ 	 * gmac_stats
+ 	 */
+-#ifdef NSS_DATA_PLANE_GENERIC_SUPPORT
+-	nss_stats_create_dentry("gmac", &nss_gmac_stats_ops);
+-#endif
++// #ifdef NSS_DATA_PLANE_GENERIC_SUPPORT
++// 	nss_stats_create_dentry("gmac", &nss_gmac_stats_ops);
++// #endif
+ 
+ 	/*
+ 	 * Per-project stats
