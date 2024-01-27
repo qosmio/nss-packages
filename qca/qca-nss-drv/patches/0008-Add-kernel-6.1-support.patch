@@ -1,6 +1,6 @@
 --- a/nss_hal/ipq807x/nss_hal_pvt.c
 +++ b/nss_hal/ipq807x/nss_hal_pvt.c
-@@ -659,62 +659,62 @@ static int __nss_hal_request_irq(struct
+@@ -656,62 +656,62 @@ static int __nss_hal_request_irq(struct
  	irq_set_status_flags(irq, IRQ_DISABLE_UNLAZY);
  
  	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_EMPTY_BUFFER_SOS) {
