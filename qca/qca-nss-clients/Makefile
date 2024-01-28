@@ -89,7 +89,7 @@ define KernelPackage/qca-nss-drv-dtlsmgr
   TITLE:=Kernel driver for NSS (connection manager) - dtlsmgr
   DEPENDS:=+@NSS_DRV_DTLS_ENABLE \
 		   +kmod-qca-nss-drv \
-		   +PACKAGE_kmod-qca-nss-cfi-cryptoapi:kmod-qca-nss-cfi-cryptoapi
+		   +kmod-qca-nss-cfi-cryptoapi
   FILES:=$(PKG_BUILD_DIR)/dtls/$(DTLSMGR_DIR)/qca-nss-dtlsmgr.ko
 endef
 
@@ -226,7 +226,7 @@ define KernelPackage/qca-nss-drv-ipsecmgr
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (ipsec manager) - ipsecmgr
-  DEPENDS:=@!TARGET_ipq95xx +kmod-qca-nss-drv +kmod-qca-nss-cfi-cryptoapi \
+  DEPENDS:=@!TARGET_ipq95xx +@NSS_DRV_IPSEC_ENABLE +kmod-qca-nss-drv +kmod-qca-nss-cfi-cryptoapi \
 		+PACKAGE_kmod-qca-nss-drv-l2tpv2:kmod-qca-nss-drv-l2tpv2
   FILES:=$(PKG_BUILD_DIR)/ipsecmgr/$(IPSECMGR_DIR)/qca-nss-ipsecmgr.ko
   AUTOLOAD:=$(call AutoLoad,60,qca-nss-ipsecmgr)
@@ -382,9 +382,12 @@ define KernelPackage/qca-nss-drv-netlink
   DEPENDS:=+@NSS_DRV_C2C_ENABLE +@NSS_DRV_GRE_ENABLE +@NSS_DRV_GRE_REDIR_ENABLE \
 		   +@NSS_DRV_IPV4_REASM_ENABLE +@NSS_DRV_IPV6_ENABLE +@NSS_DRV_IPV6_REASM_ENABLE \
 		   +@NSS_DRV_RMNET_ENABLE +@NSS_DRV_OAM_ENABLE +@NSS_DRV_QRFS_ENABLE +@NSS_DRV_L2TP_ENABLE +@NSS_DRV_MAPT_ENABLE \
-		   +@NSS_DRV_CAPWAP_ENABLE +@NSS_DRV_LSO_RX_ENABLE \
-		   +kmod-pppoe +kmod-qca-nss-drv-dtlsmgr \
-		   +PACKAGE_kmod-qca-nss-drv-ipsecmgr:kmod-qca-nss-drv-ipsecmgr \
+		   +@NSS_DRV_CAPWAP_ENABLE +@NSS_DRV_LSO_RX_ENABLE +@NSS_DRV_UDP_ST_ENABLE +@NSS_DRV_PPTP_ENABLE +@NSS_DRV_WIFI_LEGACY_ENABLE \
+		   +@NSS_DRV_PPPOE_ENABLE \
+		   +kmod-ppp \
+		   +kmod-pppoe \
+		   +kmod-qca-nss-drv-dtlsmgr \
+		   +kmod-qca-nss-drv-ipsecmgr \
 		   +kmod-qca-nss-drv
   TITLE:=NSS NETLINK Manager for QCA NSS driver
   FILES:=$(PKG_BUILD_DIR)/netlink/qca-nss-netlink.ko
@@ -401,7 +404,7 @@ define KernelPackage/qca-nss-drv-ovpn-mgr
   TITLE:=Kernel driver for NSS OpenVPN manager
   DEPENDS:=@(TARGET_ipq_ipq807x||TARGET_ipq_ipq807x_64||TARGET_ipq807x||TARGET_qualcommax||TARGET_ipq_ipq60xx||TARGET_ipq_ipq60xx_64||TARGET_ipq60xx) \
 		   +@NSS_DRV_QVPN_ENABLE +kmod-qca-nss-drv +kmod-tun +kmod-ipt-conntrack \
-		   +PACKAGE_kmod-qca-nss-cfi-cryptoapi:kmod-qca-nss-cfi-cryptoapi
+		   +kmod-qca-nss-cfi-cryptoapi
   FILES:=$(PKG_BUILD_DIR)/openvpn/src/qca-nss-ovpn-mgr.ko
 endef
 

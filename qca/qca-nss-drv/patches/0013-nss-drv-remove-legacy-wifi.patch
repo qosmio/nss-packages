@@ -1,16 +1,23 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -352,10 +352,14 @@ endif
+@@ -350,12 +350,19 @@ qca-nss-drv-objs += \
+ 			nss_pppoe_strings.o
+ endif
  
- ifneq "$(NSS_DRV_WIFIOFFLOAD_ENABLE)" "n"
- ccflags-y += -DNSS_DRV_WIFIOFFLOAD_ENABLE
-+ifeq ($(SoC),$(filter $(SoC),ipq806x))
+-ifneq "$(NSS_DRV_WIFIOFFLOAD_ENABLE)" "n"
+-ccflags-y += -DNSS_DRV_WIFIOFFLOAD_ENABLE
++ifneq "$(NSS_DRV_WIFI_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_WIFI_ENABLE
++ifneq "$(NSS_DRV_WIFI_LEGACY_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_WIFI_LEGACY_ENABLE
  qca-nss-drv-objs += \
  			nss_wifi.o \
  			nss_wifi_log.o \
 -			nss_wifi_stats.o \
 +			nss_wifi_stats.o
++ifeq ($(SoC),$(filter $(SoC),ipq806x))
 +ccflags-y += -DNSS_HAL_IPQ806x_SUPPORT
++endif
 +endif
 +qca-nss-drv-objs += \
  			nss_wifi_vdev.o \

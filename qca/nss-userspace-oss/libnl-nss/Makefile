@@ -11,7 +11,7 @@ define Package/libnl-nss
   SECTION:=Libs
   CATEGORY:=Libraries
   TITLE:=Framework to communicate between userspace applications and the kernel.
-  DEPENDS:=+libpthread +libnl +@NSS_DRV_CRYPTO_ENABLE +kmod-qca-nss-drv-netlink
+  DEPENDS:=+libpthread +libnl +@NSS_DRV_CRYPTO_ENABLE
 endef
 
 define Package/libnl-nss/description

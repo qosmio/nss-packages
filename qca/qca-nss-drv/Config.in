@@ -94,7 +94,7 @@ config NSS_DRV_PORTID_ENABLE
 	bool
 	default n
 	prompt "Enable PORTID"
-config CONFIG_NSS_DRV_LSO_RX_ENABLE
+config NSS_DRV_LSO_RX_ENABLE
 	bool
 	default n
 	prompt "Enable LSO RX"
@@ -142,6 +142,10 @@ config NSS_DRV_TRUSTSEC_ENABLE
 	bool
 	default n
 	prompt "Enable TRUSTSEC"
+config NSS_DRV_UDP_ST_ENABLE
+	bool
+	default n
+	prompt "Enable UDP Speedtest"
 config NSS_DRV_TRUSTSEC_RX_ENABLE
 	bool
 	default n
@@ -185,4 +189,8 @@ config NSS_DRV_WIFI_MESH_ENABLE
 	default n
 	depends on NSS_DRV_WIFI_ENABLE
 	prompt "Enable WIFI MESH"
+config NSS_DRV_WIFI_LEGACY_ENABLE
+	bool
+	default n
+	prompt "Enable Legacy WIFI"
 endmenu
