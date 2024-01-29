@@ -166,7 +166,7 @@ define KernelPackage/qca-nss-drv-map-t
   SUBMENU:=Network Devices
   TITLE:=Kernel driver for NSS (connection manager) - MAP-T
   DEPENDS:=+@NSS_DRV_MAPT_ENABLE \
-		   +PACKAGE_kmod-nat46:kmod-nat46 \
+		   +kmod-nat46 \
 		   +kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/map/map-t/qca-nss-map-t.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-map-t)
@@ -212,7 +212,7 @@ define KernelPackage/qca-nss-drv-profile
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
-  DEPENDS:=@!TARGET_ipq95xx +kmod-qca-nss-drv @!LINUX_3_18
+  DEPENDS:=@TARGET_ipq_ipq806x +kmod-qca-nss-drv
   TITLE:=Profiler for QCA NSS driver (IPQ806x)
   FILES:=$(PKG_BUILD_DIR)/profiler/qca-nss-profile-drv.ko
 endef
@@ -268,7 +268,7 @@ define KernelPackage/qca-nss-drv-capwapmgr
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
-  DEPENDS:=@!TARGET_ipq95xx +kmod-qca-nss-drv +kmod-qca-nss-drv-dtlsmgr @!LINUX_3_18
+  DEPENDS:=@!TARGET_ipq95xx +kmod-qca-nss-drv +kmod-qca-nss-drv-dtlsmgr +@NSS_DRV_TRUSTSEC_ENABLE
   TITLE:=NSS CAPWAP Manager for QCA NSS driver (IPQ806x)
   FILES:=$(PKG_BUILD_DIR)/capwapmgr/qca-nss-capwapmgr.ko
 endef
@@ -384,11 +384,12 @@ define KernelPackage/qca-nss-drv-netlink
 		   +@NSS_DRV_RMNET_ENABLE +@NSS_DRV_OAM_ENABLE +@NSS_DRV_QRFS_ENABLE +@NSS_DRV_L2TP_ENABLE +@NSS_DRV_MAPT_ENABLE \
 		   +@NSS_DRV_CAPWAP_ENABLE +@NSS_DRV_LSO_RX_ENABLE +@NSS_DRV_UDP_ST_ENABLE +@NSS_DRV_PPTP_ENABLE +@NSS_DRV_WIFI_LEGACY_ENABLE \
 		   +@NSS_DRV_PPPOE_ENABLE \
+		   +kmod-qca-nss-drv \
 		   +kmod-ppp \
 		   +kmod-pppoe \
-		   +kmod-qca-nss-drv-dtlsmgr \
-		   +kmod-qca-nss-drv-ipsecmgr \
-		   +kmod-qca-nss-drv
+		   +PACKAGE_kmod-qca-nss-drv-ipsecmgr:kmod-qca-nss-drv-ipsecmgr \
+		   +PACKAGE_kmod-qca-nss-drv-dtlsmgr:kmod-qca-nss-drv-dtlsmgr \
+		   +PACKAGE_kmod-qca-nss-drv-capwapmgr:kmod-qca-nss-drv-capwapmgr
   TITLE:=NSS NETLINK Manager for QCA NSS driver
   FILES:=$(PKG_BUILD_DIR)/netlink/qca-nss-netlink.ko
 endef
@@ -778,5 +779,5 @@ $(eval $(call KernelPackage,qca-nss-drv-vxlanmgr))
 $(eval $(call KernelPackage,qca-nss-drv-match))
 $(eval $(call KernelPackage,qca-nss-drv-tlsmgr))
 $(eval $(call KernelPackage,qca-nss-drv-mirror))
-# $(eval $(call KernelPackage,qca-nss-drv-mscs))
+$(eval $(call KernelPackage,qca-nss-drv-mscs))
 $(eval $(call KernelPackage,qca-nss-drv-wifi-meshmgr))
