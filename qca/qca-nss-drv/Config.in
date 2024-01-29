@@ -175,19 +175,19 @@ config NSS_DRV_VXLAN_ENABLE
 	bool
 	default n
 	prompt "Enable VXLAN"
-config NSS_DRV_WIFI_ENABLE
+config NSS_DRV_WIFIOFFLOAD_ENABLE
 	bool
 	default n
 	prompt "Enable WIFI"
 config NSS_DRV_WIFI_EXT_VDEV_ENABLE
 	bool
 	default n
-	depends on NSS_DRV_WIFI_ENABLE
+	depends on NSS_DRV_WIFIOFFLOAD_ENABLE
 	prompt "Enable WIFI EXT VDEV"
 config NSS_DRV_WIFI_MESH_ENABLE
 	bool
 	default n
-	depends on NSS_DRV_WIFI_ENABLE
+	depends on NSS_DRV_WIFIOFFLOAD_ENABLE
 	prompt "Enable WIFI MESH"
 config NSS_DRV_WIFI_LEGACY_ENABLE
 	bool

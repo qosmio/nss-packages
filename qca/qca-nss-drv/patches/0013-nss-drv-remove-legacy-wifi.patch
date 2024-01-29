@@ -1,13 +1,9 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -350,12 +350,19 @@ qca-nss-drv-objs += \
- 			nss_pppoe_strings.o
- endif
+@@ -351,10 +351,17 @@ endif
  
--ifneq "$(NSS_DRV_WIFIOFFLOAD_ENABLE)" "n"
--ccflags-y += -DNSS_DRV_WIFIOFFLOAD_ENABLE
-+ifneq "$(NSS_DRV_WIFI_ENABLE)" "n"
-+ccflags-y += -DNSS_DRV_WIFI_ENABLE
+ ifneq "$(NSS_DRV_WIFIOFFLOAD_ENABLE)" "n"
+ ccflags-y += -DNSS_DRV_WIFIOFFLOAD_ENABLE
 +ifneq "$(NSS_DRV_WIFI_LEGACY_ENABLE)" "n"
 +ccflags-y += -DNSS_DRV_WIFI_LEGACY_ENABLE
  qca-nss-drv-objs += \
