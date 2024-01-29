@@ -32,6 +32,7 @@ define KernelPackage/qca-nss-ecm
 		   +PACKAGE_kmod-nat46:kmod-nat46 \
 		   +PACKAGE_kmod-pppoe:kmod-pppoe \
 		   +PACKAGE_kmod-pppoe:kmod-pptp \
+		   +PACKAGE_kmod-pppoe:kmod-pppol2tp \
 		   +@(PACKAGE_kmod-pppoe):NSS_DRV_PPPOE_ENABLE
   TITLE:=QCA NSS Enhanced Connection Manager (ECM)
   FILES:=$(PKG_BUILD_DIR)/ecm.ko
