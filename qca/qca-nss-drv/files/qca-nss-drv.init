@@ -18,38 +18,36 @@
 START=70
 
 enable_rps() {
-	set_affinity() {
-		awk "/$1/{ print substr(\$1, 1, length(\$1)-1) }" /proc/interrupts | while read irq
-	  do
-		[ -n "$irq" ] && echo $2 > /proc/irq/$irq/smp_affinity
-	  done
-	}
-	set_affinity_last() {
-		awk "/$1/{sub(/:/,\"\");last=\$1} END{print last}" /proc/interrupts| while read irq
-	  do
-		[ -n "$irq" ] && echo $2 > /proc/irq/$irq/smp_affinity
-	  done
-	}
+  set_affinity() {
+    awk "/$1/{ print substr(\$1, 1, length(\$1)-1) }" /proc/interrupts | while read -r irq; do
+      [ -n "$irq" ] && echo "$2" > /proc/irq/"$irq"/smp_affinity
+    done
+  }
+  set_affinity_last() {
+    awk "/$1/{sub(/:/,\"\");last=\$1} END{print last}" /proc/interrupts | while read -r irq; do
+      [ -n "$irq" ] && echo "$2" > /proc/irq/"$irq"/smp_affinity
+    done
+  }
 
-	# assign 3 nss queues to each core
-	set_affinity 'nss_queue1' 2
-	set_affinity 'nss_queue2' 4
-	set_affinity 'nss_queue3' 8
-	set_affinity 'nss_queue0' 1
+  # assign 3 nss queues to each core
+  set_affinity 'nss_queue1' 2
+  set_affinity 'nss_queue2' 4
+  set_affinity 'nss_queue3' 8
+  set_affinity 'nss_queue0' 1
 
-	# assign lan/wan to core 4
-	set_affinity 'nss_empty_buf_sos' 4
-	set_affinity 'nss_empty_buf_queue' 4
-	set_affinity_last 'nss_empty_buf_sos' 8
+  # assign nss buffer sos/queues to core 3
+  set_affinity 'nss_empty_buf_sos' 8
+  set_affinity 'nss_empty_buf_queue' 8
+  set_affinity_last 'nss_empty_buf_sos' 8
 
-	# Enable NSS RPS
-	sysctl -w dev.nss.rps.enable=1 > /dev/null 2> /dev/null
+  # Enable NSS RPS
+  sysctl -w dev.nss.rps.enable=1 > /dev/null 2> /dev/null
 }
 
 start() {
-	local rps_enabled="$(uci_get nss @general[0] enable_rps)"
-	if [ "$rps_enabled" -eq 1 ]; then
-	  enable_rps
-	fi
+  local rps_enabled
+  rps_enabled="$(uci_get nss @general[0] enable_rps)"
+  if [ "$rps_enabled" -eq 1 ]; then
+    enable_rps
+  fi
 }
-
