@@ -1,20 +1,20 @@
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=qca-nss-drv
 PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2020-03-20
-PKG_SOURCE_VERSION:=3cfb9f43
-PKG_MIRROR_HASH:=87ab6dab1c0a441b2df95b6c5d992f86a07c6ecd69a0d13eba35014fadaf98d8
+PKG_SOURCE_DATE:=2021-07-13
+PKG_SOURCE_VERSION:=22b485ac89a3a1b60f3a6d5b2fe3236d170934b9
+PKG_MIRROR_HASH:=d3129748ddc303f3c211c4bf61d8ddbc9096c1a3a411dff3cc2be884a2e829b8
+
 PKG_BUILD_PARALLEL:=1
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_DRV_BRIDGE_ENABLE \
-	CONFIG_NSS_DRV_C2C_ENABLE \
 	CONFIG_NSS_DRV_CAPWAP_ENABLE \
+	CONFIG_NSS_DRV_C2C_ENABLE \
 	CONFIG_NSS_DRV_CLMAP_ENABLE \
 	CONFIG_NSS_DRV_CRYPTO_ENABLE \
 	CONFIG_NSS_DRV_DMA_ENABLE \
@@ -28,6 +28,7 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_DRV_IPV4_REASM_ENABLE \
 	CONFIG_NSS_DRV_IPV6_ENABLE \
 	CONFIG_NSS_DRV_IPV6_REASM_ENABLE \
+	CONFIG_NSS_DRV_LSO_RX_ENABLE \
 	CONFIG_NSS_DRV_L2TP_ENABLE \
 	CONFIG_NSS_DRV_LAG_ENABLE \
 	CONFIG_NSS_DRV_MAPT_ENABLE \
@@ -44,17 +45,25 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_DRV_RMNET_ENABLE \
 	CONFIG_NSS_DRV_SHAPER_ENABLE \
 	CONFIG_NSS_DRV_SJACK_ENABLE \
+	CONFIG_NSS_DRV_UDP_ST_ENABLE \
 	CONFIG_NSS_DRV_TLS_ENABLE \
 	CONFIG_NSS_DRV_TRUSTSEC_ENABLE \
+	CONFIG_NSS_DRV_TRUSTSEC_RX_ENABLE \
 	CONFIG_NSS_DRV_TSTAMP_ENABLE \
 	CONFIG_NSS_DRV_TUN6RD_ENABLE \
 	CONFIG_NSS_DRV_TUNIPIP6_ENABLE \
 	CONFIG_NSS_DRV_VIRT_IF_ENABLE \
 	CONFIG_NSS_DRV_VLAN_ENABLE \
 	CONFIG_NSS_DRV_VXLAN_ENABLE \
-	CONFIG_NSS_DRV_WIFI_ENABLE
+	CONFIG_NSS_DRV_WIFIOFFLOAD_ENABLE \
+	CONFIG_NSS_DRV_WIFI_EXT_VDEV_ENABLE \
+	CONFIG_NSS_DRV_WIFI_MESH_ENABLE \
+	CONFIG_NSS_DRV_WIFI_LEGACY_ENABLE
 
+include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
+
+NSS_CLIENTS_DIR:=$(TOPDIR)/qca/src/qca-nss-clients
 
 define KernelPackage/qca-nss-drv
   SECTION:=kernel
@@ -72,20 +81,18 @@ define KernelPackage/qca-nss-drv/config
 endef
 
 define KernelPackage/qca-nss-drv/install
-	$(INSTALL_DIR) $(1)/sbin
-	$(INSTALL_DIR) $(1)/lib/debug
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_DIR) $(1)/etc/sysctl.d
-	$(INSTALL_DIR) $(1)/etc/hotplug.d/firmware
 	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/firmware
+	$(INSTALL_DIR) $(1)/lib/debug
 	$(INSTALL_DIR) $(1)/lib/firmware
 
-	$(INSTALL_BIN) ./files/qca-nss-drv.sysdebug $(1)/sbin/sysdebug
-	$(INSTALL_BIN) ./files/qca-nss-drv.debug $(1)/lib/debug/qca-nss-drv
 	$(INSTALL_BIN) ./files/qca-nss-drv.init $(1)/etc/init.d/qca-nss-drv
-	$(INSTALL_DATA) ./files/qca-nss-drv.sysctl $(1)/etc/sysctl.d/99-qca-nss-drv.conf
+	$(INSTALL_BIN) ./files/qca-nss-drv.sysctl $(1)/etc/sysctl.d/qca-nss-drv.conf
+	$(INSTALL_BIN) ./files/qca-nss-drv.conf $(1)/etc/config/nss
 	$(INSTALL_BIN) ./files/qca-nss-drv.hotplug $(1)/etc/hotplug.d/firmware/10-qca-nss-fw
-	$(INSTALL_DATA) ./files/qca-nss-drv.conf $(1)/etc/config/nss
+	$(INSTALL_BIN) ./files/qca-nss-drv.debug $(1)/lib/debug/qca-nss-drv
 	$(INSTALL_DATA) ./files/nss-firmware/qca-nss0-retail.bin $(1)/lib/firmware/qca-nss0.bin
 	$(INSTALL_DATA) ./files/nss-firmware/qca-nss1-retail.bin $(1)/lib/firmware/qca-nss1.bin
 
@@ -105,7 +112,10 @@ ifneq (, $(findstring $(subtarget), "ipq807x" "ipq807x_64" "ipq60xx" "ipq60xx_64
 endif
 endef
 
-EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-nss-gmac -I$(STAGING_DIR)/usr/include/qca-nss-dp
+EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-nss-gmac \
+			   -I$(STAGING_DIR)/usr/include/qca-nss-dp \
+			   -I$(STAGING_DIR)/usr/include/qca-ssdk \
+			   -Wno-unused-variable
 
 # Keeping default as ipq806x for branches that does not have subtarget framework
 ifeq ($(CONFIG_TARGET_ipq),y)
@@ -140,9 +150,6 @@ endif
 ifndef CONFIG_NSS_DRV_C2C_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_C2C_ENABLE=n
 endif
-ifndef CONFIG_NSS_DRV_CAPWAP_ENABLE
-   DRV_MAKE_OPTS += NSS_DRV_CAPWAP_ENABLE=n
-endif
 ifndef CONFIG_NSS_DRV_CLMAP_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_CLMAP_ENABLE=n
 endif
@@ -159,7 +166,9 @@ ifndef CONFIG_NSS_DRV_EDMA_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_EDMA_ENABLE=n
 endif
 ifndef CONFIG_NSS_DRV_GRE_ENABLE
+ifndef CONFIG_PACKAGE_kmod-gre
    DRV_MAKE_OPTS += NSS_DRV_GRE_ENABLE=n
+endif
 endif
 ifndef CONFIG_NSS_DRV_GRE_REDIR_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_GRE_REDIR_ENABLE=n
@@ -171,7 +180,9 @@ ifndef CONFIG_NSS_DRV_IGS_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_IGS_ENABLE=n
 endif
 ifndef CONFIG_NSS_DRV_IPSEC_ENABLE
+ifndef CONFIG_PACKAGE_kmod-ipsec
    DRV_MAKE_OPTS += NSS_DRV_IPSEC_ENABLE=n
+endif
 endif
 ifndef CONFIG_NSS_DRV_IPV4_REASM_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_IPV4_REASM_ENABLE=n
@@ -183,13 +194,17 @@ ifndef CONFIG_NSS_DRV_IPV6_REASM_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_IPV6_REASM_ENABLE=n
 endif
 ifndef CONFIG_NSS_DRV_L2TP_ENABLE
+ifndef CONFIG_PACKAGE_kmod-l2tp
    DRV_MAKE_OPTS += NSS_DRV_L2TP_ENABLE=n
+endif
 endif
 ifndef CONFIG_NSS_DRV_LAG_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_LAG_ENABLE=n
 endif
 ifndef CONFIG_NSS_DRV_MAPT_ENABLE
+ifndef CONFIG_PACKAGE_kmod-nat46
    DRV_MAKE_OPTS += NSS_DRV_MAPT_ENABLE=n
+endif
 endif
 ifndef CONFIG_NSS_DRV_MATCH_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_MATCH_ENABLE=n
@@ -207,10 +222,14 @@ ifndef CONFIG_NSS_DRV_PPE_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_PPE_ENABLE=n
 endif
 ifndef CONFIG_NSS_DRV_PPPOE_ENABLE
+ifndef CONFIG_PACKAGE_kmod-pppoe
    DRV_MAKE_OPTS += NSS_DRV_PPPOE_ENABLE=n
 endif
+endif
 ifndef CONFIG_NSS_DRV_PPTP_ENABLE
+ifndef CONFIG_PACKAGE_kmod-pptp
    DRV_MAKE_OPTS += NSS_DRV_PPTP_ENABLE=n
+endif
 endif
 ifndef CONFIG_NSS_DRV_PVXLAN_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_PVXLAN_ENABLE=n
@@ -220,6 +239,9 @@ ifndef CONFIG_NSS_DRV_QRFS_ENABLE
 endif
 ifndef CONFIG_NSS_DRV_QVPN_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_QVPN_ENABLE=n
+endif
+ifndef CONFIG_NSS_DRV_OVPN_ENABLE
+   DRV_MAKE_OPTS += NSS_DRV_OVPN_ENABLE=n
 endif
 ifndef CONFIG_NSS_DRV_RMNET_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_RMNET_ENABLE=n
@@ -236,11 +258,16 @@ endif
 ifndef CONFIG_NSS_DRV_TRUSTSEC_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_TRUSTSEC_ENABLE=n
 endif
+ifndef CONFIG_NSS_DRV_TRUSTSEC_RX_ENABLE
+   DRV_MAKE_OPTS += NSS_DRV_TRUSTSEC_RX_ENABLE=n
+endif
 ifndef CONFIG_NSS_DRV_TSTAMP_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_TSTAMP_ENABLE=n
 endif
 ifndef CONFIG_NSS_DRV_TUN6RD_ENABLE
+ifndef CONFIG_PACKAGE_kmod-sit
    DRV_MAKE_OPTS += NSS_DRV_TUN6RD_ENABLE=n
+endif
 endif
 ifndef CONFIG_NSS_DRV_TUNIPIP6_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_TUNIPIP6_ENABLE=n
@@ -254,8 +281,26 @@ endif
 ifndef CONFIG_NSS_DRV_VXLAN_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_VXLAN_ENABLE=n
 endif
-ifndef CONFIG_NSS_DRV_WIFI_ENABLE
-   DRV_MAKE_OPTS += NSS_DRV_WIFI_ENABLE=n
+ifndef CONFIG_NSS_DRV_WIFIOFFLOAD_ENABLE
+   DRV_MAKE_OPTS += NSS_DRV_WIFIOFFLOAD_ENABLE=n
+endif
+ifndef CONFIG_NSS_DRV_WIFI_EXT_VDEV_ENABLE
+   DRV_MAKE_OPTS += NSS_DRV_WIFI_EXT_VDEV_ENABLE=n
+endif
+ifndef CONFIG_NSS_DRV_WIFI_MESH_ENABLE
+   DRV_MAKE_OPTS += NSS_DRV_WIFI_MESH_ENABLE=n
+endif
+ifndef CONFIG_NSS_DRV_UDP_ST_ENABLE
+   DRV_MAKE_OPTS += NSS_DRV_UDP_ST_ENABLE=n
+endif
+ifndef CONFIG_NSS_DRV_CAPWAP_ENABLE
+   DRV_MAKE_OPTS += NSS_DRV_CAPWAP_ENABLE=n
+endif
+ifndef CONFIG_NSS_DRV_LSO_RX_ENABLE
+   DRV_MAKE_OPTS += NSS_DRV_LSO_RX_ENABLE=n
+endif
+ifndef CONFIG_NSS_DRV_WIFI_LEGACY_ENABLE
+   DRV_MAKE_OPTS += NSS_DRV_WIFI_LEGACY_ENABLE=n
 endif
 
 ifeq ($(CONFIG_TARGET_BOARD), "ipq806x")
@@ -271,12 +316,14 @@ define Build/Configure
 endef
 
 define Build/Compile
-	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(DRV_MAKE_OPTS)) \
+	+$(MAKE) -C "$(LINUX_DIR)" $(strip $(DRV_MAKE_OPTS)) \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		ARCH="$(LINUX_KARCH)" \
 		M="$(PKG_BUILD_DIR)" \
-		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" SoC=$(SOC) \
+		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
+		SoC=$(SOC) \
 		$(KERNEL_MAKE_FLAGS) \
+		$(PKG_JOBS) \
 		modules
 endef
 

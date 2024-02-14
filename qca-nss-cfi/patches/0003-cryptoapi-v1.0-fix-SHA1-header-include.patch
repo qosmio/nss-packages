@@ -1,0 +1,237 @@
+--- a/cryptoapi/v1.0/nss_cryptoapi.c
++++ b/cryptoapi/v1.0/nss_cryptoapi.c
+@@ -38,7 +38,12 @@
+ #include <crypto/ctr.h>
+ #include <crypto/des.h>
+ #include <crypto/aes.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
+ #include <crypto/sha.h>
++#else
++#include <crypto/sha1.h>
++#include <crypto/sha2.h>
++#endif
+ #include <crypto/hash.h>
+ #include <crypto/algapi.h>
+ #include <crypto/aead.h>
+--- a/cryptoapi/v1.0/nss_cryptoapi_ablk.c
++++ b/cryptoapi/v1.0/nss_cryptoapi_ablk.c
+@@ -37,7 +37,12 @@
+ #include <crypto/ctr.h>
+ #include <crypto/des.h>
+ #include <crypto/aes.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
+ #include <crypto/sha.h>
++#else
++#include <crypto/sha1.h>
++#include <crypto/sha2.h>
++#endif
+ #include <crypto/hash.h>
+ #include <crypto/algapi.h>
+ #include <crypto/aead.h>
+@@ -175,7 +180,7 @@ int nss_cryptoapi_ablk_aes_setkey(struct
+ 	struct nss_cryptoapi_ctx *ctx = crypto_tfm_ctx(tfm);
+ 	struct nss_cryptoapi *sc = &gbl_ctx;
+ 	struct nss_crypto_key cip;
+-	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
++// 	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
+ 	nss_crypto_status_t status;
+ 	bool ctr_mode = false;
+ 	bool cbc_mode = false;
+@@ -277,7 +282,7 @@ int nss_cryptoapi_ablk_aes_setkey(struct
+ 	if (status != NSS_CRYPTO_STATUS_OK) {
+ 		nss_cfi_err("nss_crypto_session_alloc failed - status: %d\n", status);
+ 		ctx->sid = NSS_CRYPTO_MAX_IDXS;
+-		flag = CRYPTO_TFM_RES_BAD_FLAGS;
++// 		flag = CRYPTO_TFM_RES_BAD_FLAGS;
+ 		goto fail;
+ 	}
+ 
+@@ -290,7 +295,7 @@ int nss_cryptoapi_ablk_aes_setkey(struct
+ 	return 0;
+ 
+ fail:
+-	crypto_ablkcipher_set_flags(cipher, flag);
++// 	crypto_ablkcipher_set_flags(cipher, flag);
+ 	return -EINVAL;
+ }
+ 
+@@ -645,7 +650,7 @@ int nss_cryptoapi_3des_cbc_setkey(struct
+ 	struct nss_cryptoapi *sc = &gbl_ctx;
+ 	struct nss_crypto_key cip = { .algo = NSS_CRYPTO_CIPHER_DES };
+ 	struct nss_crypto_key *cip_ptr = &cip;
+-	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
++// 	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
+ 	nss_crypto_status_t status;
+ 
+ 	/*
+@@ -680,7 +685,7 @@ int nss_cryptoapi_3des_cbc_setkey(struct
+ 	if (status != NSS_CRYPTO_STATUS_OK) {
+ 		nss_cfi_err("nss_crypto_session_alloc failed - status: %d\n", status);
+ 		ctx->sid = NSS_CRYPTO_MAX_IDXS;
+-		flag = CRYPTO_TFM_RES_BAD_FLAGS;
++// 		flag = CRYPTO_TFM_RES_BAD_FLAGS;
+ 		goto fail;
+ 	}
+ 
+@@ -693,7 +698,7 @@ int nss_cryptoapi_3des_cbc_setkey(struct
+ 	return 0;
+ 
+ fail:
+-	crypto_ablkcipher_set_flags(cipher, flag);
++// 	crypto_ablkcipher_set_flags(cipher, flag);
+ 	return -EINVAL;
+ }
+ 
+--- a/cryptoapi/v1.0/nss_cryptoapi_aead.c
++++ b/cryptoapi/v1.0/nss_cryptoapi_aead.c
+@@ -38,7 +38,12 @@
+ #include <crypto/ctr.h>
+ #include <crypto/des.h>
+ #include <crypto/aes.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
+ #include <crypto/sha.h>
++#else
++#include <crypto/sha1.h>
++#include <crypto/sha2.h>
++#endif
+ #include <crypto/hash.h>
+ #include <crypto/algapi.h>
+ #include <crypto/aead.h>
+@@ -225,7 +230,7 @@ int nss_cryptoapi_aead_aes_setkey(struct
+ 	struct nss_cryptoapi *sc = &gbl_ctx;
+ 	struct nss_crypto_key cip;
+ 	struct nss_crypto_key auth;
+-	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
++// 	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
+ 	nss_crypto_status_t status;
+ 	bool ctr_mode = false;
+ 	bool cbc_mode = false;
+@@ -346,7 +351,7 @@ int nss_cryptoapi_aead_aes_setkey(struct
+ 	if (status != NSS_CRYPTO_STATUS_OK) {
+ 		nss_cfi_err("nss_crypto_session_alloc failed - status: %d\n", status);
+ 		ctx->sid = NSS_CRYPTO_MAX_IDXS;
+-		flag = CRYPTO_TFM_RES_BAD_FLAGS;
++// 		flag = CRYPTO_TFM_RES_BAD_FLAGS;
+ 		goto fail;
+ 	}
+ 
+@@ -363,7 +368,7 @@ int nss_cryptoapi_aead_aes_setkey(struct
+ 	return 0;
+ 
+ fail:
+-	crypto_aead_set_flags(aead, flag);
++// 	crypto_aead_set_flags(aead, flag);
+ 	return -EINVAL;
+ }
+ 
+@@ -378,7 +383,7 @@ int nss_cryptoapi_sha1_3des_setkey(struc
+ 	struct nss_cryptoapi *sc = &gbl_ctx;
+ 	struct nss_crypto_key cip = { .algo = NSS_CRYPTO_CIPHER_DES };
+ 	struct nss_crypto_key auth = { .algo = NSS_CRYPTO_AUTH_SHA1_HMAC };
+-	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
++// 	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
+ 	nss_crypto_status_t status;
+ 
+ 	/*
+@@ -427,7 +432,7 @@ int nss_cryptoapi_sha1_3des_setkey(struc
+ 	if (status != NSS_CRYPTO_STATUS_OK) {
+ 		nss_cfi_err("nss_crypto_session_alloc failed - status: %d\n", status);
+ 		ctx->sid = NSS_CRYPTO_MAX_IDXS;
+-		flag = CRYPTO_TFM_RES_BAD_FLAGS;
++// 		flag = CRYPTO_TFM_RES_BAD_FLAGS;
+ 		goto fail;
+ 	}
+ 
+@@ -446,7 +451,7 @@ int nss_cryptoapi_sha1_3des_setkey(struc
+ 	return 0;
+ 
+ fail:
+-	crypto_aead_set_flags(aead, flag);
++// 	crypto_aead_set_flags(aead, flag);
+ 	return -EINVAL;
+ }
+ 
+@@ -461,7 +466,7 @@ int nss_cryptoapi_sha256_3des_setkey(str
+ 	struct nss_cryptoapi *sc = &gbl_ctx;
+ 	struct nss_crypto_key cip = { .algo = NSS_CRYPTO_CIPHER_DES };
+ 	struct nss_crypto_key auth = { .algo = NSS_CRYPTO_AUTH_SHA256_HMAC };
+-	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
++// 	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
+ 	nss_crypto_status_t status;
+ 
+ 	/*
+@@ -510,7 +515,7 @@ int nss_cryptoapi_sha256_3des_setkey(str
+ 	if (status != NSS_CRYPTO_STATUS_OK) {
+ 		nss_cfi_err("nss_crypto_session_alloc failed - status: %d\n", status);
+ 		ctx->sid = NSS_CRYPTO_MAX_IDXS;
+-		flag = CRYPTO_TFM_RES_BAD_FLAGS;
++// 		flag = CRYPTO_TFM_RES_BAD_FLAGS;
+ 		goto fail;
+ 	}
+ 
+@@ -529,7 +534,7 @@ int nss_cryptoapi_sha256_3des_setkey(str
+ 	return 0;
+ 
+ fail:
+-	crypto_aead_set_flags(aead, flag);
++// 	crypto_aead_set_flags(aead, flag);
+ 	return -EINVAL;
+ }
+ 
+--- a/cryptoapi/v1.0/nss_cryptoapi_ahash.c
++++ b/cryptoapi/v1.0/nss_cryptoapi_ahash.c
+@@ -35,7 +35,12 @@
+ #include <linux/debugfs.h>
+ 
+ #include <crypto/aes.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
+ #include <crypto/sha.h>
++#else
++#include <crypto/sha1.h>
++#include <crypto/sha2.h>
++#endif
+ #include <crypto/hash.h>
+ #include <crypto/algapi.h>
+ #include <crypto/scatterwalk.h>
+@@ -151,7 +156,7 @@ int nss_cryptoapi_ahash_setkey(struct cr
+ 	struct nss_cryptoapi *sc = &gbl_ctx;
+ 	struct nss_crypto_key auth;
+ 	struct nss_crypto_key cipher = { .algo = NSS_CRYPTO_CIPHER_AES_CBC };
+-	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
++// 	uint32_t flag = CRYPTO_TFM_RES_BAD_KEY_LEN;
+ 	nss_crypto_status_t status;
+ 	uint32_t algo_keylen;
+ 
+@@ -203,7 +208,7 @@ int nss_cryptoapi_ahash_setkey(struct cr
+ 	if (status != NSS_CRYPTO_STATUS_OK) {
+ 		nss_cfi_err("nss_crypto_session_alloc failed - status: %d\n", status);
+ 		ctx->sid = NSS_CRYPTO_MAX_IDXS;
+-		flag = CRYPTO_TFM_RES_BAD_FLAGS;
++// 		flag = CRYPTO_TFM_RES_BAD_FLAGS;
+ 		goto fail;
+ 	}
+ 
+@@ -222,7 +227,7 @@ fail:
+ 	 * fails for a context, a new setkey should occur in a different
+ 	 * context while the old one gets freed.
+ 	 */
+-	crypto_ahash_set_flags(ahash, flag);
++// 	crypto_ahash_set_flags(ahash, flag);
+ 	return -EINVAL;
+ }
+ 
+--- a/cryptoapi/v1.0/nss_cryptoapi_debugfs.c
++++ b/cryptoapi/v1.0/nss_cryptoapi_debugfs.c
+@@ -38,7 +38,12 @@
+ #include <crypto/ctr.h>
+ #include <crypto/des.h>
+ #include <crypto/aes.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
+ #include <crypto/sha.h>
++#else
++#include <crypto/sha1.h>
++#include <crypto/sha2.h>
++#endif
+ #include <crypto/hash.h>
+ #include <crypto/algapi.h>
+ #include <crypto/aead.h>

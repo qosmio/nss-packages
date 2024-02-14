@@ -1,6 +1,6 @@
 #!/bin/sh  /etc/rc.common
 #
-# Copyright (c) 2014, 2019 The Linux Foundation. All rights reserved.
+# Copyright (c) 2014, 2019-2020 The Linux Foundation. All rights reserved.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -18,39 +18,44 @@
 # openwrt build scripts automatically enable this package starting
 # at boot.
 
-START=19
+START=26
+
+sysctl_update() {
+  local name value file
+  name=${1//\//\\/}
+  value=${2//\//\\/}
+  file=${3:-/etc/sysctl.d/qca-nss-ecm.conf}
+  sed -i -e '/^#\?\(\s*'"${name}"'\s*=\s*\).*/{s//\1'"${value}"'/;:a;n;ba;q}' \
+    -e '$a'"${name}"'='"${value}" "${file}"
+  sysctl -w ${name}=${value}
+}
 
 get_front_end_mode() {
   config_load "ecm"
-  config_get front_end global acceleration_engine "nss"
+  config_get front_end global acceleration_engine "auto"
 
   case $front_end in
     auto)
-      echo 0
+      echo '0'
       ;;
     nss)
-      echo 1
-      ;;
-    sfe)
-      echo 2
+      echo '1'
       ;;
     *)
-      echo "uci_option_acceleration_engine is invalid"
-      ;;
+      echo 'uci_option_acceleration_engine is invalid'
   esac
 }
 
-support_bridge() {
-  #NSS support bridge acceleration
-  [ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && return 0
-  #SFE doesn't support bridge acceleration
-  [ -d /sys/kernel/debug/ecm/ecm_sfe_ipv4 ] && return 1
+enable_bridge_filtering() {
+  sysctl_update net.bridge.bridge-nf-call-arptables 1
+  sysctl_update net.bridge.bridge-nf-call-iptables 1
+  sysctl_update net.bridge.bridge-nf-call-ip6tables 1
 }
 
-load_sfe() {
-  [ -d /sys/module/shortcut_fe ] || insmod shortcut-fe
-  [ -d /sys/module/shortcut_fe_ipv6 ] || insmod shortcut-fe-ipv6
-  [ -d /sys/module/shortcut_fe_drv ] || insmod shortcut-fe-drv
+disable_bridge_filtering() {
+  sysctl_update net.bridge.bridge-nf-call-arptables 0
+  sysctl_update net.bridge.bridge-nf-call-iptables 0
+  sysctl_update net.bridge.bridge-nf-call-ip6tables 0
 }
 
 load_ecm() {
@@ -59,15 +64,23 @@ load_ecm() {
     echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
   }
 
-  support_bridge && {
-    sysctl -w net.bridge.bridge-nf-call-ip6tables=1
-    sysctl -w net.bridge.bridge-nf-call-iptables=1
-  }
+  # Set conntrack event mode to 1 for 6.1 kernel to get the conntrack events from ECM
+  local kernel_major
+  kernel_major=$(uname -r |cut -d. -f1)
+  if [ "$kernel_major" -eq 6 ]; then
+    echo 1 > /proc/sys/net/netfilter/nf_conntrack_events
+  fi
 }
 
 unload_ecm() {
-  sysctl -w net.bridge.bridge-nf-call-ip6tables=0
-  sysctl -w net.bridge.bridge-nf-call-iptables=0
+  disable_bridge_filtering
+
+  # Change it back to 6.1 linux's default setting
+  local kernel_major
+  kernel_major="$(uname -r |cut -d. -f1)"
+  if [ "$kernel_major" -eq 6 ]; then
+    echo 2 > /proc/sys/net/netfilter/nf_conntrack_events
+  fi
 
   if [ -d /sys/module/ecm ]; then
     #
@@ -90,26 +103,32 @@ unload_ecm() {
 start() {
   load_ecm
 
-  # If the acceleration engine is NSS, enable wifi redirect.
+  # If the acceleration engine is NSS, enable wifi redirect
   [ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=1
 
-  support_bridge && {
-    sed -i '/^net.bridge.bridge-nf-call-ip/d' /etc/sysctl.d/99-qca-nss-ecm.conf
-    echo 'net.bridge.bridge-nf-call-ip6tables=1' >> /etc/sysctl.d/99-qca-nss-ecm.conf
-    echo 'net.bridge.bridge-nf-call-iptables=1' >> /etc/sysctl.d/99-qca-nss-ecm.conf
-  }
+  # If bridge filtering is enabled, apply and persist the sysctl flags
+  local bridge_filtering_enabled
+  bridge_filtering_enabled="$(uci get ecm.@general[0].enable_bridge_filtering)"
+  if [ "$bridge_filtering_enabled" -eq 1 ]; then
+    echo "Bridge filtering is enabled in the ECM config, this will cause issues with NAT loopback!"
+    enable_bridge_filtering
+  else
+    disable_bridge_filtering
+  fi
 
   if [ -d /sys/module/qca_ovsmgr ]; then
     insmod ecm_ovs
   fi
-
 }
 
 stop() {
-  # If the acceleration engine is NSS, disable wifi redirect.
-  [ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=0
+  # If ECM is already not loaded, just return
+  if [ ! -d /sys/module/ecm ]; then
+    return
+  fi
 
-  sed -i '/^net.bridge.bridge-nf-call-ip/d' /etc/sysctl.d/99-qca-nss-ecm.conf
+  # If the acceleration engine is NSS, disable wifi redirect
+  [ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=0
 
   if [ -d /sys/module/ecm_ovs ]; then
     rmmod ecm_ovs
