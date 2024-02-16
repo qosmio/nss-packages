@@ -70,8 +70,9 @@ define KernelPackage/qca-nss-drv
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
-  DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx) +kmod-qca-nss-dp
-  TITLE:=Qualcomm NSS core driver
+  DEPENDS:=@(TARGET_ipq806x||TARGET_qualcommax||TARGET_ipq60xx) \
+  				 +!TARGET_ipq806x:kmod-qca-nss-dp
+  TITLE:=Kernel driver for NSS (core driver)
   FILES:=$(PKG_BUILD_DIR)/qca-nss-drv.ko
   AUTOLOAD:=$(call AutoLoad,32,qca-nss-drv)
 endef
@@ -100,11 +101,13 @@ This package contains a NSS driver for QCA chipset
 endef
 
 ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq807x")
-    SOC="ipq807x_64"
-	subtarget:=$(CONFIG_TARGET_SUBTARGET)
+  SOC="ipq807x_64"
+  subtarget:=$(CONFIG_TARGET_SUBTARGET)
 else ifeq ($(CONFIG_TARGET_BOARD), "ipq60xx")
-    SOC="ipq60xx_64"
-	subtarget:=$(SUBTARGET)
+  SOC="ipq60xx_64"
+  subtarget:=$(CONFIG_TARGET_SUBTARGET)
+else
+  SOC=$(CONFIG_TARGET_BOARD)
 endif
 
 define Build/InstallDev
@@ -122,16 +125,19 @@ EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-nss-gmac \
 			   -I$(STAGING_DIR)/usr/include/qca-ssdk \
 			   -Wno-unused-variable
 
-ifneq (, $(findstring $(CONFIG_TARGET_BOARD), "qualcommax" "ipq60xx"))
-EXTRA_CFLAGS+= -DNSS_MEM_PROFILE_MEDIUM
+ifdef CONFIG_NSS_MEM_PROFILE_MEDIUM
+  EXTRA_CFLAGS += -DNSS_MEM_PROFILE_MEDIUM
+else ifdef CONFIG_NSS_MEM_PROFILE_LOW
+  EXTRA_CFLAGS += -DNSS_MEM_PROFILE_LOW
 endif
 
-DRV_MAKE_OPTS:=
 ifndef CONFIG_NSS_DRV_BRIDGE_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_BRIDGE_ENABLE=n
 endif
+ifneq ($(CONFIG_TARGET_BOARD), "ipq806x")
 ifndef CONFIG_NSS_DRV_C2C_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_C2C_ENABLE=n
+endif
 endif
 ifndef CONFIG_NSS_DRV_CLMAP_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_CLMAP_ENABLE=n
