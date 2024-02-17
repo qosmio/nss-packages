@@ -93,10 +93,15 @@ config NSS_DRV_IPV4_REASM_ENABLE
 	default n
 	prompt "Enable IPV4_REASM"
 
+config NSS_DRV_IPV6_ENABLE
+	bool
+	default y
+	prompt "Enable IPV6"
+
 config NSS_DRV_IPV6_REASM_ENABLE
 	bool
 	default n
-	depends on IPV6
+	depends on NSS_DRV_IPV6_ENABLE
 	prompt "Enable IPV6_REASM"
 
 config NSS_DRV_L2TP_ENABLE
