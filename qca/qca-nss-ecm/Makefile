@@ -23,7 +23,6 @@ define KernelPackage/qca-nss-ecm
   DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx) \
 		   +@NSS_DRV_IPV6_ENABLE \
 		   +@NSS_DRV_VIRT_IF_ENABLE \
-		   +@NSS_DRV_WIFI_ENABLE \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
 		   +kmod-nf-conntrack \
 		   +PACKAGE_kmod-qca-mcs:kmod-qca-mcs \

@@ -56,11 +56,6 @@ config NSS_DRV_DTLS_ENABLE
 	default n
 	prompt "Enable DTLS"
 
-config NSS_DRV_EDMA_ENABLE
-	bool
-	default n
-	prompt "Enable EDMA"
-
 config NSS_DRV_GRE_ENABLE
 	bool
 	default n

@@ -18,9 +18,7 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_DRV_C2C_ENABLE \
 	CONFIG_NSS_DRV_CLMAP_ENABLE \
 	CONFIG_NSS_DRV_CRYPTO_ENABLE \
-	CONFIG_NSS_DRV_DMA_ENABLE \
 	CONFIG_NSS_DRV_DTLS_ENABLE \
-	CONFIG_NSS_DRV_EDMA_ENABLE \
 	CONFIG_NSS_DRV_GRE_ENABLE \
 	CONFIG_NSS_DRV_GRE_REDIR_ENABLE \
 	CONFIG_NSS_DRV_GRE_TUNNEL_ENABLE \
@@ -117,8 +115,7 @@ ifneq (, $(findstring $(subtarget), "ipq807x" "ipq807x_64" "ipq60xx" "ipq60xx_64
 endif
 endef
 
-EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-nss-gmac \
-			   -I$(STAGING_DIR)/usr/include/qca-nss-dp \
+EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-nss-dp \
 			   -I$(STAGING_DIR)/usr/include/qca-ssdk \
 			   -Wno-unused-variable
 
@@ -148,16 +145,8 @@ ifndef CONFIG_NSS_DRV_CRYPTO_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_CRYPTO_ENABLE=n
 endif
 
-ifndef CONFIG_NSS_DRV_DMA_ENABLE
-   DRV_MAKE_OPTS += NSS_DRV_DMA_ENABLE=n
-endif
-
 ifndef CONFIG_NSS_DRV_DTLS_ENABLE
    DRV_MAKE_OPTS += NSS_DRV_DTLS_ENABLE=n
-endif
-
-ifndef CONFIG_NSS_DRV_EDMA_ENABLE
-   DRV_MAKE_OPTS += NSS_DRV_EDMA_ENABLE=n
 endif
 
 ifndef CONFIG_NSS_DRV_GRE_ENABLE
