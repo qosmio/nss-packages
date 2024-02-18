@@ -330,7 +330,7 @@ define KernelPackage/qca-nss-drv-qdisc
   SUBMENU:=Network Devices
   TITLE:=Qdisc for configuring shapers in NSS
   DEPENDS:=+@NSS_DRV_SHAPER_ENABLE +@NSS_DRV_IGS_ENABLE +@NSS_DRV_BRIDGE_ENABLE \
-		   +kmod-qca-nss-drv
+		   +kmod-qca-nss-drv +kmod-nss-ifb
   FILES:=$(PKG_BUILD_DIR)/nss_qdisc/qca-nss-qdisc.ko
   KCONFIG:=CONFIG_NET_CLS_ACT=y
   AUTOLOAD:=$(call AutoLoad,58,qca-nss-qdisc)
