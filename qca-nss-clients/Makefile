@@ -494,7 +494,7 @@ define KernelPackage/qca-nss-drv-match
  SECTION:=kernel
  CATEGORY:=Kernel modules
  SUBMENU:=Network Devices
- DEPENDS:=+@NSS_DRV_MATCH_ENABLE +@NSS_DRV_WIFI_LEGACY_ENABLE \
+ DEPENDS:=+@NSS_DRV_MATCH_ENABLE \
 		  +kmod-qca-nss-drv
  TITLE:=NSS Match for QCA NSS driver
  FILES:=$(PKG_BUILD_DIR)/match/qca-nss-match.ko
