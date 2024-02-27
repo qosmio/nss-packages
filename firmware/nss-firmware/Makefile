@@ -11,24 +11,24 @@ PKG_NAME:=nss-firmware
 PKG_SOURCE_DATE:=2022-07-12
 PKG_SOURCE_VERSION:=ade6bff594377c9d9c79b45e39bf104303d919bc
 PKG_MIRROR_HASH:=af0521893064b7bc52baab263e12c7db5462461ddac30d02647ed76d999b59fb
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/quic/qca-sdk-nss-fw.git
 
 PKG_LICENSE_FILES:=LICENSE.md
 
-PKG_MAINTAINER:=Robert Marko <robimarko@gmail.com>
+PKG_MAINTAINER:=Sean K <datapronix@protonmail.com>
+
+PKG_CONFIG_DEPENDS:= \
+	CONFIG_NSS_FIRMWARE_VERSION_11_4 \
+	CONFIG_NSS_FIRMWARE_VERSION_12_0
 
 include $(INCLUDE_DIR)/package.mk
 
 RSTRIP:=:
 STRIP:=:
 
-VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_12.0.0/ED1
-
-NSS_VER:=12.1
-NSS_REL:=022
 NSS_PROFILE:=R
 
 define Package/nss-firmware-default
@@ -42,29 +42,66 @@ endef
 define Package/nss-firmware-ipq8074
 $(Package/nss-firmware-default)
 	IPQ_PLATFORM=IPQ8074
-	DEPENDS+= @TARGET_qualcommax_ipq807x
+	DEPENDS+= @TARGET_qualcommax_ipq807x +nss-firmware-default
 	NSS_SOC:=HK
 endef
 
 define Package/nss-firmware-ipq6018
 $(Package/nss-firmware-default)
 	IPQ_PLATFORM=IPQ6018
-	DEPENDS+= @TARGET_qualcommax_ipq60xx
+	DEPENDS+= @TARGET_qualcommax_ipq60xx +nss-firmware-default
 	NSS_SOC:=CP
 endef
 
 define Package/nss-firmware-ipq5018
 $(Package/nss-firmware-default)
 	IPQ_PLATFORM=IPQ5018
-	DEPENDS+= @TARGET_qualcommax_ipq50xx
+	DEPENDS+= @TARGET_qualcommax_ipq50xx +nss-firmware-default
 	NSS_SOC:=MP
 endef
+
+
+define Package/nss-firmware-default/config
+  menu "NSS Firmware Version"
+
+  comment "Select NSS firmware version"
+
+  choice
+    prompt "Version"
+    default NSS_FIRMWARE_VERSION_12_0
+
+    config NSS_FIRMWARE_VERSION_12_0
+          bool "NSS Firmware 12.1 Release 022"
+          help
+               This version does not work with NSS MESH
+
+    config NSS_FIRMWARE_VERSION_11_4
+          bool "NSS Firmware 11.4.0.5 Release 5"
+          help
+               This version works with NSS MESH
+  endchoice
+  endmenu
+endef
+
+ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_11_4),)
+   NSS_MAJOR:=11.4
+   NSS_MINOR:=11.4.0.5
+   NSS_REL:=5
+   NSS_PROFILE:=R
+   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2021.SPF_$(NSS_MAJOR)/CS
+else
+   NSS_MAJOR:=12.0.0
+   NSS_MINOR:=12.1
+   NSS_REL:=022
+   NSS_PROFILE:=R
+   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_$(NSS_MAJOR)/ED1
+endif
 
 define Build/Compile
 endef
 
 define Package/nss-firmware/install
-	$(eval NSS_ARCHIVE := $(VERSION_PATH)/$(IPQ_PLATFORM).ATH.12.0.0/BIN-NSS.FW.$(NSS_VER)-$(NSS_REL)-$(NSS_SOC).$(NSS_PROFILE).tar.bz2)
+	$(eval NSS_ARCHIVE := $(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR)/BIN-NSS*.$(NSS_MINOR)-$(NSS_REL)*$(NSS_PROFILE).tar.bz2)
 	mkdir -p $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
 	$(TAR) -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf $(NSS_ARCHIVE) --strip-components=1
 	$(INSTALL_DIR) $(1)/lib/firmware/
@@ -93,3 +130,4 @@ endef
 $(eval $(call BuildPackage,nss-firmware-ipq8074))
 $(eval $(call BuildPackage,nss-firmware-ipq6018))
 $(eval $(call BuildPackage,nss-firmware-ipq5018))
+$(eval $(call BuildPackage,nss-firmware-default))
