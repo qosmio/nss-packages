@@ -127,6 +127,10 @@ define Package/nss-firmware-ipq5018/install
 	$(call Package/nss-firmware/install,$1)
 endef
 
+define Package/nss-firmware-default/install
+	true
+endef
+
 $(eval $(call BuildPackage,nss-firmware-ipq8074))
 $(eval $(call BuildPackage,nss-firmware-ipq6018))
 $(eval $(call BuildPackage,nss-firmware-ipq5018))
