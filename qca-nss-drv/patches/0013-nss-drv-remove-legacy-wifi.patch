@@ -1,6 +1,6 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -351,10 +351,17 @@ endif
+@@ -352,10 +352,17 @@ endif
  
  ifneq "$(NSS_DRV_WIFIOFFLOAD_ENABLE)" "n"
  ccflags-y += -DNSS_DRV_WIFIOFFLOAD_ENABLE
