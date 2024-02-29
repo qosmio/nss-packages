@@ -1,26 +1,37 @@
-#!/bin/sh /sbin/sysdebug
+#!/bin/sh
+# shellcheck disable=2046
+###############################################################################
+# QCA NSS Driver Debug Script
+# version 20240228
 #
-# Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+# Requires: NSS Driver 12.1+
+# Usage: /lib/debug/qca-nss-drv (no arguments)
+# Description: Display non-zero NSS statistics with color highlighting
+#             (requires a terminal that supports ANSI escape codes)
 #
-# Permission to use, copy, modify, and/or distribute this software for any
-# purpose with or without fee is hereby granted, provided that the above
-# copyright notice and this permission notice appear in all copies.
-#
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+# Maintainer: Qosmio (https://forum.openwrt.org/u/qosmio)
+# NSS Packages Repository: https://github.com/qosmio/nss-packages (branch: NSS-12.4-K6.1)
 #
 
-log cat /sys/kernel/debug/qca-nss-drv/stats/pppoe
-log cat /sys/kernel/debug/qca-nss-drv/stats/n2h
-log cat /sys/kernel/debug/qca-nss-drv/stats/ipv6
-log cat /sys/kernel/debug/qca-nss-drv/stats/ipv4
-log cat /sys/kernel/debug/qca-nss-drv/stats/gmac
-log cat /sys/kernel/debug/qca-nss-drv/stats/drv
-log cat /sys/kernel/debug/qca-nss-drv/stats/wifi
-log cat /sys/kernel/debug/qca-nss-drv/stats/wifi_if
-log cat /sys/kernel/debug/qca-nss-drv/stats/eth_rx
+current=$(sysctl -q -n dev.nss.stats.non_zero_stats)
+
+sysctl -q dev.nss.stats.non_zero_stats=1
+
+awk '
+function color(c, s) {
+    if ($3 > 0) {
+        if ($4 == "error")           c = 1
+        else if ($4 == "special")    c = 6
+        else if ($4 ~ /drop|common/) c = 3
+        else if ($4 == "port")       c = 0
+        else if ($4 == "exception")  c = 5
+        printf("\033[%d;%d;40m%s\033[0m\n", 1, 30 + c, s)
+        next
+    }
+    print
+}
+{
+    color(0, $0)
+}' $(grep -lrE "= [1-9]+" /sys/kernel/debug/qca-nss-drv/stats)
+
+sysctl -q dev.nss.stats.non_zero_stats="$current"
