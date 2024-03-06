@@ -1,6 +1,6 @@
 --- a/netlink/Makefile
 +++ b/netlink/Makefile
-@@ -27,7 +27,6 @@ ccflags-y += -DCONFIG_NSS_NLPPTP=1
+@@ -26,7 +26,6 @@ ccflags-y += -DCONFIG_NSS_NLPPTP=1
  ccflags-y += -DCONFIG_NSS_NLCAPWAP=${CAPWAP_ENABLED}
  ccflags-y += -DCONFIG_NSS_NLIPSEC=${IPSEC_ENABLED}
  ccflags-y += -DCONFIG_NSS_NLDTLS=${DTLS_ENABLED}
@@ -8,15 +8,15 @@
  
  qca-nss-netlink-objs := nss_nl.o
  qca-nss-netlink-objs += nss_nlgre_redir_family.o
-@@ -49,7 +48,6 @@ qca-nss-netlink-objs += nss_nlmap_t.o
+@@ -48,7 +47,6 @@ qca-nss-netlink-objs += nss_nlmap_t.o
  qca-nss-netlink-objs += nss_nlpppoe.o
  qca-nss-netlink-objs += nss_nll2tpv2.o
  qca-nss-netlink-objs += nss_nlpptp.o
 -qca-nss-netlink-objs += nss_nludp_st.o
- qca-nss-netlink-objs += nss_nlqrfs.o
  
  ifneq (,$(filter $(capwapmgr), y))
-@@ -81,4 +79,11 @@ else
+ qca-nss-netlink-objs += nss_nlcapwap.o
+@@ -79,4 +77,11 @@ else
  ccflags-y += -DCONFIG_NSS_NLEDMA=0
  endif
  

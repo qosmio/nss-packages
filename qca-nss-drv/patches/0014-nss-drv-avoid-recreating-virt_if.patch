@@ -1,6 +1,6 @@
 --- a/nss_stats.c
 +++ b/nss_stats.c
-@@ -380,8 +380,9 @@ size_t nss_stats_print(char *node, char
+@@ -388,8 +388,9 @@ size_t nss_stats_print(char *node, char
   */
  void nss_stats_create_dentry(char *name, const struct file_operations *ops)
  {

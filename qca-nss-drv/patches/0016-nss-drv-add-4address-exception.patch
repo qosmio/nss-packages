@@ -1,0 +1,45 @@
+--- a/exports/nss_wifi_vdev.h
++++ b/exports/nss_wifi_vdev.h
+@@ -166,6 +166,7 @@ enum nss_wifi_vdev_ext_data_pkt_type {
+ 							/**< Mesh link VAP special packet. */
+ 	NSS_WIFI_VDEV_MESH_EXT_DATA_PKT_TYPE_RX_MCAST_EXC = 16,
+ 							/**< Mesh link VAP multicast packet. */
++	NSS_WIFI_VDEV_EXT_DATA_PKT_TYPE_4ADDR,		/**< 4 address exception to host. */
+ 	NSS_WIFI_VDEV_EXT_DATA_PKT_TYPE_MAX
+ };
+ 
+@@ -815,6 +816,16 @@ struct nss_wifi_vdev_ppdu_metadata {
+ };
+ 
+ /**
++ * nss_wifi_vdev_addr4_data_metadata
++ *	Address four metadata
++ */
++struct nss_wifi_vdev_addr4_data_metadata {
++	uint16_t peer_id;		/**< Peer ID. */
++	uint8_t sa_valid;		/**< Source address is valid. */
++	uint8_t addr4_valid;		/**< Address four is valid. */
++};
++
++/**
+  * nss_wifi_vdev_per_packet_metadata
+  *	Wi-Fi per packet metadata content.
+  */
+@@ -843,6 +854,8 @@ struct nss_wifi_vdev_per_packet_metadata
+ 			/**< Per packet Tx metadata structure for wireless distribution system mode. */
+ 		struct nss_wifi_vdev_ppdu_metadata ppdu_metadata;
+ 			/**< Per packet PPDU metadata needed for per PPDU copy mode. */
++		struct nss_wifi_vdev_addr4_data_metadata addr4_metadata;
++			/**< Create metadata for the WDS extension interface. */
+ 	} metadata;
+ 			/**< Metadata payload for special data receive message. */
+ };
+@@ -1039,6 +1052,8 @@ struct nss_wifi_vdev_stats_sync_msg {
+ 	uint32_t rx_mic_err;			/**< Receive MIC error */
+ 	uint32_t mcbc_exc_host_fail_cnt;
+ 			/**< Number of multicast/broadcast packets failed to send to host through exception path. */
++	uint32_t addr4_exc_fail;			/**< Number of failed 4 address exceptions. */
++	uint32_t addr4_exc_pass;			/**< Number of successful 4 address exceptions. */
+ };
+ 
+ /**

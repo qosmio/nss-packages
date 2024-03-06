@@ -21,7 +21,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 
 --- a/nss_core.c
 +++ b/nss_core.c
-@@ -26,6 +26,8 @@
+@@ -23,6 +23,8 @@
  #include <linux/module.h>
  #include <linux/mm.h>
  #include <linux/of.h>
@@ -30,7 +30,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  #include <nss_hal.h>
  #include <net/dst.h>
  #ifdef CONFIG_BRIDGE_NETFILTER
-@@ -492,50 +494,38 @@ static void nss_core_handle_crypto_pkt(s
+@@ -450,50 +452,38 @@ static void nss_core_handle_crypto_pkt(s
   */
  static uint32_t nss_soc_mem_info(void)
  {

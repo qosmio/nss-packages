@@ -140,40 +140,11 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	if (!nss_misc_reset) {
  		pr_err("%px: ioremap fail for nss_misc_reset\n", nss_dev);
  		return -EFAULT;
---- a/nss_hal/ipq95xx/nss_hal_pvt.c
-+++ b/nss_hal/ipq95xx/nss_hal_pvt.c
-@@ -291,7 +291,7 @@ static struct nss_platform_data *__nss_h
- 	npd->vphys = res_vphys.start;
- 	npd->qgic_phys = res_qgic_phys.start;
- 
--	npd->nmap = ioremap_nocache(npd->nphys, resource_size(&res_nphys));
-+	npd->nmap = ioremap(npd->nphys, resource_size(&res_nphys));
- 	if (!npd->nmap) {
- 		nss_info_always("%px: nss%d: ioremap() fail for nphys\n", nss_ctx, nss_ctx->id);
- 		goto out;
-@@ -303,7 +303,7 @@ static struct nss_platform_data *__nss_h
- 		goto out;
- 	}
- 
--	npd->qgic_map = ioremap_nocache(npd->qgic_phys, resource_size(&res_qgic_phys));
-+	npd->qgic_map = ioremap(npd->qgic_phys, resource_size(&res_qgic_phys));
- 	if (!npd->qgic_map) {
- 		nss_info_always("%px: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
- 		goto out;
-@@ -608,7 +608,7 @@ static int __nss_hal_common_reset(struct
- 
- 	of_node_put(cmn);
- 
--	nss_misc_reset = ioremap_nocache(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
-+	nss_misc_reset = ioremap(res_nss_misc_reset.start, resource_size(&res_nss_misc_reset));
- 	if (!nss_misc_reset) {
- 		pr_err("%px: ioremap fail for nss_misc_reset\n", nss_dev);
- 		return -EFAULT;
 --- a/nss_hal/nss_hal.c
 +++ b/nss_hal/nss_hal.c
-@@ -81,9 +81,9 @@ int nss_hal_firmware_load(struct nss_ctx
+@@ -78,9 +78,9 @@ int nss_hal_firmware_load(struct nss_ctx
+ 		return rc;
  	}
- 
  
 -	load_mem = ioremap_nocache(npd->load_addr, nss_fw->size);
 +	load_mem = ioremap(npd->load_addr, nss_fw->size);
@@ -185,7 +156,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	}
 --- a/nss_meminfo.c
 +++ b/nss_meminfo.c
-@@ -735,7 +735,7 @@ bool nss_meminfo_init(struct nss_ctx_ins
+@@ -728,7 +728,7 @@ bool nss_meminfo_init(struct nss_ctx_ins
  	/*
  	 * meminfo_start is the label where the start address of meminfo map is stored.
  	 */
