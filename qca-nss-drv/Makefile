@@ -56,7 +56,15 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_DRV_WIFIOFFLOAD_ENABLE \
 	CONFIG_NSS_DRV_WIFI_EXT_VDEV_ENABLE \
 	CONFIG_NSS_DRV_WIFI_MESH_ENABLE \
-	CONFIG_NSS_DRV_WIFI_LEGACY_ENABLE
+	CONFIG_NSS_DRV_WIFI_LEGACY_ENABLE \
+	CONFIG_NSS_FIRMWARE_VERSION_11_4
+
+ifdef CONFIG_NSS_FIRMWARE_VERSION_11_4
+PKG_SOURCE_DATE:=2021-06-24
+PKG_SOURCE_VERSION:=dc14ca2
+PKG_MIRROR_HASH:=316d683281818ab3715ca31af42e9b82e1f1a9f13713a015030277f84febea25
+PATCH_DIR:=$(CURDIR)/patches-11.4
+endif
 
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
@@ -109,8 +117,6 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/exports/* $(1)/usr/include/qca-nss-drv/
 ifneq (, $(findstring $(subtarget), "ipq807x" "ipq807x_64" "ipq60xx" "ipq60xx_64" "ipq50xx" "ipq50xx_64"))
 	$(RM) $(1)/usr/include/qca-nss-drv/nss_ipsecmgr.h
-	# $(INSTALL_DIR) $(1)/usr/include/qca-nss-clients
-	# $(CP) $(NSS_CLIENTS_DIR)/exports/nss_ipsecmgr.h $(1)/usr/include/qca-nss-clients/.
 endif
 endef
 

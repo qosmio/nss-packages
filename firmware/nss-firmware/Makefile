@@ -22,7 +22,7 @@ PKG_MAINTAINER:=Sean K <datapronix@protonmail.com>
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_FIRMWARE_VERSION_11_4 \
-	CONFIG_NSS_FIRMWARE_VERSION_12_0
+	CONFIG_NSS_FIRMWARE_VERSION_12_1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -68,9 +68,9 @@ define Package/nss-firmware-default/config
 
   choice
     prompt "Version"
-    default NSS_FIRMWARE_VERSION_12_0
+    default NSS_FIRMWARE_VERSION_12_1
 
-    config NSS_FIRMWARE_VERSION_12_0
+    config NSS_FIRMWARE_VERSION_12_1
           bool "NSS Firmware 12.1 Release 022"
           help
                This version does not work with NSS MESH
@@ -87,13 +87,11 @@ ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_11_4),)
    NSS_MAJOR:=11.4
    NSS_MINOR:=11.4.0.5
    NSS_REL:=5
-   NSS_PROFILE:=R
    VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2021.SPF_$(NSS_MAJOR)/CS
 else
    NSS_MAJOR:=12.0.0
    NSS_MINOR:=12.1
    NSS_REL:=022
-   NSS_PROFILE:=R
    VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_$(NSS_MAJOR)/ED1
 endif
 
@@ -101,8 +99,8 @@ define Build/Compile
 endef
 
 define Package/nss-firmware/install
-	$(eval NSS_ARCHIVE := $(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR)/BIN-NSS*.$(NSS_MINOR)-$(NSS_REL)*$(NSS_PROFILE).tar.bz2)
-	mkdir -p $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
+	$(eval NSS_ARCHIVE ?= $(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR)/BIN-NSS*.$(NSS_MINOR)-$(NSS_REL)*$(NSS_PROFILE).tar.bz2)
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
 	$(TAR) -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf $(NSS_ARCHIVE) --strip-components=1
 	$(INSTALL_DIR) $(1)/lib/firmware/
 	$(INSTALL_DATA) \
