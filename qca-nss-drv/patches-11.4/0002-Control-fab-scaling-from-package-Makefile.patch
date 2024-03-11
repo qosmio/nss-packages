@@ -14,7 +14,7 @@ Signed-off-by: Robert Marko <robert.marko@sartura.hr>
 
 --- a/Makefile
 +++ b/Makefile
-@@ -481,14 +481,7 @@ NSS_CCFLAGS = -DNSS_DT_SUPPORT=1 -DNSS_F
+@@ -510,14 +510,7 @@ NSS_CCFLAGS = -DNSS_DT_SUPPORT=1 -DNSS_F
  ccflags-y += -I$(obj)
  endif
  

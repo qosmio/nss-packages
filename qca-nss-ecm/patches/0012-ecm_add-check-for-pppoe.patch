@@ -1,6 +1,6 @@
 --- a/frontends/include/ecm_front_end_common.h
 +++ b/frontends/include/ecm_front_end_common.h
-@@ -332,15 +332,19 @@ static inline bool ecm_front_end_ppppoe_
+@@ -339,15 +339,19 @@ static inline bool ecm_front_end_ppppoe_
  	fe_type = ecm_front_end_type_get();
  	switch (fe_type) {
  #ifdef ECM_FRONT_END_NSS_ENABLE
@@ -20,7 +20,7 @@
  	default:
  		DEBUG_TRACE("front end type: %d\n", fe_type);
  		break;
-@@ -362,15 +366,19 @@ static inline bool ecm_front_end_ppppoe_
+@@ -369,15 +373,19 @@ static inline bool ecm_front_end_ppppoe_
  	fe_type = ecm_front_end_type_get();
  	switch (fe_type) {
  #ifdef ECM_FRONT_END_NSS_ENABLE

@@ -35,7 +35,7 @@
  	struct nss_mirred_tcf *act;
 @@ -239,8 +243,13 @@ static int nss_mirred_init(struct net *n
  	}
-
+ 
  	if (!ret) {
 +#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0))
  		ret = tcf_idr_create(tn, index, est, tc_act, &nss_mirred_act_ops,
@@ -49,7 +49,7 @@
  			return ret;
 --- a/nss_qdisc/nss_bf.c
 +++ b/nss_qdisc/nss_bf.c
-@@ -74,7 +74,7 @@ static inline struct nss_bf_class_data *
+@@ -70,7 +70,7 @@ static inline struct nss_bf_class_data *
   */
  #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0))
  static int nss_bf_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
@@ -58,7 +58,7 @@
  {
  	struct netlink_ext_ack *extack = NULL;
  #else
-@@ -290,7 +290,11 @@ static void nss_bf_destroy_class(struct
+@@ -296,7 +296,11 @@ static void nss_bf_destroy_class(struct
   * nss_bf_delete_class()
   *	Detaches a class from operation, but does not destroy it.
   */
@@ -72,7 +72,7 @@
  	struct nss_bf_class_data *cl = (struct nss_bf_class_data *)arg;
 --- a/nss_qdisc/nss_htb.c
 +++ b/nss_qdisc/nss_htb.c
-@@ -282,7 +282,7 @@ static int nss_htb_ppe_change_class(stru
+@@ -278,7 +278,7 @@ static int nss_htb_ppe_change_class(stru
   */
  #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0))
  static int nss_htb_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
@@ -81,7 +81,7 @@
  {
  	struct netlink_ext_ack *extack = NULL;
  #else
-@@ -516,7 +516,11 @@ static void nss_htb_destroy_class(struct
+@@ -522,7 +522,11 @@ static void nss_htb_destroy_class(struct
   * nss_htb_delete_class()
   *	Detaches a class from operation, but does not destroy it.
   */
@@ -95,12 +95,12 @@
  	struct nss_htb_class_data *cl = (struct nss_htb_class_data *)arg;
 --- a/nss_qdisc/nss_qdisc.c
 +++ b/nss_qdisc/nss_qdisc.c
-@@ -1140,15 +1140,16 @@ unsigned int nss_qdisc_drop(struct Qdisc
+@@ -1144,15 +1144,16 @@ unsigned int nss_qdisc_drop(struct Qdisc
  {
  	struct nss_qdisc *nq = qdisc_priv(sch);
  	unsigned int ret;
 +	struct sk_buff *to_free = qdisc_peek_head(sch);
-
+ 
  	if (!nq->is_virtual) {
 -		ret = __qdisc_queue_drop_head(sch, &sch->q);
 +		ret = __qdisc_queue_drop_head(sch, &sch->q, &to_free);
@@ -113,11 +113,11 @@
 +		ret = __qdisc_queue_drop_head(sch, &sch->q, &to_free);
  		spin_unlock_bh(&nq->bounce_protection_lock);
  	}
-
-@@ -1209,10 +1210,10 @@ static bool nss_qdisc_iterate_fl(struct
+ 
+@@ -1206,10 +1207,10 @@ static bool nss_qdisc_iterate_fl(struct
  		return 0;
  	}
-
+ 
 -#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0))
 -	status = tc_classify(skb, tcf, &res, false);
 -#else
@@ -130,8 +130,8 @@
  		return 1;
 --- a/nss_qdisc/nss_wrr.c
 +++ b/nss_qdisc/nss_wrr.c
-@@ -229,7 +229,7 @@ static int nss_wrr_ppe_change_class(stru
-
+@@ -230,7 +230,7 @@ static int nss_wrr_ppe_change_class(stru
+ 
  #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0))
  static int nss_wrr_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
 -		  struct nlattr **tca, unsigned long *arg)
@@ -139,10 +139,10 @@
  {
  	struct netlink_ext_ack *extack = NULL;
  #else
-@@ -400,7 +400,11 @@ failure:
+@@ -406,7 +406,11 @@ failure:
  	return -EINVAL;
  }
-
+ 
 +#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0))
 +static int nss_wrr_delete_class(struct Qdisc *sch, unsigned long arg, struct netlink_ext_ack *extack)
 +#else

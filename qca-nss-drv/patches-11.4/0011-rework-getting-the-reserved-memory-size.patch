@@ -30,7 +30,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  #include <nss_hal.h>
  #include <net/dst.h>
  #ifdef CONFIG_BRIDGE_NETFILTER
-@@ -450,50 +452,38 @@ static void nss_core_handle_crypto_pkt(s
+@@ -451,50 +453,38 @@ static void nss_core_handle_crypto_pkt(s
   */
  static uint32_t nss_soc_mem_info(void)
  {

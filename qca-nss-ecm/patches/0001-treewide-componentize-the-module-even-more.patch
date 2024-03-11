@@ -100,7 +100,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ecm-$(ECM_CLASSIFIER_PCC_ENABLE) += ecm_classifier_pcc.o
  ccflags-$(ECM_CLASSIFIER_PCC_ENABLE) += -DECM_CLASSIFIER_PCC_ENABLE
  
-@@ -372,27 +394,36 @@ ccflags-$(ECM_NON_PORTED_SUPPORT_ENABLE)
+@@ -376,27 +398,36 @@ ccflags-$(ECM_NON_PORTED_SUPPORT_ENABLE)
  # #############################################################################
  # Define ECM_STATE_OUTPUT_ENABLE=y to support XML state output
  # #############################################################################
@@ -140,7 +140,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE) += -DECM_TRACKER_DPI_SUPPORT_ENABLE
  
  # #############################################################################
-@@ -400,14 +431,18 @@ ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE
+@@ -404,14 +435,18 @@ ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE
  # support for the database keeping lists of connections that are assigned
  # on a per TYPE of classifier basis.
  # #############################################################################
@@ -243,7 +243,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -1509,6 +1509,7 @@ struct neighbour *ecm_interface_ipv6_nei
+@@ -1506,6 +1506,7 @@ struct neighbour *ecm_interface_ipv6_nei
   */
  bool ecm_interface_is_pptp(struct sk_buff *skb, const struct net_device *out)
  {
@@ -251,7 +251,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	struct net_device *in;
  
  	/*
-@@ -1533,6 +1534,7 @@ bool ecm_interface_is_pptp(struct sk_buf
+@@ -1530,6 +1531,7 @@ bool ecm_interface_is_pptp(struct sk_buf
  	}
  
  	dev_put(in);
@@ -259,7 +259,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	return false;
  }
  
-@@ -1545,6 +1547,7 @@ bool ecm_interface_is_pptp(struct sk_buf
+@@ -1542,6 +1544,7 @@ bool ecm_interface_is_pptp(struct sk_buf
   */
  bool ecm_interface_is_l2tp_packet_by_version(struct sk_buff *skb, const struct net_device *out, int ver)
  {
@@ -267,7 +267,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	uint32_t flag = 0;
  	struct net_device *in;
  
-@@ -1577,6 +1580,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
+@@ -1574,6 +1577,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
  	}
  
  	dev_put(in);
@@ -275,7 +275,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	return false;
  }
  
-@@ -1589,6 +1593,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
+@@ -1586,6 +1590,7 @@ bool ecm_interface_is_l2tp_packet_by_ver
   */
  bool ecm_interface_is_l2tp_pptp(struct sk_buff *skb, const struct net_device *out)
  {
@@ -283,7 +283,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	struct net_device *in;
  
  	/*
-@@ -1611,6 +1616,7 @@ bool ecm_interface_is_l2tp_pptp(struct s
+@@ -1608,6 +1613,7 @@ bool ecm_interface_is_l2tp_pptp(struct s
  	}
  
  	dev_put(in);
@@ -291,7 +291,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	return false;
  }
  
-@@ -7127,6 +7133,7 @@ static void ecm_interface_regenerate_con
+@@ -7124,6 +7130,7 @@ static void ecm_interface_regenerate_con
  		return;
  	}
  
@@ -299,7 +299,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  	for (dir = 0; dir < ECM_DB_OBJ_DIR_MAX; dir++) {
  		/*
  		 * Re-generate all connections associated with this interface
-@@ -7142,6 +7149,7 @@ static void ecm_interface_regenerate_con
+@@ -7139,6 +7146,7 @@ static void ecm_interface_regenerate_con
  			ci[dir] = cin;
  		}
  	}

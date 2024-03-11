@@ -27,7 +27,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  #error "Check skb recycle code in this file to match Linux version"
  #endif
  
-@@ -2578,7 +2580,7 @@ static inline bool nss_core_skb_can_reus
+@@ -2580,7 +2582,7 @@ static inline bool nss_core_skb_can_reus
  	if (unlikely(irqs_disabled()))
  		return false;
  
