@@ -369,15 +369,11 @@ define KernelPackage/qca-nss-drv-lag-mgr
   SUBMENU:=Network Devices
   TITLE:=NSS LAG (link aggregation) manager
   DEPENDS:=+@NSS_DRV_LAG_ENABLE \
-		   +TARGET_ipq_ipq807x:kmod-qca-nss-drv-vlan-mgr \
-		   +TARGET_ipq_ipq807x_64:kmod-qca-nss-drv-vlan-mgr \
-		   +TARGET_ipq807x:kmod-qca-nss-drv-vlan-mgr \
 		   +TARGET_qualcommax:kmod-qca-nss-drv-vlan-mgr \
-		   +TARGET_ipq_ipq60xx:kmod-qca-nss-drv-vlan-mgr \
-		   +TARGET_ipq_ipq60xx_64:kmod-qca-nss-drv-vlan-mgr \
+		   +TARGET_ipq807x:kmod-qca-nss-drv-vlan-mgr \
 		   +TARGET_ipq60xx:kmod-qca-nss-drv-vlan-mgr \
 		   +kmod-qca-nss-drv \
-		   +PACKAGE_kmod-bonding:kmod-bonding
+		   +kmod-bonding
   FILES:=$(PKG_BUILD_DIR)/lag/qca-nss-lag-mgr.ko
   AUTOLOAD:=$(call AutoLoad,51,qca-nss-lag-mgr)
 endef

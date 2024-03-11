@@ -281,6 +281,17 @@
  	memset(dev->broadcast, 0xff, dev->addr_len);
  	memcpy(dev->perm_addr, dev->dev_addr, dev->addr_len);
  }
+--- a/clmapmgr/nss_clmapmgr.c
++++ b/clmapmgr/nss_clmapmgr.c
+@@ -103,7 +103,7 @@ static struct rtnl_link_stats64 *nss_clm
+ 	 * Netdev seems to be incrementing rx_dropped because we don't give IP header.
+ 	 * So reset it as it's of no use for us.
+ 	 */
+-	atomic_long_set(&dev->rx_dropped, 0);
++	atomic_long_set(&(dev)->stats.__rx_dropped, 0);
+ 	priv = netdev_priv(dev);
+ 	memset(stats, 0, sizeof(struct rtnl_link_stats64));
+ 	memcpy(stats, &priv->stats, sizeof(struct rtnl_link_stats64));
 --- a/tls/nss_tlsmgr_tun.c
 +++ b/tls/nss_tlsmgr_tun.c
 @@ -185,7 +185,7 @@ static void nss_tlsmgr_tun_setup(struct
