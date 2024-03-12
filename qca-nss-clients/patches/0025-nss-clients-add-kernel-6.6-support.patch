@@ -1,0 +1,65 @@
+--- a/bridge/nss_bridge_mgr.c
++++ b/bridge/nss_bridge_mgr.c
+@@ -1369,7 +1369,6 @@ static struct notifier_block nss_bridge_
+ 	.notifier_call = nss_bridge_mgr_netdevice_event,
+ };
+ 
+-#if defined(NSS_BRIDGE_MGR_PPE_SUPPORT)
+ /*
+  * nss_bridge_mgr_is_physical_dev()
+  *	Check if the device is on physical device.
+@@ -1598,25 +1597,6 @@ static struct ctl_table nss_bridge_mgr_t
+ 	{ }
+ };
+ 
+-static struct ctl_table nss_bridge_mgr_dir[] = {
+-	{
+-		.procname	= "bridge_mgr",
+-		.mode		= 0555,
+-		.child		= nss_bridge_mgr_table,
+-	},
+-	{ }
+-};
+-
+-static struct ctl_table nss_bridge_mgr_root_dir[] = {
+-	{
+-		.procname	= "nss",
+-		.mode		= 0555,
+-		.child		= nss_bridge_mgr_dir,
+-	},
+-	{ }
+-};
+-#endif
+-
+ /*
+  * nss_bridge_mgr_init_module()
+  *	bridge_mgr module init function
+@@ -1636,7 +1616,7 @@ int __init nss_bridge_mgr_init_module(vo
+ #if defined(NSS_BRIDGE_MGR_PPE_SUPPORT)
+ 	br_mgr_ctx.wan_if_num = -1;
+ 	br_fdb_update_register_notify(&nss_bridge_mgr_fdb_update_notifier);
+-	br_mgr_ctx.nss_bridge_mgr_header = register_sysctl_table(nss_bridge_mgr_root_dir);
++	br_mgr_ctx.nss_bridge_mgr_header = register_sysctl("nss/bridge_mgr", nss_bridge_mgr_table);
+ 
+ 	/*
+ 	 * Enable ACL rule to enable L2 exception. This is needed if PPE Virtual ports is added to bridge.
+--- a/gre/nss_connmgr_gre.c
++++ b/gre/nss_connmgr_gre.c
+@@ -277,7 +277,7 @@ static struct rtnl_link_stats64 *nss_con
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0))
+ 			start = u64_stats_fetch_begin_bh(&tstats->syncp);
+ #else
+-			start = u64_stats_fetch_begin_irq(&tstats->syncp);
++			start = u64_stats_fetch_begin(&tstats->syncp);
+ #endif
+ 			rx_packets = u64_stats_read(&tstats->rx_packets);
+ 			tx_packets = u64_stats_read(&tstats->tx_packets);
+@@ -286,7 +286,7 @@ static struct rtnl_link_stats64 *nss_con
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0))
+ 		} while (u64_stats_fetch_retry_bh(&tstats->syncp, start));
+ #else
+-		} while (u64_stats_fetch_retry_irq(&tstats->syncp, start));
++		} while (u64_stats_fetch_retry(&tstats->syncp, start));
+ #endif
+ 
+ 		tot->rx_packets += rx_packets;

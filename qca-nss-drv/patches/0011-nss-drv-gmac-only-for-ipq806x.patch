@@ -26,3 +26,23 @@
  
  	/*
  	 * Per-project stats
+--- a/Makefile
++++ b/Makefile
+@@ -40,7 +40,6 @@ qca-nss-drv-objs += nss_hal/nss_hal.o
+ 
+ ifneq "$(NSS_DRV_POINT_OFFLOAD)" "y"
+ qca-nss-drv-objs += \
+-			nss_gmac_stats.o \
+ 			nss_if.o \
+ 			nss_if_log.o \
+ 			nss_phys_if.o \
+@@ -381,7 +380,8 @@ endif
+ 
+ ifeq ($(SoC),$(filter $(SoC),ipq806x))
+ qca-nss-drv-objs += nss_data_plane/nss_data_plane_gmac.o \
+-		    nss_hal/ipq806x/nss_hal_pvt.o
++		    nss_hal/ipq806x/nss_hal_pvt.o \
++		    nss_gmac_stats.o \
+ 
+ ifneq "$(NSS_DRV_C2C_ENABLE)" "n"
+ ccflags-y += -DNSS_DRV_C2C_ENABLE

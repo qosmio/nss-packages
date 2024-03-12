@@ -5,9 +5,10 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-nss-ecm.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2023-10-20
-PKG_SOURCE_VERSION:=82b27915fffdbe2cdb2d4eb70e5736ccf92e2560
-PKG_MIRROR_HASH:=643895cb187cacfcde337c19dc5a34512acc225c0db1813a15cc1b66523835c4
+PKG_SOURCE_DATE:=2024-02-05
+PKG_SOURCE_VERSION:=db6e481
+PKG_MIRROR_HASH:=49de506af1b59c84c360aa421b187d13a86e51692dcf56ba932a7c2eeeffff6b
+PKG_VERSION:=12.4.r4-$(PKG_SOURCE_DATE)-$(PKG_SOURCE_VERSION)
 
 PKG_BUILD_PARALLEL:=1
 PKG_FLAGS:=nonshared
@@ -21,10 +22,10 @@ define KernelPackage/qca-nss-ecm
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
   DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx) \
+		   +kmod-nf-conntrack \
 		   +@NSS_DRV_IPV6_ENABLE \
 		   +@NSS_DRV_VIRT_IF_ENABLE \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
-		   +kmod-nf-conntrack \
 		   +PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
 		   +PACKAGE_kmod-bonding:kmod-bonding \
 		   +PACKAGE_kmod-vxlan:kmod-vxlan \
@@ -42,6 +43,10 @@ endef
 
 define KernelPackage/qca-nss-ecm/Description
 This package contains the QCA NSS Enhanced Connection Manager
+endef
+
+define KernelPackage/qca-nss-ecm/conffiles
+/etc/config/ecm
 endef
 
 define KernelPackage/qca-nss-ecm/install

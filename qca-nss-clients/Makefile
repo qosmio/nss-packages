@@ -749,7 +749,7 @@ define Build/Compile
 	  CROSS_COMPILE="$(TARGET_CROSS)" \
 	  ARCH="$(LINUX_KARCH)" \
 	  M="$(PKG_BUILD_DIR)" \
-	  EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
+	  EXTRA_CFLAGS="$(EXTRA_CFLAGS) -Wno-enum-conversion" \
 	  DTLSMGR_DIR="$(DTLSMGR_DIR)" \
 	  IPSECMGR_DIR="$(IPSECMGR_DIR)" \
 	  SoC=$(SOC) \

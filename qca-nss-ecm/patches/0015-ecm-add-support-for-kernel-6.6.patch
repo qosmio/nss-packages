@@ -1,0 +1,141 @@
+--- a/ecm_interface.c
++++ b/ecm_interface.c
+@@ -8269,24 +8269,6 @@ static struct ctl_table ecm_interface_ta
+ 	{ }
+ };
+ 
+-static struct ctl_table ecm_interface_root_dir[] = {
+-	{
+-		.procname		= "ecm",
+-		.mode			= 0555,
+-		.child			= ecm_interface_table,
+-	},
+-	{ }
+-};
+-
+-static struct ctl_table ecm_interface_root[] = {
+-	{
+-		.procname		= "net",
+-		.mode			= 0555,
+-		.child			= ecm_interface_root_dir,
+-	},
+-	{ }
+-};
+-
+ #ifdef ECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE
+ /*
+  * ecm_interface_ipsec_register_callbacks()
+@@ -8783,7 +8765,7 @@ int ecm_interface_init(void)
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
+-	ecm_interface_ctl_table_header = register_sysctl_table(ecm_interface_root);
++	ecm_interface_ctl_table_header = register_sysctl("net/ecm", ecm_interface_table);
+ 
+ 	result = register_netdevice_notifier(&ecm_interface_netdev_notifier);
+ 	if (result != 0) {
+--- a/frontends/ecm_front_end_common.c
++++ b/frontends/ecm_front_end_common.c
+@@ -1164,34 +1164,16 @@ static struct ctl_table ecm_front_end_sy
+ 	{}
+ };
+ 
+-static struct ctl_table ecm_front_end_common_root[] = {
+-	{
+-		.procname	= "ecm",
+-		.mode		= 0555,
+-		.child		= ecm_front_end_sysctl_tbl,
+-	},
+-	{ }
+-};
+-
+-static struct ctl_table ecm_front_end_common_root_dir[] = {
+-	{
+-		.procname		= "net",
+-		.mode			= 0555,
+-		.child			= ecm_front_end_common_root,
+-	},
+-	{ }
+-};
+-
+ /*
+  * ecm_front_end_common_sysctl_register()
+  *	Function to register sysctl node during front end init
+  */
+-void ecm_front_end_common_sysctl_register()
++void ecm_front_end_common_sysctl_register(void)
+ {
+ 	/*
+ 	 * Register sysctl table.
+ 	 */
+-	ecm_front_end_ctl_tbl_hdr = register_sysctl_table(ecm_front_end_common_root_dir);
++	ecm_front_end_ctl_tbl_hdr = register_sysctl("net/ecm", ecm_front_end_sysctl_tbl);
+ #ifdef ECM_FRONT_END_SFE_ENABLE
+ 	if (ecm_front_end_ctl_tbl_hdr) {
+ 		ecm_sfe_sysctl_tbl_init();
+@@ -1203,7 +1185,7 @@ void ecm_front_end_common_sysctl_registe
+  * ecm_front_end_common_sysctl_unregister()
+  *	Function to unregister sysctl node during front end exit
+  */
+-void ecm_front_end_common_sysctl_unregister()
++void ecm_front_end_common_sysctl_unregister(void)
+ {
+ 	/*
+ 	 * Unregister sysctl table.
+@@ -1702,7 +1684,11 @@ bool ecm_front_end_common_intf_ingress_q
+ {
+ #if defined(CONFIG_NET_CLS_ACT)
+ 	struct net_device *dev;
+-	struct mini_Qdisc *miniq;
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
++	struct bpf_mprog_entry *entry;
++#else
++	struct mini_Qdisc *entry;
++#endif
+ 
+ 	dev = dev_get_by_index(&init_net, interface_num);
+ 	if (!dev) {
+@@ -1711,8 +1697,13 @@ bool ecm_front_end_common_intf_ingress_q
+ 	}
+ 
+ 	BUG_ON(!rcu_read_lock_bh_held());
+-	miniq = rcu_dereference_bh(dev->miniq_ingress);
+-	if (miniq) {
++
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
++	entry = rcu_dereference_bh(dev->tcx_ingress);
++#else
++	entry = rcu_dereference_bh(dev->miniq_ingress);
++#endif
++	if (entry) {
+ 		DEBUG_INFO("Ingress Qdisc is present for device[%s]\n", dev->name);
+ 		dev_put(dev);
+ 		return true;
+@@ -1735,7 +1726,11 @@ bool ecm_front_end_common_intf_qdisc_che
+         struct Qdisc *q;
+         int i;
+ #if defined(CONFIG_NET_CLS_ACT) && defined(CONFIG_NET_EGRESS)
+-	struct mini_Qdisc *miniq;
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
++	struct bpf_mprog_entry *entry;
++#else
++	struct mini_Qdisc *entry;
++#endif
+ #endif
+ 
+ 	*is_ppeq = false;
+@@ -1766,8 +1761,12 @@ bool ecm_front_end_common_intf_qdisc_che
+ 	}
+ 
+ #if defined(CONFIG_NET_CLS_ACT) && defined(CONFIG_NET_EGRESS)
+-	miniq = rcu_dereference_bh(dev->miniq_egress);
+-	if (miniq) {
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
++	entry = rcu_dereference_bh(dev->tcx_egress);
++#else
++	entry = rcu_dereference_bh(dev->miniq_egress);
++#endif
++	if (entry) {
+ 		DEBUG_INFO("Egress needed\n");
+ 		dev_put(dev);
+ 		return true;
