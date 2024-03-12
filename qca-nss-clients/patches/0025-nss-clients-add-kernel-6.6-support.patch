@@ -63,3 +63,198 @@
  #endif
  
  		tot->rx_packets += rx_packets;
+--- a/vlan/nss_vlan_mgr.c
++++ b/vlan/nss_vlan_mgr.c
+@@ -1544,30 +1544,6 @@ static struct ctl_table nss_vlan_table[]
+ };
+ 
+ /*
+- * nss_vlan sysctl dir
+- */
+-static struct ctl_table nss_vlan_dir[] = {
+-	{
+-		.procname		= "vlan_client",
+-		.mode			= 0555,
+-		.child			= nss_vlan_table,
+-	},
+-	{ }
+-};
+-
+-/*
+- * nss_vlan systel root dir
+- */
+-static struct ctl_table nss_vlan_root_dir[] = {
+-	{
+-		.procname		= "nss",
+-		.mode			= 0555,
+-		.child			= nss_vlan_dir,
+-	},
+-	{ }
+-};
+-
+-/*
+  * nss_vlan_mgr_add_bond_slave()
+  *	Add new slave port to bond_vlan
+  */
+@@ -1906,7 +1882,7 @@ int __init nss_vlan_mgr_init_module(void
+ 	vlan_mgr_ctx.stpid = ETH_P_8021Q;
+ 
+ #ifdef NSS_VLAN_MGR_PPE_SUPPORT
+-	vlan_mgr_ctx.sys_hdr = register_sysctl_table(nss_vlan_root_dir);
++	vlan_mgr_ctx.sys_hdr = register_sysctl("nss/vlan_client", nss_vlan_table);
+ 	if (!vlan_mgr_ctx.sys_hdr) {
+ 		nss_vlan_mgr_warn("Unabled to register sysctl table for vlan manager\n");
+ 		return -EFAULT;
+--- a/match/nss_match_cmd.c
++++ b/match/nss_match_cmd.c
+@@ -692,33 +692,6 @@ static struct ctl_table nss_match_table[
+ 	{ }
+ };
+ 
+-static struct ctl_table nss_match_root_dir[] = {
+-	{
+-		.procname		= "match",
+-		.mode			= 0555,
+-		.child			= nss_match_table,
+-	},
+-	{ }
+-};
+-
+-static struct ctl_table nss_match_nss_root_dir[] = {
+-	{
+-		.procname		= "nss",
+-		.mode			= 0555,
+-		.child			= nss_match_root_dir,
+-	},
+-	{ }
+-};
+-
+-static struct ctl_table nss_match_root[] = {
+-	{
+-		.procname		= "dev",
+-		.mode			= 0555,
+-		.child			= nss_match_nss_root_dir,
+-	},
+-	{ }
+-};
+-
+ static struct ctl_table_header *nss_match_ctl_header;
+ 
+ /*
+@@ -726,7 +699,7 @@ static struct ctl_table_header *nss_matc
+  * 	Register command line interface for match.
+  */
+ bool nss_match_ctl_register(void) {
+-	nss_match_ctl_header = register_sysctl_table(nss_match_root);
++	nss_match_ctl_header = register_sysctl("dev/nss/match", nss_match_table);
+ 	if (!nss_match_ctl_header) {
+ 		nss_match_warn("Unable to register command line interface.\n");
+ 		return false;
+--- a/tunipip6/nss_connmgr_tunipip6_sysctl.c
++++ b/tunipip6/nss_connmgr_tunipip6_sysctl.c
+@@ -449,33 +449,6 @@ static struct ctl_table nss_tunipip6_tab
+ 	{ }
+ };
+ 
+-static struct ctl_table nss_tunipip6_root_dir[] = {
+-	{
+-		.procname		= "ipip6",
+-		.mode			= 0555,
+-		.child			= nss_tunipip6_table,
+-	},
+-	{ }
+-};
+-
+-static struct ctl_table nss_tunipip6_nss_root_dir[] = {
+-	{
+-		.procname		= "nss",
+-		.mode			= 0555,
+-		.child			= nss_tunipip6_root_dir,
+-	},
+-	{ }
+-};
+-
+-static struct ctl_table nss_tunipip6_root[] = {
+-	{
+-		.procname		= "dev",
+-		.mode			= 0555,
+-		.child			= nss_tunipip6_nss_root_dir,
+-	},
+-	{ }
+-};
+-
+ static struct ctl_table_header *nss_tunipip6_ctl_header;
+ 
+ /*
+@@ -483,7 +456,7 @@ static struct ctl_table_header *nss_tuni
+  * 	Register command line interface for tunipip6.
+  */
+ bool nss_tunipip6_sysctl_register(void) {
+-	nss_tunipip6_ctl_header = register_sysctl_table(nss_tunipip6_root);
++	nss_tunipip6_ctl_header = register_sysctl("drv/nss/ipip6", nss_tunipip6_table);
+ 	if (!nss_tunipip6_ctl_header) {
+ 		return false;
+ 	}
+--- a/mirror/nss_mirror_ctl.c
++++ b/mirror/nss_mirror_ctl.c
+@@ -919,48 +919,12 @@ static struct ctl_table nss_mirror_table
+ };
+ 
+ /*
+- * nss mirror dir
+- */
+-static struct ctl_table nss_mirror_root_dir[] = {
+-	{
+-		.procname		= "mirror",
+-		.mode			= 0555,
+-		.child			= nss_mirror_table,
+-	},
+-	{ }
+-};
+-
+-/*
+- * nss mirror sysctl nss root dir
+- */
+-static struct ctl_table nss_mirror_nss_root_dir[] = {
+-	{
+-		.procname		= "nss",
+-		.mode			= 0555,
+-		.child			= nss_mirror_root_dir,
+-	},
+-	{ }
+-};
+-
+-/*
+- * nss mirror sysctl root dir
+- */
+-static struct ctl_table nss_mirror_root[] = {
+-	{
+-		.procname		= "dev",
+-		.mode			= 0555,
+-		.child			= nss_mirror_nss_root_dir,
+-	},
+-	{ }
+-};
+-
+-/*
+  * nss_mirror_ctl_register()
+  *	Register command line interface for mirror.
+  */
+ int nss_mirror_ctl_register(void)
+ {
+-	nss_mirror_ctl_header = register_sysctl_table(nss_mirror_root);
++	nss_mirror_ctl_header = register_sysctl("dev/nss/mirror", nss_mirror_table);
+ 	if (!nss_mirror_ctl_header) {
+ 		nss_mirror_warn("Creating sysctl directory table header for mirror failed\n");
+ 		return -1;
+--- a/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
++++ b/l2tp/l2tpv2/nss_connmgr_l2tpv2.c
+@@ -1030,7 +1030,7 @@ int __init nss_connmgr_l2tpv2_init_modul
+ 	}
+ #endif
+ #if defined(NSS_L2TP_IPSEC_BIND_BY_NETDEV)
+-	ctl_tbl_hdr = register_sysctl_table(nss_connmgr_l2tpv2_sysroot);
++	ctl_tbl_hdr = register_sysctl("dev/nss/l2tpv2", nss_connmgr_l2tpv2_table);
+ 	if (!ctl_tbl_hdr) {
+ 		nss_connmgr_l2tpv2_info("Unable to register sysctl table for L2TP conn mgr\n");
+ 		return -EFAULT;
