@@ -28,7 +28,15 @@
  	 * Per-project stats
 --- a/Makefile
 +++ b/Makefile
-@@ -40,7 +40,6 @@ qca-nss-drv-objs += nss_hal/nss_hal.o
+@@ -26,7 +26,6 @@ qca-nss-drv-objs := \
+ 			nss_n2h_stats.o \
+ 			nss_n2h_strings.o \
+ 			nss_pm.o \
+-			nss_profiler.o \
+ 			nss_project.o \
+ 			nss_rps.o \
+ 			nss_stats.o \
+@@ -40,7 +39,6 @@ qca-nss-drv-objs += nss_hal/nss_hal.o
  
  ifneq "$(NSS_DRV_POINT_OFFLOAD)" "y"
  qca-nss-drv-objs += \
@@ -36,13 +44,14 @@
  			nss_if.o \
  			nss_if_log.o \
  			nss_phys_if.o \
-@@ -381,7 +380,8 @@ endif
+@@ -381,7 +379,9 @@ endif
  
  ifeq ($(SoC),$(filter $(SoC),ipq806x))
  qca-nss-drv-objs += nss_data_plane/nss_data_plane_gmac.o \
 -		    nss_hal/ipq806x/nss_hal_pvt.o
 +		    nss_hal/ipq806x/nss_hal_pvt.o \
 +		    nss_gmac_stats.o \
++		    nss_profiler.o
  
  ifneq "$(NSS_DRV_C2C_ENABLE)" "n"
  ccflags-y += -DNSS_DRV_C2C_ENABLE
