@@ -41,8 +41,14 @@ get_front_end_mode() {
     nss)
       echo '1'
       ;;
+    sfe)
+      echo '2'
+      ;;
+    both)
+      echo '4'
+      ;;
     *)
-      echo 'uci_option_acceleration_engine is invalid'
+      echo '0'
   esac
 }
 
@@ -60,9 +66,19 @@ disable_bridge_filtering() {
 
 load_ecm() {
   [ -d /sys/module/ecm ] || {
-    insmod ecm front_end_selection="$(get_front_end_mode)"
+    local get_front_end_mode
+    get_front_end_mode="$(get_front_end_mode)"
+    insmod ecm front_end_selection="$get_front_end_mode"
     echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
   }
+
+  . /lib/netifd/offload/disable_offloads.sh
+
+  disable_offload
+
+  #Flushout stale accelerated connections if any
+  echo 1 > /sys/kernel/debug/ecm/ecm_db/defunct_all
+  echo f > /proc/net/nf_conntrack
 
   # Set conntrack event mode to 1 for 6.1 kernel to get the conntrack events from ECM
   local kernel_major
@@ -93,10 +109,10 @@ unload_ecm() {
     # Defunct the connections
     #
     echo 1 > /sys/kernel/debug/ecm/ecm_db/defunct_all
-    sleep 5
+    echo f > /proc/net/nf_conntrack
 
-    rmmod ecm
     sleep 1
+    rmmod ecm
   fi
 }
 
