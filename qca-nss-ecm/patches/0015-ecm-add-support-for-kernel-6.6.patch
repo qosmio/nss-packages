@@ -87,10 +87,10 @@
  #if defined(CONFIG_NET_CLS_ACT)
  	struct net_device *dev;
 -	struct mini_Qdisc *miniq;
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
-+	struct bpf_mprog_entry *entry;
-+#else
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
 +	struct mini_Qdisc *entry;
++#else
++	struct bpf_mprog_entry *entry;
 +#endif
  
  	dev = dev_get_by_index(&init_net, interface_num);
@@ -102,10 +102,10 @@
 -	miniq = rcu_dereference_bh(dev->miniq_ingress);
 -	if (miniq) {
 +
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
-+	entry = rcu_dereference_bh(dev->tcx_ingress);
-+#else
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
 +	entry = rcu_dereference_bh(dev->miniq_ingress);
++#else
++	entry = rcu_dereference_bh(dev->tcx_ingress);
 +#endif
 +	if (entry) {
  		DEBUG_INFO("Ingress Qdisc is present for device[%s]\n", dev->name);
@@ -116,10 +116,10 @@
          int i;
  #if defined(CONFIG_NET_CLS_ACT) && defined(CONFIG_NET_EGRESS)
 -	struct mini_Qdisc *miniq;
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
-+	struct bpf_mprog_entry *entry;
-+#else
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
 +	struct mini_Qdisc *entry;
++#else
++	struct bpf_mprog_entry *entry;
 +#endif
  #endif
  
@@ -130,12 +130,26 @@
  #if defined(CONFIG_NET_CLS_ACT) && defined(CONFIG_NET_EGRESS)
 -	miniq = rcu_dereference_bh(dev->miniq_egress);
 -	if (miniq) {
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
-+	entry = rcu_dereference_bh(dev->tcx_egress);
-+#else
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
 +	entry = rcu_dereference_bh(dev->miniq_egress);
++#else
++	entry = rcu_dereference_bh(dev->tcx_egress);
 +#endif
 +	if (entry) {
  		DEBUG_INFO("Egress needed\n");
  		dev_put(dev);
  		return true;
+--- a/frontends/nss/ecm_nss_common.h
++++ b/frontends/nss/ecm_nss_common.h
+@@ -277,8 +277,10 @@ static inline bool ecm_nss_common_igs_ac
+ 		 */
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0))
+ 		if (likely(!(to_dev->ingress_cl_list))) {
+-#else
++#elseif (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+ 		if (likely(!(to_dev->miniq_ingress))) {
++#else
++		if (likely(!(to_dev->tcx_ingress))) {
+ #endif
+ 			dev_put(to_dev);
+ 			continue;
