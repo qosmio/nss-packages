@@ -14,7 +14,6 @@
 #
 
 current=$(sysctl -q -n dev.nss.stats.non_zero_stats)
-
 sysctl -q dev.nss.stats.non_zero_stats=1
 
 awk '
@@ -33,5 +32,11 @@ function color(c, s) {
 {
     color(0, $0)
 }' $(grep -lrE "= [1-9]+" /sys/kernel/debug/qca-nss-drv/stats)
+
+echo ""
+echo "________________________________________________________________________________"
+echo ""
+cat /sys/kernel/debug/qca-nss-drv/stats/cpu_load_ubi
+echo "________________________________________________________________________________"
 
 sysctl -q dev.nss.stats.non_zero_stats="$current"
