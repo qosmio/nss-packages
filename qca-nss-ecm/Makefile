@@ -83,6 +83,10 @@ ifneq ($(CONFIG_IPV6),)
 ECM_MAKE_OPTS+=ECM_IPV6_ENABLE=y
 endif
 
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-igs),)
+ECM_MAKE_OPTS+=ECM_CLASSIFIER_DSCP_IGS=y
+endif
+
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-ovpn-link),)
 ECM_MAKE_OPTS+=ECM_INTERFACE_OVPN_ENABLE=y
 endif
