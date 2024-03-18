@@ -1,14 +1,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-ecm
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-nss-ecm.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2023-11-30
-PKG_SOURCE_VERSION:=cb557ea
-PKG_MIRROR_HASH:=7d5f68a1e6583f80709bad3fbcd6c83fb7f9d77062f20fca45c92b96eb71546b
-QSDK_VERSION:=12.4.5.r3
+PKG_SOURCE_DATE:=2024-01-19
+PKG_SOURCE_VERSION:=b311cdf
+PKG_MIRROR_HASH:=88eb80147473e5af09e47a9537518459b90c46c8acbe4e9c42e18047b556956f
+QSDK_VERSION:=12.4.5.r5
 PKG_VERSION:=$(QSDK_VERSION)-$(PKG_SOURCE_DATE)-$(PKG_SOURCE_VERSION)
 
 PKG_BUILD_PARALLEL:=1
@@ -26,6 +26,7 @@ define KernelPackage/qca-nss-ecm
 		   +kmod-nf-conntrack \
 		   +@NSS_DRV_IPV6_ENABLE \
 		   +@NSS_DRV_VIRT_IF_ENABLE \
+			 +PACKAGE_kmod-qca-ovsmgr:kmod-qca-ovsmgr \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
 		   +PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
 		   +PACKAGE_kmod-bonding:kmod-bonding \
