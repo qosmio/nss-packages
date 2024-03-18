@@ -23,7 +23,7 @@ define KernelPackage/qca-mcs
   URL:=http://www.qca.qualcomm.com
   MAINTAINER:=Qualcomm Atheros, Inc.
   TITLE:=QCA Multicast Snooping Support
-  DEPENDS:=+@KERNEL_IPV6_MROUTE +@KERNEL_IP_MROUTE
+  DEPENDS:=+@KERNEL_IPV6_MROUTE +@KERNEL_IP_MROUTE +PACKAGE_kmod-qca-ovsmgr:kmod-qca-ovsmgr
   KCONFIG:=CONFIG_NETFILTER=y \
            CONFIG_BRIDGE_NETFILTER=y
   FILES:=$(PKG_BUILD_DIR)/qca-mcs.ko
@@ -44,6 +44,9 @@ define Build/InstallDev
 	$(foreach header_file,$(QCA_MC_SNOOPING_HEADERS), $(CP) $(header_file) $(1)/usr/include/;)
 endef
 
+EXTRA_CFLAGS+= \
+		 -I$(STAGING_DIR)/usr/include/qca-ovsmgr \
+
 EXTRA_CFLAGS+=-Wno-implicit-fallthrough
 
 QCA_MC_SNOOPING_MAKE_OPTS:= \
@@ -53,6 +56,10 @@ QCA_MC_SNOOPING_MAKE_OPTS:= \
         KBUILDPATH=$(LINUX_DIR) \
         KERNELPATH=$(LINUX_SRC_DIR) \
         KERNELRELEASE=$(LINUX_RELEASE)
+
+ifneq ($(CONFIG_PACKAGE_kmod-qca-ovsmgr),)
+QCA_MC_SNOOPING_MAKE_OPTS+=CONFIG_SUPPORT_OVS=y
+endif
 
 define Build/Compile
 	+$(MAKE) -C $(LINUX_DIR) \
