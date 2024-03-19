@@ -26,7 +26,6 @@ define KernelPackage/qca-nss-ecm
 		   +kmod-nf-conntrack \
 		   +@NSS_DRV_IPV6_ENABLE \
 		   +@NSS_DRV_VIRT_IF_ENABLE \
-			 +PACKAGE_kmod-qca-ovsmgr:kmod-qca-ovsmgr \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
 		   +PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
 		   +PACKAGE_kmod-bonding:kmod-bonding \
