@@ -1,6 +1,6 @@
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -8269,24 +8269,6 @@ static struct ctl_table ecm_interface_ta
+@@ -8303,24 +8303,6 @@ static struct ctl_table ecm_interface_ta
  	{ }
  };
  
@@ -25,7 +25,7 @@
  #ifdef ECM_INTERFACE_IPSEC_GLUE_LAYER_SUPPORT_ENABLE
  /*
   * ecm_interface_ipsec_register_callbacks()
-@@ -8783,7 +8765,7 @@ int ecm_interface_init(void)
+@@ -8817,7 +8799,7 @@ int ecm_interface_init(void)
  	/*
  	 * Register sysctl table.
  	 */
@@ -36,7 +36,7 @@
  	if (result != 0) {
 --- a/frontends/ecm_front_end_common.c
 +++ b/frontends/ecm_front_end_common.c
-@@ -1164,34 +1164,16 @@ static struct ctl_table ecm_front_end_sy
+@@ -1180,34 +1180,16 @@ static struct ctl_table ecm_front_end_sy
  	{}
  };
  
@@ -73,7 +73,7 @@
  #ifdef ECM_FRONT_END_SFE_ENABLE
  	if (ecm_front_end_ctl_tbl_hdr) {
  		ecm_sfe_sysctl_tbl_init();
-@@ -1203,7 +1185,7 @@ void ecm_front_end_common_sysctl_registe
+@@ -1219,7 +1201,7 @@ void ecm_front_end_common_sysctl_registe
   * ecm_front_end_common_sysctl_unregister()
   *	Function to unregister sysctl node during front end exit
   */
@@ -82,7 +82,7 @@
  {
  	/*
  	 * Unregister sysctl table.
-@@ -1702,7 +1684,11 @@ bool ecm_front_end_common_intf_ingress_q
+@@ -1718,7 +1700,11 @@ bool ecm_front_end_common_intf_ingress_q
  {
  #if defined(CONFIG_NET_CLS_ACT)
  	struct net_device *dev;
@@ -95,7 +95,7 @@
  
  	dev = dev_get_by_index(&init_net, interface_num);
  	if (!dev) {
-@@ -1711,8 +1697,13 @@ bool ecm_front_end_common_intf_ingress_q
+@@ -1727,8 +1713,13 @@ bool ecm_front_end_common_intf_ingress_q
  	}
  
  	BUG_ON(!rcu_read_lock_bh_held());
@@ -111,7 +111,7 @@
  		DEBUG_INFO("Ingress Qdisc is present for device[%s]\n", dev->name);
  		dev_put(dev);
  		return true;
-@@ -1735,7 +1726,11 @@ bool ecm_front_end_common_intf_qdisc_che
+@@ -1751,7 +1742,11 @@ bool ecm_front_end_common_intf_qdisc_che
          struct Qdisc *q;
          int i;
  #if defined(CONFIG_NET_CLS_ACT) && defined(CONFIG_NET_EGRESS)
@@ -124,7 +124,7 @@
  #endif
  
  	*is_ppeq = false;
-@@ -1766,8 +1761,12 @@ bool ecm_front_end_common_intf_qdisc_che
+@@ -1782,8 +1777,12 @@ bool ecm_front_end_common_intf_qdisc_che
  	}
  
  #if defined(CONFIG_NET_CLS_ACT) && defined(CONFIG_NET_EGRESS)
