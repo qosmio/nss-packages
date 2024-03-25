@@ -258,3 +258,17 @@
  	if (!ctl_tbl_hdr) {
  		nss_connmgr_l2tpv2_info("Unable to register sysctl table for L2TP conn mgr\n");
  		return -EFAULT;
+--- a/netlink/nss_nl.c
++++ b/netlink/nss_nl.c
+@@ -475,7 +475,11 @@ struct nss_nlcmn *nss_nl_get_msg(struct
+ 	/*
+ 	 * validate the common message header version & magic
+ 	 */
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+ 	cm = info->userhdr;
++#else
++	cm = genl_info_userhdr(info);
++#endif
+ 	if (nss_nlcmn_chk_ver(cm, family->version) == false) {
+ 		nss_nl_error("%d, %s: version mismatch (%d)\n", pid, family->name, cm->version);
+ 		return NULL;
