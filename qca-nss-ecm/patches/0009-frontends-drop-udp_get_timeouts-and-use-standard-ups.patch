@@ -39,7 +39,7 @@ instead or relying on a downstream api not present upstream.
  				spin_lock_bh(&ct->lock);
 --- a/frontends/sfe/ecm_sfe_ipv4.c
 +++ b/frontends/sfe/ecm_sfe_ipv4.c
-@@ -562,7 +562,8 @@ sync_conntrack:
+@@ -563,7 +563,8 @@ sync_conntrack:
  #else
  				timeouts = nf_ct_timeout_lookup(ct);
  				if (!timeouts) {

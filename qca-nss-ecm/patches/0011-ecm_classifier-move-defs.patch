@@ -1,6 +1,6 @@
 --- a/ecm_classifier_mscs.c
 +++ b/ecm_classifier_mscs.c
-@@ -426,7 +426,6 @@ static void ecm_classifier_mscs_process(
+@@ -428,7 +428,6 @@ static void ecm_classifier_mscs_process(
  	struct ecm_db_connection_instance *ci = NULL;
  	struct ecm_front_end_connection_instance *feci;
  	ecm_front_end_acceleration_mode_t accel_mode;
@@ -8,7 +8,7 @@
  	uint32_t became_relevant = 0;
  	ecm_classifier_mscs_process_callback_t cb = NULL;
  	ecm_classifier_mscs_result_t result = 0;
-@@ -437,10 +436,10 @@ static void ecm_classifier_mscs_process(
+@@ -439,10 +438,10 @@ static void ecm_classifier_mscs_process(
  	struct net_device *src_dev = NULL;
  	struct net_device *dest_dev = NULL;
  	uint64_t slow_pkts;
