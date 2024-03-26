@@ -172,12 +172,19 @@ disable_interrupt_moderation() {
   fi
 }
 
+parse_opt() {
+  local cfg="$1"
+
+  config_get_bool enable_bridge_filtering "$cfg" enable_bridge_filtering 0
+  config_get_bool disable_offloads "$cfg" disable_offloads 0
+  config_get_bool disable_flow_control "$cfg" disable_flow_control 0
+  config_get_bool disable_interrupt_moderation "$cfg" disable_interrupt_moderation 0
+  config_get_bool disable_gro "$cfg" disable_gro 0
+}
+
 disable_offload() {
-  local interface disable_flow_control disable_interrupt_moderation disable_offloads
-  disable_offloads="$(uci_get ecm.@general[0].disable_offloads)"
-  disable_gro="$(uci_get ecm.@general[0].disable_gro)"
-  disable_flow_control="$(uci_get ecm.@general[0].disable_flow_control)"
-  disable_interrupt_moderation="$(uci_get ecm.@general[0].disable_interrupt_moderation)"
+  config_load ecm
+  config_foreach parse_opt general
 
   [ -z $1 ] && interface=$(echo /sys/class/net/*) || interface=$*
 
