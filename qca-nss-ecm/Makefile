@@ -23,6 +23,7 @@ define KernelPackage/qca-nss-ecm
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
   DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx) \
+		   +ethtool \
 		   +kmod-nf-conntrack \
 		   +@NSS_DRV_IPV6_ENABLE \
 		   +@NSS_DRV_VIRT_IF_ENABLE \
