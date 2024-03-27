@@ -43,7 +43,7 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/include/* $(1)/usr/include/qca-nss-cfi
 endef
 
-define KernelPackage/qca-nss-cfi/Description
+define KernelPackage/qca-nss-cfi-cryptoapi/Description
 This package contains a NSS cfi driver for QCA chipset
 endef
 
