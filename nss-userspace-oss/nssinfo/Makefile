@@ -36,4 +36,4 @@ define Package/nssinfo/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/obj/nssinfo $(1)/usr/sbin/
 endef
 
-$(eval $(call BuildPackage,nssinfo))
+# $(eval $(call BuildPackage,nssinfo))

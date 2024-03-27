@@ -43,4 +43,4 @@ define Package/libnl-nss/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/obj/libnl-nss.so $(1)/lib
 endef
 
-$(eval $(call BuildPackage,libnl-nss))
+# $(eval $(call BuildPackage,libnl-nss))
