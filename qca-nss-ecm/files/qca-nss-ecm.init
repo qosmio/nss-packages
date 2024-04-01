@@ -68,7 +68,7 @@ load_ecm() {
   [ -d /sys/module/ecm ] || {
     local get_front_end_mode
     get_front_end_mode="$(get_front_end_mode)"
-    insmod ecm front_end_selection="$get_front_end_mode"
+    modprobe ecm front_end_selection="$get_front_end_mode"
     echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
   }
 
@@ -112,7 +112,7 @@ unload_ecm() {
     echo f > /proc/net/nf_conntrack
 
     sleep 1
-    rmmod ecm
+    modprobe -r ecm
   fi
 }
 
@@ -133,7 +133,7 @@ start() {
   fi
 
   if [ -d /sys/module/qca_ovsmgr ]; then
-    insmod ecm_ovs
+    modprobe ecm_ovs
   fi
 }
 
@@ -147,7 +147,7 @@ stop() {
   [ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=0
 
   if [ -d /sys/module/ecm_ovs ]; then
-    rmmod ecm_ovs
+    modprobe -r ecm_ovs
   fi
 
   unload_ecm
