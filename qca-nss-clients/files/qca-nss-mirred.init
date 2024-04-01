@@ -15,11 +15,11 @@
 ###########################################################################
 
 start() {
-	insmod act_nssmirred.ko
+	modprobe act_nssmirred.ko
 }
 
 stop() {
-	rmmod act_nssmirred.ko
+	modprobe -r act_nssmirred.ko
 }
 
 restart() {
