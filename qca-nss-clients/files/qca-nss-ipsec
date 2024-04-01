@@ -94,7 +94,7 @@ start_klips() {
 
 	local kernel_version=$(uname -r)
 
-	insmod /lib/modules/${kernel_version}/qca-nss-ipsec-klips.ko
+	modprobe /lib/modules/${kernel_version}/qca-nss-ipsec-klips.ko
 	if [ "$?" -gt 0 ]; then
 		echo "Failed to load plugin. Please start ecm if not done already"
 		ecm_enable
@@ -123,7 +123,7 @@ stop_klips() {
 	ecm_disable
 
 	/etc/init.d/ipsec stop
-	rmmod qca-nss-ipsec-klips
+	modprobe -r qca-nss-ipsec-klips
 	rm $NSS_IPSEC_OL_FILE
 
 	ecm_unload
@@ -140,11 +140,11 @@ start_xfrm() {
 		xfrm6_mode_transport xfrm4_mode_transport xfrm4_mode_tunnel \
 		xfrm4_tunnel xfrm4_mode_beet esp4 esp6 ah4 ah6 af_key
 		do
-			insmod $mod 2> /dev/null
+			modprobe $mod 2> /dev/null
 		done
 
 	# Now load the xfrm plugin
-	insmod /lib/modules/${kernel_version}/qca-nss-ipsec-xfrm.ko
+	modprobe /lib/modules/${kernel_version}/qca-nss-ipsec-xfrm.ko
 	if [ "$?" -gt 0 ]; then
 		echo "Failed to load plugin. Please start ecm if not done already"
 		ecm_enable
@@ -183,7 +183,7 @@ stop_xfrm() {
 	retries=5
 	while [ -d /sys/module/qca_nss_ipsec_xfrm ]
 	do
-		rmmod qca-nss-ipsec-xfrm
+		modprobe -r qca-nss-ipsec-xfrm
 		if [ "$?" -eq 0 ]; then
 			rm $NSS_IPSEC_OL_FILE
 			break
