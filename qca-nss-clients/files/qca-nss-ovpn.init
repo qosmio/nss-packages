@@ -39,11 +39,11 @@ restart() {
 	ecm_disable
 
 	/etc/init.d/openvpn stop
-	rmmod qca-nss-ovpn-link
-	rmmod qca-nss-ovpn-mgr
+	modprobe -r qca-nss-ovpn-link
+	modprobe -r qca-nss-ovpn-mgr
 
-	insmod qca-nss-ovpn-mgr
-	insmod qca-nss-ovpn-link
+	modprobe qca-nss-ovpn-mgr
+	modprobe qca-nss-ovpn-link
 
 	if [ "$?" -gt 0 ]; then
 		echo "Failed to load plugin. Please start ecm if not done already"
@@ -62,8 +62,8 @@ stop() {
 	ecm_disable
 
 	/etc/init.d/openvpn stop
-	rmmod qca-nss-ovpn-link
-	rmmod qca-nss-ovpn-mgr
+	modprobe -r qca-nss-ovpn-link
+	modprobe -r qca-nss-ovpn-mgr
 
 	ecm_enable
 }
