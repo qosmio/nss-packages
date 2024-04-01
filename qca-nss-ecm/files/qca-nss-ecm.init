@@ -68,6 +68,7 @@ load_ecm() {
   [ -d /sys/module/ecm ] || {
     local get_front_end_mode
     get_front_end_mode="$(get_front_end_mode)"
+    modinfo ecm | awk '/depends/{gsub(",","\n",$NF);print $NF}' | xargs -r -n 1 modprobe
     insmod ecm front_end_selection="$get_front_end_mode"
     echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
   }
@@ -116,6 +117,12 @@ unload_ecm() {
   fi
 }
 
+parse_opt() {
+  local cfg="$1"
+
+  config_get_bool enable_bridge_filtering "$cfg" enable_bridge_filtering 0
+}
+
 start() {
   load_ecm
 
@@ -123,9 +130,10 @@ start() {
   [ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=1
 
   # If bridge filtering is enabled, apply and persist the sysctl flags
-  local bridge_filtering_enabled
-  bridge_filtering_enabled="$(uci get ecm.@general[0].enable_bridge_filtering)"
-  if [ "$bridge_filtering_enabled" -eq 1 ]; then
+  config_load ecm
+  config_foreach parse_opt general
+
+  if [ "$enable_bridge_filtering" -eq 1 ]; then
     echo "Bridge filtering is enabled in the ECM config, this will cause issues with NAT loopback!"
     enable_bridge_filtering
   else
