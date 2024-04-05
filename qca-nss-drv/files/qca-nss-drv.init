@@ -50,10 +50,13 @@ enable_rps() {
   set_affinity 'nss_queue2' 1 2
   set_affinity 'nss_queue3' 2 2
 
-  # assign nss buffer sos/queues to core 3
-  set_affinity 'nss_empty_buf_sos' 8
-  set_affinity 'nss_empty_buf_queue' 8
-  set_affinity_last 'nss_empty_buf_sos' 8
+  # NSS core 0 buffer sos/queues : CPU2 + CPU3
+  set_affinity 'nss_empty_buf_sos' 4 1
+  set_affinity 'nss_empty_buf_queue' 8 1
+
+  # NSS core 1 buffer sos/queues : CPU2 + CPU3
+  set_affinity 'nss_empty_buf_sos' 4 2
+  set_affinity 'nss_empty_buf_queue' 8 2
 
   # Enable NSS RPS
   sysctl -w dev.nss.rps.enable=1 > /dev/null 2> /dev/null
