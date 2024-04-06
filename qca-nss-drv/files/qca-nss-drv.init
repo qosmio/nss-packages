@@ -1,5 +1,6 @@
 #!/bin/sh /etc/rc.common
-#
+# vim: set syn=bash
+# shellcheck disable=2155,3019,3043,3057,3060
 # Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -13,53 +14,114 @@
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-#
+######################################################################
 
 START=70
+PROG="qca-nss-drv"
+
+######################################################################
+### Takes a comma or space separated list of CPU numbers or ranges 
+## and returns a bitmask of CPUs.
+## cpus_to_bitmask "0,1,2,3" -> f
+## cpus_to_bitmask "0 1 2 3" -> f
+## cpus_to_bitmask "0-3"     -> f
+## cpus_to_bitmask "3"       -> 8
+#######################################################################
+
+cpus_to_bitmask() {
+
+  local bitmask=0
+  # shellcheck disable=2048
+  for range in ${*//,/ }; do
+    start="${range%-*}"
+    end="${range#*-}"
+    if [ -z "$end" ]; then
+      bitmask="$((bitmask | 1 << start))"
+    else
+      bitmask="$((bitmask | (2 ** (end - start + 1) - 1) << start))"
+    fi
+  done
+  printf '%x' $bitmask
+}
+
+######################################################################
+### Takes a bitmask of CPUs and returns a space separated list of
+## CPU numbers.
+## bitmask_to_cpus f -> 0 1 2 3
+######################################################################
+
+bitmask_to_cpus() {
+
+  [ "${1:0:2}" != "0x" ] && set -- "0x$1"
+  local bitmask="$(printf '%d' "$1")"
+
+  local cpus=""
+  for i in $(seq 0 63); do
+    if [ $((bitmask & 1)) -ne 0 ]; then
+      cpus="$cpus $i"
+    fi
+    bitmask=$((bitmask >> 1))
+  done
+  echo "${cpus# }"
+}
+
+######################################################################
+### Sets the affinity of the IRQs with the given name to the given CPU.
+## first argument: IRQ name ("nss_queue0")
+## second argument: CPU number
+## third argument: occurrence of the IRQ name
+##                 since NSS core 0/1 share the same IRQ names
+## set_affinity "nss_queue0" 1 1
+
+set_affinity() {
+
+  local irq_name="$1" affinity="$2" occurrence="$3" bitmask
+
+  awk -v irq_name="$irq_name" -v occurrence="$occurrence" '
+    BEGIN{count=0}
+    $NF==irq_name {
+      if(++count==occurrence){
+        sub(/:$/,"",$1)
+        print $1
+      }
+  }' /proc/interrupts | while read -r irq; do
+    $enable_log && {
+      logger -t "$PROG" "$(printf "NSS Core $((occurrence - 1)): Pinning IRQ($irq) %-19s to CPU ${affinity}\n" "$irq_name")"
+    }
+    bitmask=$(cpus_to_bitmask "$affinity") && echo "$bitmask" > /proc/irq/"$irq"/smp_affinity
+  done
+}
 
 enable_rps() {
-  set_affinity(){
-    awk -v irq_name="$1" -v affinity="$2" -v occurrence="$3" '
-    BEGIN{count=0}
-    $NF==irq_name{
-      if(++count==occurrence){
-        sub(/:$/,"",$1);
-        logger -t "ucitrack"
-        system("logger -t \"qca-nss-drv\" \"Pinning IRQ " irq_name " occurance " occurrence " to core " affinity "\"");
-        system("printf " affinity " > /proc/irq/" $1 "/smp_affinity");
-        exit
-      }
-    }' /proc/interrupts
-  }
 
-  # nss_queue set 1
-  set_affinity 'nss_queue0' 2 1
-  set_affinity 'nss_queue1' 4 1
-  set_affinity 'nss_queue2' 8 1
-  set_affinity 'nss_queue3' 1 1
+  # NSS Core 0 : 4 nss queues to each core
+  set_affinity "nss_queue0"           1 1
+  set_affinity "nss_queue1"           2 1
+  set_affinity "nss_queue2"           3 1
+  set_affinity "nss_queue3"           0 1
 
-  # nss_queue set 2
-  set_affinity 'nss_queue0' 4 2
-  set_affinity 'nss_queue1' 8 2
-  set_affinity 'nss_queue2' 1 2
-  set_affinity 'nss_queue3' 2 2
+  # NSS Core 1 : 1 nss queue to 3rd core
+  set_affinity "nss_queue0"           2 2
 
-  # nss buffer sos/queues set 1
-  set_affinity 'nss_empty_buf_sos' 4 1
-  set_affinity 'nss_empty_buf_queue' 8 1
+  # NSS Core 0 : 2 nss sos/queues to last core
+  set_affinity "nss_empty_buf_sos"    3 1
+  set_affinity "nss_empty_buf_queue"  3 1
 
-  # nss buffer sos/queues set 2
-  set_affinity 'nss_empty_buf_sos' 4 2
-  set_affinity 'nss_empty_buf_queue' 8 2
+  # NSS Core 1 : 1 nss sos to last core
+  set_affinity "nss_empty_buf_sos"    3 2
 
   # Enable NSS RPS
   sysctl -w dev.nss.rps.enable=1 > /dev/null 2> /dev/null
 }
 
 start() {
-  local rps_enabled
-  rps_enabled="$(uci_get nss @general[0] enable_rps)"
-  if [ "$rps_enabled" -eq 1 ]; then
-    enable_rps
-  fi
+
+  local enable_rps
+
+  config_load     nss
+  config_get      enable_rps "general" enable_rps 0
+  config_get_bool enable_log "general" enable_log 0
+
+  [ "$enable_log" -eq 1 ] && enable_log=true || enable_log=false
+  [ "$enable_rps" -eq 1 ] && enable_rps
 }
