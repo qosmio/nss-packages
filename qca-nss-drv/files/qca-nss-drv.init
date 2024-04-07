@@ -18,27 +18,39 @@
 START=70
 
 enable_rps() {
-  set_affinity() {
-    awk "/$1/{ print substr(\$1, 1, length(\$1)-1) }" /proc/interrupts | while read -r irq; do
-      [ -n "$irq" ] && echo "$2" > /proc/irq/"$irq"/smp_affinity
-    done
-  }
-  set_affinity_last() {
-    awk "/$1/{sub(/:/,\"\");last=\$1} END{print last}" /proc/interrupts | while read -r irq; do
-      [ -n "$irq" ] && echo "$2" > /proc/irq/"$irq"/smp_affinity
-    done
+  set_affinity(){
+    awk -v irq_name="$1" -v affinity="$2" -v occurrence="$3" '
+    BEGIN{count=0}
+    $NF==irq_name{
+      if(++count==occurrence){
+        sub(/:$/,"",$1);
+        logger -t "ucitrack"
+        system("logger -t \"qca-nss-drv\" \"Pinning IRQ " irq_name " occurance " occurrence " to core " affinity "\"");
+        system("printf " affinity " > /proc/irq/" $1 "/smp_affinity");
+        exit
+      }
+    }' /proc/interrupts
   }
 
-  # assign 3 nss queues to each core
-  set_affinity 'nss_queue1' 2
-  set_affinity 'nss_queue2' 4
-  set_affinity 'nss_queue3' 8
-  set_affinity 'nss_queue0' 1
+  # nss_queue set 1
+  set_affinity 'nss_queue0' 2 1
+  set_affinity 'nss_queue1' 4 1
+  set_affinity 'nss_queue2' 8 1
+  set_affinity 'nss_queue3' 1 1
 
-  # assign nss buffer sos/queues to core 3
-  set_affinity 'nss_empty_buf_sos' 8
-  set_affinity 'nss_empty_buf_queue' 8
-  set_affinity_last 'nss_empty_buf_sos' 8
+  # nss_queue set 2
+  set_affinity 'nss_queue0' 4 2
+  set_affinity 'nss_queue1' 8 2
+  set_affinity 'nss_queue2' 1 2
+  set_affinity 'nss_queue3' 2 2
+
+  # nss buffer sos/queues set 1
+  set_affinity 'nss_empty_buf_sos' 4 1
+  set_affinity 'nss_empty_buf_queue' 8 1
+
+  # nss buffer sos/queues set 2
+  set_affinity 'nss_empty_buf_sos' 4 2
+  set_affinity 'nss_empty_buf_queue' 8 2
 
   # Enable NSS RPS
   sysctl -w dev.nss.rps.enable=1 > /dev/null 2> /dev/null
