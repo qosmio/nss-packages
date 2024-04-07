@@ -95,7 +95,7 @@ define KernelPackage/qca-nss-drv/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/firmware
-	$(INSTALL_DIR) $(1)/lib/debug
+	$(INSTALL_DIR) $(1)/usr/bin
 
 	$(INSTALL_BIN) ./files/qca-nss-drv.init $(1)/etc/init.d/qca-nss-drv
 	$(INSTALL_BIN) ./files/qca-nss-drv.uci $(1)/etc/config/nss
