@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-ssdk-shell
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/ssdk-shell.git
 PKG_SOURCE_PROTO:=git
@@ -36,8 +36,6 @@ QCASSDK_CONFIG_OPTS+= TOOL_PATH=$(CONFIG_TOOLCHAIN_BIN_PATH) \
                 CFLAGS="$(TARGET_CFLAGS)" \
                 LDFLAGS="$(TARGET_LDFLAGS)" \
                 ARCH=$(LINUX_KARCH)
-
-# TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -Os
 
 define Build/Compile
 	$(MAKE) -C $(PKG_BUILD_DIR) $(PKG_JOBS) $(strip $(QCASSDK_CONFIG_OPTS))
