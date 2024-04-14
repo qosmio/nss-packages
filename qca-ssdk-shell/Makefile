@@ -18,6 +18,7 @@ define Package/qca-ssdk-shell
   SECTION:=QCA
   CATEGORY:=Utilities
   TITLE:=Shell application for QCA SSDK
+  DEPENDS:=+kmod-qca-ssdk
 endef
 
 
