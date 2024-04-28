@@ -1,4 +1,5 @@
 #!/bin/sh  /etc/rc.common
+# shellcheck disable=3043,3060,2086,2034
 #
 # Copyright (c) 2014, 2019-2020 The Linux Foundation. All rights reserved.
 #
@@ -22,9 +23,11 @@ START=26
 
 sysctl_update() {
   local name value file
+
   name=${1//\//\\/}
   value=${2//\//\\/}
   file=${3:-/etc/sysctl.d/qca-nss-ecm.conf}
+
   sed -i -e '/^#\?\(\s*'"${name}"'\s*=\s*\).*/{s//\1'"${value}"'/;:a;n;ba;q}' \
     -e '$a'"${name}"'='"${value}" "${file}"
   sysctl -w ${name}=${value}
@@ -32,8 +35,10 @@ sysctl_update() {
 
 get_front_end_mode() {
   config_load "ecm"
+
   config_get front_end global acceleration_engine "auto"
 
+  # shellcheck disable=2154
   case $front_end in
     auto)
       echo '0'
@@ -75,6 +80,7 @@ load_ecm() {
     echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
   }
 
+  # shellcheck disable=1091
   . /lib/netifd/offload/disable_offloads.sh
 
   disable_offload
@@ -119,12 +125,6 @@ unload_ecm() {
   fi
 }
 
-parse_opt() {
-  local cfg="$1"
-
-  config_get_bool enable_bridge_filtering "$cfg" enable_bridge_filtering 0
-}
-
 start() {
   load_ecm
 
@@ -133,8 +133,9 @@ start() {
 
   # If bridge filtering is enabled, apply and persist the sysctl flags
   config_load ecm
-  config_foreach parse_opt general
+  config_get enable_bridge_filtering general enable_bridge_filtering "0"
 
+  # shellcheck disable=2154
   if [ "$enable_bridge_filtering" -eq 1 ]; then
     echo "Bridge filtering is enabled in the ECM config, this will cause issues with NAT loopback!"
     enable_bridge_filtering

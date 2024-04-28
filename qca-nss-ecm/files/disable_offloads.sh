@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=3014
+# shellcheck disable=3014,3043,2086,1091,2154
 #
 # Helper script which uses ethtool to disable (most)
 # interface offloads, if possible.
@@ -172,19 +172,14 @@ disable_interrupt_moderation() {
   fi
 }
 
-parse_opt() {
-  local cfg="$1"
-
-  config_get_bool enable_bridge_filtering "$cfg" enable_bridge_filtering 0
-  config_get_bool disable_offloads "$cfg" disable_offloads 0
-  config_get_bool disable_flow_control "$cfg" disable_flow_control 0
-  config_get_bool disable_interrupt_moderation "$cfg" disable_interrupt_moderation 0
-  config_get_bool disable_gro "$cfg" disable_gro 0
-}
-
 disable_offload() {
   config_load ecm
-  config_foreach parse_opt general
+
+  config_get_bool enable_bridge_filtering      ecm enable_bridge_filtering 0
+  config_get_bool disable_offloads             ecm disable_offloads 0
+  config_get_bool disable_flow_control         ecm disable_flow_control 0
+  config_get_bool disable_interrupt_moderation ecm disable_interrupt_moderation 0
+  config_get_bool disable_gro                  ecm disable_gro 0
 
   [ -z $1 ] && interface=$(echo /sys/class/net/*) || interface=$*
 
