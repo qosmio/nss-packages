@@ -175,11 +175,11 @@ disable_interrupt_moderation() {
 disable_offload() {
   config_load ecm
 
-  config_get_bool enable_bridge_filtering      ecm enable_bridge_filtering 0
-  config_get_bool disable_offloads             ecm disable_offloads 0
-  config_get_bool disable_flow_control         ecm disable_flow_control 0
-  config_get_bool disable_interrupt_moderation ecm disable_interrupt_moderation 0
-  config_get_bool disable_gro                  ecm disable_gro 0
+  config_get_bool enable_bridge_filtering      general enable_bridge_filtering 0
+  config_get_bool disable_offloads             general disable_offloads 0
+  config_get_bool disable_flow_control         general disable_flow_control 0
+  config_get_bool disable_interrupt_moderation general disable_interrupt_moderation 0
+  config_get_bool disable_gro                  general disable_gro 0
 
   [ -z $1 ] && interface=$(echo /sys/class/net/*) || interface=$*
 
