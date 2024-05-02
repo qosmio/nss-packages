@@ -1,0 +1,3 @@
+[submodule "sqm-scripts-nss"]
+	path = sqm-scripts-nss
+	url = https://github.com/qosmio/sqm-scripts-nss.git
