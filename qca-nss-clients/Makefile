@@ -5,10 +5,10 @@ PKG_RELEASE:=2
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-clients.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2023-09-28
-PKG_SOURCE_VERSION:=f058ae1
-PKG_MIRROR_HASH:=23c66b0afa1f8de3b9ae95e4e2cfc98fd68d169ba41e1e93e9e7c74c7921e48e
-QSDK_VERSION:=12.4.5.r3
+PKG_SOURCE_DATE:=2024-03-05
+PKG_SOURCE_VERSION:=9a53b18
+PKG_MIRROR_HASH:=d9ce4f5ae5880eee9d0ae08e12ce32f58be2e5a01b56ff3e31e145892038b516
+QSDK_VERSION:=12.5.r2
 PKG_VERSION:=$(QSDK_VERSION)-$(PKG_SOURCE_DATE)-$(PKG_SOURCE_VERSION)
 
 PKG_BUILD_PARALLEL:=1
@@ -339,7 +339,6 @@ define KernelPackage/qca-nss-drv-qdisc
 		   +kmod-qca-nss-drv
   FILES:=$(PKG_BUILD_DIR)/nss_qdisc/qca-nss-qdisc.ko
   KCONFIG:=CONFIG_NET_CLS_ACT=y
-  AUTOLOAD:=$(call AutoLoad,58,qca-nss-qdisc)
 endef
 
 define KernelPackage/qca-nss-drv-qdisc/Description
@@ -570,11 +569,6 @@ endef
 define KernelPackage/qca-nss-drv-ipsecmgr-xfrm/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/qca-nss-ipsec $(1)/etc/init.d/qca-nss-ipsec
-endef
-
-define KernelPackage/qca-nss-drv-igs/install
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/qca-nss-mirred.init $(1)/etc/init.d/qca-nss-mirred
 endef
 
 define KernelPackage/qca-nss-drv-netlink/install

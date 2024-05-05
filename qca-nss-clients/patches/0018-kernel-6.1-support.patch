@@ -188,7 +188,7 @@
  	 * Update qdisc->qstats
 --- a/vlan/nss_vlan_mgr.c
 +++ b/vlan/nss_vlan_mgr.c
-@@ -787,7 +787,7 @@ static struct nss_vlan_pvt *nss_vlan_mgr
+@@ -915,7 +915,7 @@ static struct nss_vlan_pvt *nss_vlan_mgr
  	}
  
  	v->mtu = dev->mtu;
@@ -197,7 +197,7 @@
  	v->ifindex = dev->ifindex;
  	v->refs = 1;
  
-@@ -936,14 +936,14 @@ static int nss_vlan_mgr_changeaddr_event
+@@ -974,14 +974,14 @@ static int nss_vlan_mgr_changeaddr_event
  	}
  	spin_unlock(&vlan_mgr_ctx.lock);
  

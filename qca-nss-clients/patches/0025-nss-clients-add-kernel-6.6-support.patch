@@ -65,7 +65,7 @@
  		tot->rx_packets += rx_packets;
 --- a/vlan/nss_vlan_mgr.c
 +++ b/vlan/nss_vlan_mgr.c
-@@ -1544,30 +1544,6 @@ static struct ctl_table nss_vlan_table[]
+@@ -1582,30 +1582,6 @@ static struct ctl_table nss_vlan_table[]
  };
  
  /*
@@ -96,7 +96,7 @@
   * nss_vlan_mgr_add_bond_slave()
   *	Add new slave port to bond_vlan
   */
-@@ -1906,7 +1882,7 @@ int __init nss_vlan_mgr_init_module(void
+@@ -1944,7 +1920,7 @@ int __init nss_vlan_mgr_init_module(void
  	vlan_mgr_ctx.stpid = ETH_P_8021Q;
  
  #ifdef NSS_VLAN_MGR_PPE_SUPPORT

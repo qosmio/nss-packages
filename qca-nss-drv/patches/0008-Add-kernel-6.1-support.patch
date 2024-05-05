@@ -11,7 +11,7 @@
  
 --- a/nss_hal/ipq50xx/nss_hal_pvt.c
 +++ b/nss_hal/ipq50xx/nss_hal_pvt.c
-@@ -598,7 +598,7 @@ static int __nss_hal_request_irq(struct
+@@ -599,7 +599,7 @@ static int __nss_hal_request_irq(struct
  		return err;
  	}
  
@@ -22,7 +22,7 @@
  	if (err) {
 --- a/nss_hal/ipq60xx/nss_hal_pvt.c
 +++ b/nss_hal/ipq60xx/nss_hal_pvt.c
-@@ -614,62 +614,62 @@ static int __nss_hal_request_irq(struct
+@@ -615,62 +615,62 @@ static int __nss_hal_request_irq(struct
  	irq_set_status_flags(irq, IRQ_DISABLE_UNLAZY);
  
  	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_EMPTY_BUFFER_SOS) {
@@ -97,7 +97,7 @@
  
 --- a/nss_hal/ipq806x/nss_hal_pvt.c
 +++ b/nss_hal/ipq806x/nss_hal_pvt.c
-@@ -1182,7 +1182,7 @@ static int __nss_hal_request_irq(struct
+@@ -1185,7 +1185,7 @@ static int __nss_hal_request_irq(struct
  	}
  
  	int_ctx->irq = npd->irq[irq_num];
@@ -108,7 +108,7 @@
  }
 --- a/nss_hal/ipq807x/nss_hal_pvt.c
 +++ b/nss_hal/ipq807x/nss_hal_pvt.c
-@@ -656,62 +656,62 @@ static int __nss_hal_request_irq(struct
+@@ -659,62 +659,62 @@ static int __nss_hal_request_irq(struct
  	irq_set_status_flags(irq, IRQ_DISABLE_UNLAZY);
  
  	if (irq_num == NSS_HAL_N2H_INTR_PURPOSE_EMPTY_BUFFER_SOS) {

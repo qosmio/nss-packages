@@ -484,7 +484,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
 --- a/nss_hal/ipq806x/nss_hal_pvt.c
 +++ b/nss_hal/ipq806x/nss_hal_pvt.c
-@@ -474,10 +474,9 @@ static struct nss_platform_data *__nss_h
+@@ -477,10 +477,9 @@ static struct nss_platform_data *__nss_h
  	/*
  	 * Clear TCM memory used by this core
  	 */
@@ -499,7 +499,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	/*
 --- a/nss_hal/ipq807x/nss_hal_pvt.c
 +++ b/nss_hal/ipq807x/nss_hal_pvt.c
-@@ -256,10 +256,9 @@ static struct nss_platform_data *__nss_h
+@@ -259,10 +259,9 @@ static struct nss_platform_data *__nss_h
  	/*
  	 * Clear TCM memory used by this core
  	 */
@@ -514,7 +514,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	/*
 --- a/nss_meminfo.c
 +++ b/nss_meminfo.c
-@@ -414,7 +414,6 @@ static bool nss_meminfo_init_block_lists
+@@ -415,7 +415,6 @@ static bool nss_meminfo_init_block_lists
  		/*
  		 * Flush the updated meminfo request.
  		 */
@@ -522,7 +522,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  		NSS_CORE_DSB();
  
  		/*
-@@ -545,7 +544,7 @@ static bool nss_meminfo_configure_n2h_h2
+@@ -546,7 +545,7 @@ static bool nss_meminfo_configure_n2h_h2
  	 * Bring a fresh copy of if_map from memory in order to read it correctly.
  	 */
  	if_map = mem_ctx->if_map;
@@ -531,7 +531,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  
  	if_map->n2h_rings = NSS_N2H_RING_COUNT;
-@@ -583,7 +582,7 @@ static bool nss_meminfo_configure_n2h_h2
+@@ -584,7 +583,7 @@ static bool nss_meminfo_configure_n2h_h2
  	/*
  	 * Flush the updated nss_if_mem_map.
  	 */
@@ -542,7 +542,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	return true;
 --- a/nss_profiler.c
 +++ b/nss_profiler.c
-@@ -202,11 +202,12 @@ EXPORT_SYMBOL(nss_profile_dma_deregister
+@@ -209,11 +209,12 @@ EXPORT_SYMBOL(nss_profile_dma_deregister
  struct nss_profile_sdma_ctrl *nss_profile_dma_get_ctrl(struct nss_ctx_instance *nss_ctx)
  {
  	struct nss_profile_sdma_ctrl *ctrl = nss_ctx->meminfo_ctx.sdma_ctrl;

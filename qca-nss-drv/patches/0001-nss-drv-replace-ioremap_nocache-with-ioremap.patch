@@ -32,7 +32,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		goto out;
 --- a/nss_hal/ipq50xx/nss_hal_pvt.c
 +++ b/nss_hal/ipq50xx/nss_hal_pvt.c
-@@ -184,13 +184,13 @@ static struct nss_platform_data *__nss_h
+@@ -185,13 +185,13 @@ static struct nss_platform_data *__nss_h
  	npd->nphys = res_nphys.start;
  	npd->qgic_phys = res_qgic_phys.start;
  
@@ -48,7 +48,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	if (!npd->qgic_map) {
  		nss_info_always("%px: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -348,7 +348,7 @@ static int __nss_hal_common_reset(struct
+@@ -349,7 +349,7 @@ static int __nss_hal_common_reset(struct
  
  	of_node_put(cmn);
  
@@ -59,7 +59,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		return -EFAULT;
 --- a/nss_hal/ipq60xx/nss_hal_pvt.c
 +++ b/nss_hal/ipq60xx/nss_hal_pvt.c
-@@ -207,13 +207,13 @@ static struct nss_platform_data *__nss_h
+@@ -208,13 +208,13 @@ static struct nss_platform_data *__nss_h
  	npd->nphys = res_nphys.start;
  	npd->qgic_phys = res_qgic_phys.start;
  
@@ -75,7 +75,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	if (!npd->qgic_map) {
  		nss_info_always("%px: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -433,13 +433,13 @@ static int __nss_hal_common_reset(struct
+@@ -434,13 +434,13 @@ static int __nss_hal_common_reset(struct
  
  	of_node_put(cmn);
  
@@ -93,7 +93,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		return -EFAULT;
 --- a/nss_hal/ipq806x/nss_hal_pvt.c
 +++ b/nss_hal/ipq806x/nss_hal_pvt.c
-@@ -458,7 +458,7 @@ static struct nss_platform_data *__nss_h
+@@ -461,7 +461,7 @@ static struct nss_platform_data *__nss_h
  	npd->nphys = res_nphys.start;
  	npd->vphys = res_vphys.start;
  
@@ -102,7 +102,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	if (!npd->nmap) {
  		nss_info_always("%px: nss%d: ioremap() fail for nphys\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -711,7 +711,7 @@ static int __nss_hal_common_reset(struct
+@@ -714,7 +714,7 @@ static int __nss_hal_common_reset(struct
  	}
  	of_node_put(cmn);
  
@@ -113,7 +113,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  		return -EFAULT;
 --- a/nss_hal/ipq807x/nss_hal_pvt.c
 +++ b/nss_hal/ipq807x/nss_hal_pvt.c
-@@ -234,7 +234,7 @@ static struct nss_platform_data *__nss_h
+@@ -237,7 +237,7 @@ static struct nss_platform_data *__nss_h
  	npd->vphys = res_vphys.start;
  	npd->qgic_phys = res_qgic_phys.start;
  
@@ -122,7 +122,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	if (!npd->nmap) {
  		nss_info_always("%px: nss%d: ioremap() fail for nphys\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -247,7 +247,7 @@ static struct nss_platform_data *__nss_h
+@@ -250,7 +250,7 @@ static struct nss_platform_data *__nss_h
  		goto out;
  	}
  
@@ -131,7 +131,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	if (!npd->qgic_map) {
  		nss_info_always("%px: nss%d: ioremap() fail for qgic map\n", nss_ctx, nss_ctx->id);
  		goto out;
-@@ -467,7 +467,7 @@ static int __nss_hal_common_reset(struct
+@@ -470,7 +470,7 @@ static int __nss_hal_common_reset(struct
  	}
  	of_node_put(cmn);
  
@@ -185,7 +185,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	}
 --- a/nss_meminfo.c
 +++ b/nss_meminfo.c
-@@ -735,7 +735,7 @@ bool nss_meminfo_init(struct nss_ctx_ins
+@@ -736,7 +736,7 @@ bool nss_meminfo_init(struct nss_ctx_ins
  	/*
  	 * meminfo_start is the label where the start address of meminfo map is stored.
  	 */

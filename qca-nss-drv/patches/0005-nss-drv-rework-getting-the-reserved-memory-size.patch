@@ -73,7 +73,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 -	if (ppp) {
 -		n_items /= sizeof(ppp[0]);
 -		nss_msize = be32_to_cpup(ppp + addr_cells + size_cells - 1);
--		nss_info_always("addr/size storage words %d %d # words %d in DTS, ddr size %x\n",
+-		nss_info("addr/size storage words %d %d # words %d in DTS, ddr size %x\n",
 -				addr_cells, size_cells, n_items, nss_msize);
 +	struct device_node *common_node, *memory_node;
 +	struct resource r;
