@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-cfi
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-cfi.git
 PKG_SOURCE_PROTO:=git
@@ -31,7 +31,7 @@ define KernelPackage/qca-nss-cfi-cryptoapi
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Cryptographic API modules
-  DEPENDS:=@TARGET_qualcommax +kmod-qca-nss-crypto +kmod-crypto-authenc
+  DEPENDS:=@TARGET_qualcommax +kmod-qca-nss-crypto +kmod-crypto-authenc @BROKEN
   TITLE:=Kernel driver for NSS cfi
   FILES:=$(PKG_BUILD_DIR)/$(CFI_CRYPTOAPI_DIR)/qca-nss-cfi-cryptoapi.ko
   AUTOLOAD:=$(call AutoLoad,59,qca-nss-cfi-cryptoapi)
