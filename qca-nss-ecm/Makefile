@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-ecm
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-nss-ecm.git
 PKG_SOURCE_PROTO:=git
@@ -82,6 +82,11 @@ endif
 # Disable ECM IPv6 support when global IPv6 support is disabled.
 ifneq ($(CONFIG_IPV6),)
 ECM_MAKE_OPTS+=ECM_IPV6_ENABLE=y
+endif
+
+# Disable ECM Bridge VLAN Filtering support when global kernel config is disabled
+ifneq ($(CONFIG_BRIDGE_VLAN_FILTERING),)
+ECM_MAKE_OPTS+=ECM_BRIDGE_VLAN_FILTERING_ENABLE=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-igs),)
