@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022 OpenWrt.org
+# Copyright (C) 2021 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,128 +8,68 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nss-firmware
-PKG_SOURCE_DATE:=2022-07-12
-PKG_SOURCE_VERSION:=ade6bff5
-PKG_MIRROR_HASH:=6652eea8941a0db28f983fa450b28ffaae332e4494c21cb9dbfe4648568db28d
-PKG_RELEASE:=2
+PKG_SOURCE_DATE:=2022-07-14
+PKG_SOURCE_VERSION:=ade6bff594377c9d9c79b45e39bf104303d919bc
+PKG_MIRROR_HASH:=99ca44dd0733cff569308550c6c74febb0e7a03093b14df092d0f53362189647
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/quic/qca-sdk-nss-fw.git
 
 PKG_LICENSE_FILES:=LICENSE.md
 
-PKG_MAINTAINER:=Sean K <datapronix@protonmail.com>
-
-PKG_CONFIG_DEPENDS:= \
-	CONFIG_NSS_FIRMWARE_VERSION_11_4 \
-	CONFIG_NSS_FIRMWARE_VERSION_12_1
+PKG_MAINTAINER:=Robert Marko <robimarko@gmail.com>
 
 include $(INCLUDE_DIR)/package.mk
 
 RSTRIP:=:
 STRIP:=:
 
-NSS_PROFILE:=R
+VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_12.0.0/ED1
 
 define Package/nss-firmware-default
-	TITLE:=NSS firmware
-	SECTION:=firmware
-	CATEGORY:=Firmware
-	URL:=$(PKG_SOURCE_URL)
-	DEPENDS:=@TARGET_qualcommax
-endef
-
-define Package/nss-firmware-ipq8074
-$(Package/nss-firmware-default)
-	IPQ_PLATFORM=IPQ8074
-	DEPENDS+= @TARGET_qualcommax_ipq807x +nss-firmware-default
-	NSS_SOC:=HK
+  SECTION:=firmware
+  CATEGORY:=Firmware
+  URL:=$(PKG_SOURCE_URL)
+  DEPENDS:=@(TARGET_ipq807x||TARGET_ipq60xx||TARGET_qualcommax)
 endef
 
 define Package/nss-firmware-ipq6018
 $(Package/nss-firmware-default)
-	IPQ_PLATFORM=IPQ6018
-	DEPENDS+= @TARGET_qualcommax_ipq60xx +nss-firmware-default
-	NSS_SOC:=CP
+  TITLE:=NSS firmware for IPQ6018 devices
+  NSS_ARCHIVE:=$(VERSION_PATH)/IPQ6018.ATH.12.0.0/BIN-NSS.FW.12.1-022-CP.R.tar.bz2
 endef
 
-define Package/nss-firmware-ipq5018
+define Package/nss-firmware-ipq8074
 $(Package/nss-firmware-default)
-	IPQ_PLATFORM=IPQ5018
-	DEPENDS+= @TARGET_qualcommax_ipq50xx +nss-firmware-default
-	NSS_SOC:=MP
+  TITLE:=NSS firmware for IPQ8074 devices
+  NSS_ARCHIVE:=$(VERSION_PATH)/IPQ8074.ATH.12.0.0/BIN-NSS.FW.12.0.r1-002-HK.R.tar.bz2
 endef
-
-
-define Package/nss-firmware-default/config
-  menu "NSS Firmware Version"
-
-  comment "Select NSS firmware version"
-
-  choice
-    prompt "Version"
-    default NSS_FIRMWARE_VERSION_12_1
-
-    config NSS_FIRMWARE_VERSION_12_1
-          bool "NSS Firmware 12.1 Release 022"
-          help
-               This version does not work with NSS MESH
-
-    config NSS_FIRMWARE_VERSION_11_4
-          bool "NSS Firmware 11.4.0.5 Release 5"
-          help
-               This version works with NSS MESH
-  endchoice
-  endmenu
-endef
-
-ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_11_4),)
-   NSS_MAJOR:=11.4
-   NSS_MINOR:=11.4.0.5
-   NSS_REL:=5
-   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2021.SPF_$(NSS_MAJOR)/CS
-else
-   NSS_MAJOR:=12.0.0
-   NSS_MINOR:=12.1
-   NSS_REL:=022
-   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_$(NSS_MAJOR)/ED1
-endif
 
 define Build/Compile
-endef
 
-define Package/nss-firmware/install
-	$(eval NSS_ARCHIVE ?= $(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR)/BIN-NSS*.$(NSS_MINOR)-$(NSS_REL)*$(NSS_PROFILE).tar.bz2)
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
-	$(TAR) -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf $(NSS_ARCHIVE) --strip-components=1
-	$(INSTALL_DIR) $(1)/lib/firmware/
-	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router0.bin \
-		$(1)/lib/firmware/qca-nss0-retail.bin
-ifeq ($(NSS_SOC),HK)
-	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router1.bin \
-		$(1)/lib/firmware/qca-nss1-retail.bin
-endif
-endef
-
-define Package/nss-firmware-ipq8074/install
-	$(call Package/nss-firmware/install,$1)
 endef
 
 define Package/nss-firmware-ipq6018/install
-	$(call Package/nss-firmware/install,$1)
+	mkdir -p $(PKG_BUILD_DIR)/IPQ6018
+	$(TAR) -C $(PKG_BUILD_DIR)/IPQ6018 -xf $(NSS_ARCHIVE) --strip-components=1
+	$(INSTALL_DIR) $(1)/lib/firmware/
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/IPQ6018/retail_router0.bin \
+		$(1)/lib/firmware/qca-nss0-retail.bin
 endef
 
-define Package/nss-firmware-ipq5018/install
-	$(call Package/nss-firmware/install,$1)
+define Package/nss-firmware-ipq8074/install
+	mkdir -p $(PKG_BUILD_DIR)/IPQ8074
+	$(TAR) -C $(PKG_BUILD_DIR)/IPQ8074 -xf $(NSS_ARCHIVE) --strip-components=1
+	$(INSTALL_DIR) $(1)/lib/firmware/
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/IPQ8074/retail_router0.bin \
+		$(1)/lib/firmware/qca-nss0-retail.bin
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/IPQ8074/retail_router1.bin \
+		$(1)/lib/firmware/qca-nss1-retail.bin
 endef
 
-define Package/nss-firmware-default/install
-	true
-endef
-
-$(eval $(call BuildPackage,nss-firmware-ipq8074))
 $(eval $(call BuildPackage,nss-firmware-ipq6018))
-$(eval $(call BuildPackage,nss-firmware-ipq5018))
-$(eval $(call BuildPackage,nss-firmware-default))
+$(eval $(call BuildPackage,nss-firmware-ipq8074))
