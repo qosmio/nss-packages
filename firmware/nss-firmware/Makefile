@@ -99,30 +99,29 @@ define Build/Compile
 endef
 
 define Package/nss-firmware/install
-	$(eval NSS_ARCHIVE ?= $(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR)/BIN-NSS*.$(NSS_MINOR)-$(NSS_REL)*$(NSS_PROFILE).tar.bz2)
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
-	$(TAR) -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf $(NSS_ARCHIVE) --strip-components=1
+	$(TAR) -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf $(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR)/BIN-NSS*.$(NSS_MINOR)-$(NSS_REL)*$(NSS_PROFILE).tar.bz2 --strip-components=1
 	$(INSTALL_DIR) $(1)/lib/firmware/
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router0.bin \
-		$(1)/lib/firmware/qca-nss0-retail.bin
+		$(1)/lib/firmware/qca-nss0.bin
 ifeq ($(NSS_SOC),HK)
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router1.bin \
-		$(1)/lib/firmware/qca-nss1-retail.bin
+		$(1)/lib/firmware/qca-nss1.bin
 endif
 endef
 
 define Package/nss-firmware-ipq8074/install
-	$(call Package/nss-firmware/install,$1)
+	$(call Package/nss-firmware/install,$(1))
 endef
 
 define Package/nss-firmware-ipq6018/install
-	$(call Package/nss-firmware/install,$1)
+	$(call Package/nss-firmware/install,$(1))
 endef
 
 define Package/nss-firmware-ipq5018/install
-	$(call Package/nss-firmware/install,$1)
+	$(call Package/nss-firmware/install,$(1))
 endef
 
 define Package/nss-firmware-default/install
