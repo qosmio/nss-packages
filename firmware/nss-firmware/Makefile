@@ -103,13 +103,24 @@ define Package/nss-firmware/install
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
 	$(TAR) -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf $(NSS_ARCHIVE) --strip-components=1
 	$(INSTALL_DIR) $(1)/lib/firmware/
-	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router0.bin \
-		$(1)/lib/firmware/qca-nss0-retail.bin
 ifeq ($(NSS_SOC),HK)
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router1.bin \
 		$(1)/lib/firmware/qca-nss1-retail.bin
+else ifeq ($(NSS_SOC),CP)
+# ipq6018
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router0.bin \
+		$(1)/lib/firmware/qca-nss0.bin
+else ifeq ($(NSS_SOC),MP)
+# ipq5018
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router0.bin \
+		$(1)/lib/firmware/qca-nss0.bin
+else
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router0.bin \
+		$(1)/lib/firmware/qca-nss0-retail.bin
 endif
 endef
 
