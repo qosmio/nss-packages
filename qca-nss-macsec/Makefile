@@ -50,9 +50,9 @@ endef
 ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq807x")
 	SOC=ipq807x_64
 	subtarget:=$(CONFIG_TARGET_SUBTARGET)
-else ifeq ($(CONFIG_TARGET_BOARD), "ipq60xx")
+else ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq60xx")
 	SOC=ipq60xx_64
-	subtarget:=$(SUBTARGET)
+	subtarget:=$(CONFIG_TARGET_SUBTARGET)
 endif
 
 define Build/Compile
