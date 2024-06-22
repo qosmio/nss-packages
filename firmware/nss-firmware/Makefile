@@ -11,7 +11,7 @@ PKG_NAME:=nss-firmware
 PKG_SOURCE_DATE:=2022-07-12
 PKG_SOURCE_VERSION:=ade6bff5
 PKG_MIRROR_HASH:=6652eea8941a0db28f983fa450b28ffaae332e4494c21cb9dbfe4648568db28d
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/quic/qca-sdk-nss-fw.git
@@ -99,9 +99,9 @@ define Build/Compile
 endef
 
 define Package/nss-firmware/install
-	$(eval NSS_ARCHIVE ?= $(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR)/BIN-NSS*.$(NSS_MINOR)-$(NSS_REL)*$(NSS_PROFILE).tar.bz2)
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
-	$(TAR) -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf $(NSS_ARCHIVE) --strip-components=1
+	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf \
+		$(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR)/BIN-NSS*.$(NSS_MINOR)-$(NSS_REL)*$(NSS_PROFILE).tar.bz2
 	$(INSTALL_DIR) $(1)/lib/firmware/
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router0.bin \
@@ -114,15 +114,15 @@ endif
 endef
 
 define Package/nss-firmware-ipq8074/install
-	$(call Package/nss-firmware/install,$1)
+	$(call Package/nss-firmware/install,$(1))
 endef
 
 define Package/nss-firmware-ipq6018/install
-	$(call Package/nss-firmware/install,$1)
+	$(call Package/nss-firmware/install,$(1))
 endef
 
 define Package/nss-firmware-ipq5018/install
-	$(call Package/nss-firmware/install,$1)
+	$(call Package/nss-firmware/install,$(1))
 endef
 
 define Package/nss-firmware-default/install
