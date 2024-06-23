@@ -14,7 +14,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
 
 --- a/Makefile
 +++ b/Makefile
-@@ -20,7 +20,6 @@
+@@ -4,7 +4,6 @@
  ifeq ($(ECM_FRONT_END_SFE_ENABLE), y)
  obj-m += examples/ecm_sfe_l2.o
  endif
@@ -22,7 +22,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  obj-m += ecm.o
  ifeq ($(BUILD_ECM_WIFI_PLUGIN),y)
-@@ -40,6 +39,9 @@ endif
+@@ -24,6 +23,9 @@ endif
  ifeq ($(EXAMPLES_BUILD_OVS),y)
  obj-m += examples/ecm_ovs.o
  endif
@@ -32,7 +32,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  
  ecm-y := \
  	 frontends/cmn/ecm_ae_classifier.o \
-@@ -131,10 +133,18 @@ ccflags-$(ECM_INTERFACE_BOND_ENABLE) +=
+@@ -115,10 +117,18 @@ ccflags-$(ECM_INTERFACE_BOND_ENABLE) +=
  # Define ECM_INTERFACE_PPPOE_ENABLE=y in order
  # to enable support for PPPoE acceleration.
  # #############################################################################
@@ -52,7 +52,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  # Define ECM_INTERFACE_L2TPV2_ENABLE=y in order
  # to enable support for l2tpv2 acceleration.
  # #############################################################################
-@@ -167,6 +177,12 @@ endif
+@@ -151,6 +161,12 @@ endif
  ccflags-$(ECM_INTERFACE_PPP_ENABLE) += -DECM_INTERFACE_PPP_ENABLE
  
  # #############################################################################
@@ -65,7 +65,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  # Define ECM_INTERFACE_GRE_TAP_ENABLE=y in order
  # to enable support for GRE TAP interface.
  # #############################################################################
-@@ -249,7 +265,9 @@ ccflags-$(ECM_INTERFACE_OVS_BRIDGE_ENABL
+@@ -233,7 +249,9 @@ ccflags-$(ECM_INTERFACE_OVS_BRIDGE_ENABL
  # #############################################################################
  # Define ECM_INTERFACE_VLAN_ENABLE=y in order to enable support for VLAN
  # #############################################################################
@@ -76,7 +76,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ccflags-$(ECM_INTERFACE_VLAN_ENABLE) += -DECM_INTERFACE_VLAN_ENABLE
  
  # #############################################################################
-@@ -291,7 +309,9 @@ ccflags-$(ECM_CLASSIFIER_OVS_ENABLE) +=
+@@ -275,7 +293,9 @@ ccflags-$(ECM_CLASSIFIER_OVS_ENABLE) +=
  # #############################################################################
  # Define ECM_CLASSIFIER_MARK_ENABLE=y in order to enable mark classifier.
  # #############################################################################
@@ -87,7 +87,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ecm-$(ECM_CLASSIFIER_MARK_ENABLE) += ecm_classifier_mark.o
  ccflags-$(ECM_CLASSIFIER_MARK_ENABLE) += -DECM_CLASSIFIER_MARK_ENABLE
  
-@@ -315,7 +335,9 @@ ccflags-$(ECM_CLASSIFIER_NL_ENABLE) += -
+@@ -299,7 +319,9 @@ ccflags-$(ECM_CLASSIFIER_NL_ENABLE) += -
  # #############################################################################
  # Define ECM_CLASSIFIER_DSCP_ENABLE=y in order to enable DSCP classifier.
  # #############################################################################
@@ -98,7 +98,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ecm-$(ECM_CLASSIFIER_DSCP_ENABLE) += ecm_classifier_dscp.o
  ccflags-$(ECM_CLASSIFIER_DSCP_ENABLE) += -DECM_CLASSIFIER_DSCP_ENABLE
  ccflags-$(ECM_CLASSIFIER_DSCP_IGS) += -DECM_CLASSIFIER_DSCP_IGS
-@@ -334,7 +356,9 @@ ccflags-$(ECM_CLASSIFIER_HYFI_ENABLE) +=
+@@ -318,7 +340,9 @@ ccflags-$(ECM_CLASSIFIER_HYFI_ENABLE) +=
  # the Parental Controls subsystem classifier in ECM. Currently disabled until
  # customers require it / if they need to integrate their Parental Controls with it.
  # #############################################################################
@@ -109,7 +109,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ecm-$(ECM_CLASSIFIER_PCC_ENABLE) += ecm_classifier_pcc.o
  ccflags-$(ECM_CLASSIFIER_PCC_ENABLE) += -DECM_CLASSIFIER_PCC_ENABLE
  
-@@ -379,27 +403,36 @@ ccflags-$(ECM_NON_PORTED_SUPPORT_ENABLE)
+@@ -367,27 +391,36 @@ ccflags-$(ECM_NON_PORTED_SUPPORT_ENABLE)
  # #############################################################################
  # Define ECM_STATE_OUTPUT_ENABLE=y to support XML state output
  # #############################################################################
@@ -149,7 +149,7 @@ Signed-off-by: Ansuel Smith <ansuelsmth@gmail.com>
  ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE) += -DECM_TRACKER_DPI_SUPPORT_ENABLE
  
  # #############################################################################
-@@ -407,14 +440,18 @@ ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE
+@@ -395,14 +428,18 @@ ccflags-$(ECM_TRACKER_DPI_SUPPORT_ENABLE
  # support for the database keeping lists of connections that are assigned
  # on a per TYPE of classifier basis.
  # #############################################################################

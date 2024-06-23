@@ -15,7 +15,7 @@
 +EXPORT_SYMBOL(ecm_nss_ipv4_is_conn_limit_reached);
 --- a/frontends/nss/ecm_nss_non_ported_ipv4.c
 +++ b/frontends/nss/ecm_nss_non_ported_ipv4.c
-@@ -1831,6 +1831,7 @@ struct ecm_front_end_connection_instance
+@@ -1847,6 +1847,7 @@ struct ecm_front_end_connection_instance
  
  	return feci;
  }
