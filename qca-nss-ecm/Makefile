@@ -160,6 +160,10 @@ ifneq ($(CONFIG_PACKAGE_kmod-bonding),)
 ECM_MAKE_OPTS+=ECM_INTERFACE_BOND_ENABLE=y
 endif
 
+ifneq ($(CONFIG_PACKAGE_kmod-qmi_wwan_q),)
+ECM_MAKE_OPTS+=ECM_INTERFACE_RAWIP_ENABLE=y
+endif
+
 define Build/InstallDev
 	mkdir -p $(1)/usr/include/qca-nss-ecm
 	$(CP) $(PKG_BUILD_DIR)/exports/* $(1)/usr/include/qca-nss-ecm
