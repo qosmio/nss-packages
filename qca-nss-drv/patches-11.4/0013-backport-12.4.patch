@@ -898,7 +898,7 @@
  	}
  
 -	nss_info_always("nss_driver - fw of size %d  bytes copied to load addr: %x, nss_id : %d\n", (int)nss_fw->size, npd->load_addr, nss_dev->id);
-+	nss_info_always("nss_driver - fw of size %d  bytes copied to load addr: %x, nss_id : %d", (int)nss_fw->size, npd->load_addr, nss_dev->id);
++	nss_info("nss_driver - fw of size %d  bytes copied to load addr: %x, nss_id : %d\n", (int)nss_fw->size, npd->load_addr, nss_dev->id);
  	memcpy_toio(load_mem, nss_fw->data, nss_fw->size);
  	release_firmware(nss_fw);
  	iounmap(load_mem);
@@ -947,16 +947,11 @@
  	 * Get load address of NSS firmware
  	 */
 -	nss_info("%px: Setting NSS%d Firmware load address to %x\n", nss_ctx, nss_ctx->id, npd->load_addr);
-+	nss_info_always("%px: Setting NSS%d Firmware load address to %x", nss_ctx, nss_ctx->id, npd->load_addr);
++	nss_info("%px: Setting NSS%d Firmware load address to %x", nss_ctx, nss_ctx->id, npd->load_addr);
  	nss_top->nss[nss_ctx->id].load = npd->load_addr;
  
  	/*
-@@ -294,11 +289,11 @@ int nss_hal_probe(struct platform_device
- 	 * Physical address of logical registers space
- 	 */
- 	nss_ctx->vphys = npd->vphys;
--	nss_info("%d:ctx=%px, vphys=%x, vmap=%px, nphys=%x, nmap=%px", nss_ctx->id,
-+	nss_info_always("%d:ctx=%px, vphys=%x, vmap=%px, nphys=%x, nmap=%px", nss_ctx->id,
+@@ -298,7 +293,7 @@ int nss_hal_probe(struct platform_device
  			nss_ctx, nss_ctx->vphys, nss_ctx->vmap, nss_ctx->nphys, nss_ctx->nmap);
  
  	if (!nss_meminfo_init(nss_ctx)) {
@@ -1914,6 +1909,113 @@
   */
  struct nss_wifi_mesh_mpath_not_found_msg {
  	uint8_t dest_mac_addr[ETH_ALEN];		/**< Destination MAC address. */
+@@ -386,27 +386,27 @@ struct nss_wifi_mesh_path_expiry_msg {
+  *	Encapsulation statistics.
+  */
+ struct nss_wifi_mesh_encap_stats {
+-	uint32_t expiry_notify_sent;		/* Number of times expiry notification sent to host. */
+-	uint32_t mc_count;			/* Number of multicast packets. */
+-	uint32_t mp_not_found;			/* Number of times mesh path is not found. */
+-	uint32_t mp_active;			/* Number of times mesh path is active. */
+-	uint32_t mpp_not_found;			/* Number of times proxy path is not found. */
+-	uint32_t mpp_found;			/* Number of times proxy path is found. */
+-	uint32_t encap_hdr_fail;		/* Number of times encapsulating mesh header failed. */
+-	uint32_t mp_del_notify_fail;		/* Number of times notifying mesh path delete failed. */
+-	uint32_t link_enqueue;			/* Number of packets enqueued to the link VAP. */
+-	uint32_t link_enq_fail;			/* Number of times enqueue to link vap failed. */
+-	uint32_t ra_lup_fail;			/* Number of times receiver address look up is failed. */
+-	uint32_t dummy_add_count;		/* Number of times dummy path is added. */
+-	uint32_t encap_mp_add_notify_fail;	/* Number of times add notification failed. */
+-	uint32_t dummy_add_fail;		/* Number of times dummy addition failed. */
+-	uint32_t dummy_lup_fail;		/* Number of times dummy lookup failed. */
+-	uint32_t send_to_host_failed;		/* Number of packets failed to be sent to host. */
+-	uint32_t sent_to_host;			/* Number of packets sent to host. */
+-	uint32_t expiry_notify_fail; 		/* Number of times expiry notification to host failed. */
+-	uint32_t no_headroom;			/* Number of packets dropped because there is no headroom. */
+-	uint32_t path_refresh_sent;		/* Number of times path refresh is sent to host. */
+-	uint32_t linearise_failed;		/* Number of packets dropped because pb_linearise. */
++	uint32_t expiry_notify_sent;		/**< Number of times expiry notification sent to host. */
++	uint32_t mc_count;			/**< Number of multicast packets. */
++	uint32_t mp_not_found;			/**< Number of times mesh path is not found. */
++	uint32_t mp_active;			/**< Number of times mesh path is active. */
++	uint32_t mpp_not_found;			/**< Number of times proxy path is not found. */
++	uint32_t mpp_found;			/**< Number of times proxy path is found. */
++	uint32_t encap_hdr_fail;		/**< Number of times encapsulating mesh header failed. */
++	uint32_t mp_del_notify_fail;		/**< Number of times notifying mesh path delete failed. */
++	uint32_t link_enqueue;			/**< Number of packets enqueued to the link VAP. */
++	uint32_t link_enq_fail;			/**< Number of times enqueue to link vap failed. */
++	uint32_t ra_lup_fail;			/**< Number of times receiver address look up is failed. */
++	uint32_t dummy_add_count;		/**< Number of times dummy path is added. */
++	uint32_t encap_mp_add_notify_fail;	/**< Number of times add notification failed. */
++	uint32_t dummy_add_fail;		/**< Number of times dummy addition failed. */
++	uint32_t dummy_lup_fail;		/**< Number of times dummy lookup failed. */
++	uint32_t send_to_host_failed;		/**< Number of packets failed to be sent to host. */
++	uint32_t sent_to_host;			/**< Number of packets sent to host. */
++	uint32_t expiry_notify_fail; 		/**< Number of times expiry notification to host failed. */
++	uint32_t no_headroom;			/**< Number of packets dropped because there is no headroom. */
++	uint32_t path_refresh_sent;		/**< Number of times path refresh is sent to host. */
++	uint32_t linearise_failed;		/**< Number of packets dropped because pb_linearise. */
+ };
+ 
+ /*
+@@ -526,22 +526,22 @@ struct nss_wifi_mesh_path_stats {
+  *	Wi-Fi mesh proxy path statistics.
+  */
+ struct nss_wifi_mesh_proxy_path_stats {
+-	uint32_t alloc_failures;		/**< Mesh proxy path alloc failure count. */
+-	uint32_t entry_exist_failures;		/**< Mesh proxy path entry already exists. */
+-	uint32_t add_success;			/**< Mesh proxy path add success count. */
+-	uint32_t table_full_errors;		/**< Mesh proxy path table full count. */
+-	uint32_t insert_failures;		/**< Mesh proxy path insert failure count. */
+-	uint32_t not_found;			/**< Mesh proxy path not found count. */
+-	uint32_t unhashed_errors;		/**< Mesh proxy path unhased erorr count. */
+-	uint32_t delete_failures;		/**< Mesh proxy path delete failure count. */
+-	uint32_t delete_success;		/**< Mesh proxy path delete success count. */
+-	uint32_t update_success;		/**< Mesh proxy path update success count. */
+-	uint32_t lookup_success;		/**< Mesh proxy path lookup success count. */
+-	uint32_t add_requests;			/**< Mesh proxy path addition requests. */
+-	uint32_t del_requests;			/**< Mesh proxy path deletion requests. */
+-	uint32_t update_requests;		/**< Mesh proxy path updation requests. */
+-	uint32_t mda_updations;			/**< Mesh proxy path mda updations. */
+-	uint32_t flag_updations;		/**< Mesh proxy path flags updations. */
++	uint32_t alloc_failures;			/**< Mesh proxy path allocation failure count. */
++	uint32_t entry_exist_failures;			/**< Mesh proxy path entry already exists. */
++	uint32_t add_success;				/**< Mesh proxy path add success count. */
++	uint32_t table_full_errors;			/**< Mesh proxy path table full count. */
++	uint32_t insert_failures;			/**< Mesh proxy path insert failure count. */
++	uint32_t not_found;				/**< Mesh proxy path not found count. */
++	uint32_t unhashed_errors;			/**< Mesh proxy path unhased erorr count. */
++	uint32_t delete_failures;			/**< Mesh proxy path delete failure count. */
++	uint32_t delete_success;			/**< Mesh proxy path delete success count. */
++	uint32_t update_success;			/**< Mesh proxy path update success count. */
++	uint32_t lookup_success;			/**< Mesh proxy path lookup success count. */
++	uint32_t add_requests;				/**< Mesh proxy path addition requests. */
++	uint32_t del_requests;				/**< Mesh proxy path deletion requests. */
++	uint32_t update_requests;			/**< Mesh proxy path updation requests. */
++	uint32_t mda_updations;				/**< Mesh proxy path mda updations. */
++	uint32_t flag_updations;			/**< Mesh proxy path flags updations. */
+ };
+ 
+ /**
+@@ -958,7 +958,7 @@ nss_tx_status_t nss_wifi_mesh_tx_msg_ext
+ 
+ /**
+  * nss_wifi_mesh_verify_if_num
+- *	Verify Wi-Fi mesh interface number.
++ *	Verifies the Wi-Fi mesh interface number.
+  *
+  * @datatypes
+  * interface number \n
+@@ -997,4 +997,9 @@ extern int nss_wifi_mesh_stats_register_
+  * 0 on success or non-zero on failure.
+  */
+ extern int nss_wifi_mesh_stats_unregister_notifier(struct notifier_block *nb);
++
++/**
++ * @}
++ */
++
+ #endif /* __NSS_WIFI_MESH_H */
 --- a/nss_wifili_stats.c
 +++ b/nss_wifili_stats.c
 @@ -1,6 +1,6 @@
