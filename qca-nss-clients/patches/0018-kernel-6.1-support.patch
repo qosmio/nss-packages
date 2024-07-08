@@ -166,7 +166,7 @@
  #endif
 --- a/nss_qdisc/nss_qdisc_stats.c
 +++ b/nss_qdisc/nss_qdisc_stats.c
-@@ -160,7 +160,7 @@ static void nss_qdisc_stats_process_node
+@@ -161,7 +161,7 @@ static void nss_qdisc_stats_process_node
  {
  	struct Qdisc *qdisc;
  	struct nss_qdisc *nq;
@@ -175,7 +175,7 @@
  	struct gnet_stats_queue *qstats;
  	uint32_t qos_tag = response->qos_tag;
  #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 0))
-@@ -214,8 +214,8 @@ static void nss_qdisc_stats_process_node
+@@ -215,8 +215,8 @@ static void nss_qdisc_stats_process_node
  	 * Update qdisc->bstats
  	 */
  	spin_lock_bh(&nq->lock);
