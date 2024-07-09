@@ -9,7 +9,7 @@
  #define CONFIG_QCA_NSS_DRV
  //#define CONFIG_QCA_NSS_PACKET_FILTER
  #endif
-@@ -59,14 +59,12 @@ struct rmnet_nss_cb {
+@@ -59,9 +59,8 @@ struct rmnet_nss_cb {
          int (*nss_tx)(struct sk_buff *skb);
  };
  static struct rmnet_nss_cb __read_mostly *nss_cb = NULL;
