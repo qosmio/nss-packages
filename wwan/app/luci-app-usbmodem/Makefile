@@ -8,11 +8,11 @@
 include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=Modem Server
-LUCI_DEPENDS:=+luci-compat +quectel-CM-5G +kmod-usb-acm \
+LUCI_DEPENDS:=+luci-compat +quectel-cm +kmod-usb-acm \
 	+kmod-usb-net-cdc-ether +kmod-usb-net-cdc-mbim \
 	+kmod-usb-net-qmi-wwan +kmod-usb-net-rndis \
 	+kmod-usb-serial-option +kmod-usb-wdm \
-	+kmod-qmi_wwan_f +kmod-qmi_wwan_q
+	+kmod-qmi_wwan_q
 
 include $(TOPDIR)/feeds/luci/luci.mk
 
