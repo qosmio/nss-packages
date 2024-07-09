@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-clients
-PKG_RELEASE:=5
+PKG_RELEASE:=6
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-clients.git
 PKG_SOURCE_PROTO:=git
@@ -596,7 +596,7 @@ EXTRA_CFLAGS += -DNSS_CAPWAPMGR_ONE_NETDEV
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-tun6rd),)
-NSS_CLIENTS_MAKE_OPTS+=tun6rd=m
+NSS_CLIENTS_MAKE_OPTS+=tun6rd=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-dtlsmgr),)
@@ -622,7 +622,7 @@ NSS_CLIENTS_MAKE_OPTS+=map-t=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-tunipip6),)
-NSS_CLIENTS_MAKE_OPTS+=tunipip6=m
+NSS_CLIENTS_MAKE_OPTS+=tunipip6=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-qdisc),)
@@ -769,9 +769,9 @@ $(eval $(call KernelPackage,qca-nss-drv-lag-mgr))
 $(eval $(call KernelPackage,qca-nss-drv-gre))
 # $(eval $(call KernelPackage,qca-nss-drv-ovpn-mgr))
 # $(eval $(call KernelPackage,qca-nss-drv-ovpn-link))
-$(eval $(call KernelPackage,qca-nss-drv-pvxlanmgr))
+# $(eval $(call KernelPackage,qca-nss-drv-pvxlanmgr))
 $(eval $(call KernelPackage,qca-nss-drv-eogremgr))
-$(eval $(call KernelPackage,qca-nss-drv-clmapmgr))
+# $(eval $(call KernelPackage,qca-nss-drv-clmapmgr))
 $(eval $(call KernelPackage,qca-nss-drv-vxlanmgr))
 $(eval $(call KernelPackage,qca-nss-drv-match))
 # $(eval $(call KernelPackage,qca-nss-drv-tlsmgr))

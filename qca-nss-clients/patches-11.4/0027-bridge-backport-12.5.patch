@@ -235,7 +235,7 @@
  	}
  #endif
  
- 	err = nss_bridge_tx_set_mac_addr_msg(ifnum, (uint8_t *) dev->dev_addr);
+ 	err = nss_bridge_tx_set_mac_addr_msg(ifnum, dev->dev_addr);
  	if (err != NSS_TX_SUCCESS) {
  		nss_bridge_mgr_warn("%px: failed to set mac_addr msg, error = %d\n", b_pvt, err);
 -		goto fail_3;
