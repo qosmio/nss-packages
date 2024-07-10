@@ -1122,21 +1122,7 @@
  
  	/*
  	 * Setup Runtime Sample values
-@@ -880,13 +898,6 @@ static int __init nss_init(void)
- #endif
- 
- 	/*
--	 * Init Wi-Fi mesh
--	 */
--#ifdef NSS_DRV_WIFI_MESH_ENABLE
--	nss_wifi_mesh_init();
--#endif
--
--	/*
- 	 * Register platform_driver
- 	 */
- 	return platform_driver_register(&nss_driver);
-@@ -923,13 +934,17 @@ static void __exit nss_cleanup(void)
+@@ -916,13 +934,17 @@ static void __exit nss_cleanup(void)
  	/*
  	 * Unregister pppoe specific sysctl
  	 */

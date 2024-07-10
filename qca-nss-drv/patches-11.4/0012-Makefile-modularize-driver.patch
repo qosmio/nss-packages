@@ -163,14 +163,6 @@
  ifeq ($(SoC),$(filter $(SoC),ipq807x ipq807x_64))
  qca-nss-drv-objs += nss_hal/ipq807x/nss_hal_pvt.o \
  		    nss_data_plane/hal/nss_ipq807x.o
-@@ -496,6 +545,7 @@ ccflags-y += -I$(obj)/nss_hal/ipq50xx -D
- endif
- 
- ccflags-y += -I$(obj)/nss_hal/include -I$(obj)/nss_data_plane/include -I$(obj)/exports -DNSS_DEBUG_LEVEL=0 -DNSS_PKT_STATS_ENABLED=1
-+
- ccflags-y += -I$(obj)/nss_data_plane/hal/include
- ccflags-y += -DNSS_PM_DEBUG_LEVEL=0 -DNSS_SKB_REUSE_SUPPORT=1
- ccflags-y += -Wall -Werror
 @@ -510,7 +560,14 @@ NSS_CCFLAGS = -DNSS_DT_SUPPORT=1 -DNSS_F
  ccflags-y += -I$(obj)
  endif
@@ -186,19 +178,3 @@
  
  # Disable Frequency scaling
  ifeq "$(NSS_FREQ_SCALE_DISABLE)" "y"
---- a/nss_init.c
-+++ b/nss_init.c
-@@ -880,6 +880,13 @@ static int __init nss_init(void)
- #endif
- 
- 	/*
-+	 * Init Wi-Fi mesh
-+	 */
-+#ifdef NSS_DRV_WIFI_MESH_ENABLE
-+	nss_wifi_mesh_init();
-+#endif
-+
-+	/*
- 	 * Register platform_driver
- 	 */
- 	return platform_driver_register(&nss_driver);
