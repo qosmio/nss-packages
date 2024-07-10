@@ -22,7 +22,7 @@
   * nss_vlan_tx_vsi_attach_msg
 --- a/exports/nss_wifi_vdev.h
 +++ b/exports/nss_wifi_vdev.h
-@@ -1344,7 +1344,7 @@ nss_tx_status_t nss_wifi_vdev_base_set_n
+@@ -1329,7 +1329,7 @@ nss_tx_status_t nss_wifi_vdev_base_set_n
   * @return
   * Status of the Tx operation.
   */
