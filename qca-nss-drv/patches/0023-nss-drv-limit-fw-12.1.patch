@@ -38,7 +38,7 @@
   * Multicast command rule flags
 --- a/exports/nss_pvxlan.h
 +++ b/exports/nss_pvxlan.h
-@@ -63,8 +60,6 @@ typedef enum nss_pvxlan_msg_type {
+@@ -63,8 +63,6 @@ typedef enum nss_pvxlan_msg_type {
  	NSS_PVXLAN_MSG_TYPE_TUNNEL_DISABLE,	/**< Disable the tunnel. */
  	NSS_PVXLAN_MSG_TYPE_MAC_ADD,		/**< Add MAC rule to the database. */
  	NSS_PVXLAN_MSG_TYPE_MAC_DEL,		/**< Remove MAC rule from the database. */
@@ -47,7 +47,7 @@
  	NSS_PVXLAN_MSG_TYPE_MAX,		/**< Maximum message type. */
  } nss_pvxlan_msg_type_t;
  
-@@ -97,10 +92,6 @@ typedef enum nss_pvxlan_error_response_t
+@@ -97,10 +95,6 @@ typedef enum nss_pvxlan_error_response_t
  						/**< MAC entry allocation failed. */
  	PVXLAN_ERROR_MSG_MAC_ENTRY_DELETE_FAILED,
  						/**< MAC entry deletion failed. */
@@ -58,7 +58,7 @@
  	NSS_PVXLAN_ERROR_MAX,			/**< Maximum error type. */
  } nss_pvxlan_error_response_t;
  
-@@ -182,18 +173,6 @@ struct nss_pvxlan_mac_msg {
+@@ -182,18 +176,6 @@ struct nss_pvxlan_mac_msg {
  };
  
  /**
@@ -77,7 +77,7 @@
   * nss_pvxlan_msg
   *	Data for sending and receiving proxy VxLAN messages.
   */
-@@ -216,8 +195,6 @@ struct nss_pvxlan_msg {
+@@ -216,8 +198,6 @@ struct nss_pvxlan_msg {
  				/**< MAC rule add message. */
  		struct nss_pvxlan_mac_msg mac_del;
  				/**< MAC rule delete message. */
@@ -106,3 +106,93 @@
  };
  
  /**
+--- a/nss_pvxlan_log.c
++++ b/nss_pvxlan_log.c
+@@ -35,8 +35,7 @@ static int8_t *nss_pvxlan_log_message_ty
+ 	"PVxLAN Enable Tunnel",
+ 	"PVxLAN Disable Tunnel",
+ 	"PVxLAN Add MAC rule",
+-	"PVxLAN Delete MAC rule",
+-	"PVxLAN Config VP"
++	"PVxLAN Delete MAC rule"
+ };
+ 
+ /*
+@@ -53,8 +52,7 @@ static int8_t *nss_pvxlan_log_error_resp
+ 	"PVXLAN Invalid Flag",
+ 	"PVXLAN MAC Table Full",
+ 	"PVXLAN MAC Exists",
+-	"PVXLAN MAC Does Not Exist",
+-	"PVXLAN Config VP failed"
++	"PVXLAN MAC Does Not Exist"
+ };
+ 
+ /*
+@@ -159,30 +157,6 @@ static void nss_pvxlan_log_mac_del_msg(s
+ }
+ 
+ /*
+- * nss_pvxlan_log_unconfig_vp_msg()
+- *	Log NSS PVXLAN unconfig VP message.
+- */
+-static void nss_pvxlan_log_unconfig_vp_msg(struct nss_pvxlan_msg *npvm)
+-{
+-	nss_trace("%px: NSS PVXLAN unconfigure VP number\n", npvm);
+-}
+-
+-/*
+- * nss_pvxlan_log_config_vp_msg()
+- *	Log NSS PVXLAN config VP message.
+- */
+-static void nss_pvxlan_log_config_vp_msg(struct nss_pvxlan_msg *npvm)
+-{
+-	struct nss_pvxlan_vp_msg *vpm __maybe_unused = &npvm->msg.vp_config;
+-
+-	nss_trace("%px: NSS PVXLAN update_vp_num %d\n"
+-		"NSS PVXLAN ppe to host mode %s\n",
+-		vpm,
+-		vpm->vp_num,
+-		vpm->ppe_to_host ? "enabled" : "disabled");
+-}
+-
+-/*
+  * nss_pvxlan_log_verbose()
+  *	Log message contents.
+  */
+@@ -213,14 +187,6 @@ static void nss_pvxlan_log_verbose(struc
+ 		nss_pvxlan_log_mac_del_msg(npvm);
+ 		break;
+ 
+-	case NSS_PVXLAN_MSG_TYPE_CONFIG_VP:
+-		nss_pvxlan_log_config_vp_msg(npvm);
+-		break;
+-
+-	case NSS_PVXLAN_MSG_TYPE_UNCONFIG_VP:
+-		nss_pvxlan_log_unconfig_vp_msg(npvm);
+-		break;
+-
+ 	case NSS_PVXLAN_MSG_TYPE_SYNC_STATS:
+ 		break;
+ 
+--- a/nss_capwap_log.c
++++ b/nss_capwap_log.c
+@@ -166,7 +166,7 @@ static void nss_capwap_flow_rule_msg(str
+ 		"CAPWAP Destination Port: %d\n"
+ 		"CAPWAP Source IP: %x %x %x %x\n"
+ 		"CAPWAP Destination IP: %x %x %x %x"
+-		"CAPWAP Flow type:%d Flow ID: %d SCS_SDWF ID: %d",
++		"CAPWAP Flow ID: %d",
+ 		ncfrm,
+ 		ncfrm->ip_version, ncfrm->protocol,
+ 		ncfrm->src_port, ncfrm->dst_port,
+@@ -174,9 +174,7 @@ static void nss_capwap_flow_rule_msg(str
+ 		ncfrm->src_ip[2], ncfrm->src_ip[3],
+ 		ncfrm->dst_ip[0], ncfrm->dst_ip[1],
+ 		ncfrm->dst_ip[2], ncfrm->dst_ip[3],
+-		ncfrm->flow_attr.type,
+-		ncfrm->flow_attr.flow_id,
+-		ncfrm->flow_attr.scs_sdwf_id);
++		ncfrm->flow_id);
+ }
+ 
+ /*
