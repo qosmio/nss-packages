@@ -36,7 +36,7 @@ load_nss_fw() {
 select_nss_fw() {
   rm -f /lib/firmware/"$DEVICENAME"
   ln -s "$1" /lib/firmware/"$DEVICENAME"
-  echo '<5>hotplug: symlinking' /lib/firmware/"$DEVICENAME" ' to '"$1" > /dev/kmsg
+  echo '<5>hotplug: symlinking' "$DEVICENAME"' to '"$1" > /dev/kmsg
 }
 
 [ "$ACTION" != "add" ] && exit
