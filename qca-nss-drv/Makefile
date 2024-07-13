@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-drv
-PKG_RELEASE:=10
+PKG_RELEASE:=11
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv.git
 PKG_SOURCE_PROTO:=git
@@ -97,6 +97,7 @@ define KernelPackage/qca-nss-drv/install
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/firmware
 	$(INSTALL_DIR) $(1)/usr/bin
 
+	$(INSTALL_BIN) ./files/skb_recycler.init $(1)/etc/init.d/skb_recycler
 	$(INSTALL_BIN) ./files/qca-nss-drv.init $(1)/etc/init.d/qca-nss-drv
 	$(INSTALL_DATA) ./files/qca-nss-drv.uci $(1)/etc/config/nss
 	$(INSTALL_DATA) ./files/qca-nss-drv.hotplug $(1)/etc/hotplug.d/firmware/10-qca-nss-fw
@@ -106,6 +107,7 @@ endef
 
 define KernelPackage/qca-nss-drv/conffiles
 /etc/config/nss
+/etc/config/skb_recycler
 endef
 
 define KernelPackage/qca-nss-drv/Description
