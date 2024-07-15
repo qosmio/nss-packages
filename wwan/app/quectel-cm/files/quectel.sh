@@ -39,6 +39,8 @@ proto_quectel_setup() {
 
 	echo -ne "AT+CFUN=1\r\n" > /dev/ttyUSB2
 	[ -n "$delay" ] && sleep "$delay"
+ 
+ sleep 5
 
 	[ -n "$metric" ] || metric="0"
 	[ -z "$ctl_device" ] || device="$ctl_device"
