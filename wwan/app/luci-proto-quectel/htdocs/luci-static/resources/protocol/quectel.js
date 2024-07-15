@@ -52,7 +52,7 @@ return network.registerProtocol('quectel', {
 	},
 
 	renderFormOptions: function(s) {
-		var dev = this.getL3Device() || this.getDevice(), o;
+		var dev = this.getL3Device() || this.getDevice(), o, apn, apnv6;
 
 		o = s.taboption('general', form.Value, '_modem_device', _('Modem device'));
 		o.ucioption = 'device';
@@ -65,14 +65,34 @@ return network.registerProtocol('quectel', {
 			}, this));
 		};
 
-		o = s.taboption('general', form.Value, 'apn', _('APN'));
-		o.validate = function(section_id, value) {
+		apn = s.taboption('general', form.Value, 'apn', _('APN'));
+        	apn.depends('pdptype', 'ipv4v6');
+		apn.depends('pdptype', 'ipv4');
+		apn.validate = function(section_id, value) {
 			if (value == null || value == '')
 				return true;
 
 			if (!/^[a-zA-Z0-9\-.]*[a-zA-Z0-9]$/.test(value))
 				return _('Invalid APN provided');
 
+			return true;
+		};
+
+        	apnv6 = s.taboption('general', form.Value, 'apnv6', _('APN IPv6'));
+        	apnv6.depends('pdptype', 'ipv4v6');
+		apnv6.depends('pdptype', 'ipv6');
+		apnv6.validate = function(section_id, value) {
+			if (value == null || value == '')
+				return true;
+
+			if (!/^[a-zA-Z0-9\-.]*[a-zA-Z0-9]$/.test(value))
+				return _('Invalid APN provided');
+
+	            	var apn_value = apn.formvalue(section_id);
+	
+	            	if (value === apn_value)
+	                	return _('APN IPv6 must be different from APN');
+	
 			return true;
 		};
 
