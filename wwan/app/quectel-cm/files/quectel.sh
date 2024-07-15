@@ -38,6 +38,8 @@ proto_quectel_setup() {
 	json_get_vars ip6table mtu $PROTO_DEFAULT_OPTIONS
 
 	[ -n "$delay" ] && sleep "$delay"
+ 
+ sleep 5
 
 	[ -n "$metric" ] || metric="0"
 	[ -z "$ctl_device" ] || device="$ctl_device"
