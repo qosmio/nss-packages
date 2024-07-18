@@ -66,7 +66,7 @@ return network.registerProtocol('quectel', {
 		};
 
 		apn = s.taboption('general', form.Value, 'apn', _('APN'));
-        	apn.depends('pdptype', 'ipv4v6');
+		apn.depends('pdptype', 'ipv4v6');
 		apn.depends('pdptype', 'ipv4');
 		apn.validate = function(section_id, value) {
 			if (value == null || value == '')
@@ -78,8 +78,8 @@ return network.registerProtocol('quectel', {
 			return true;
 		};
 
-        	apnv6 = s.taboption('general', form.Value, 'apnv6', _('APN IPv6'));
-        	apnv6.depends('pdptype', 'ipv4v6');
+        apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'));
+        apnv6.depends('pdptype', 'ipv4v6');
 		apnv6.depends('pdptype', 'ipv6');
 		apnv6.validate = function(section_id, value) {
 			if (value == null || value == '')
@@ -88,10 +88,10 @@ return network.registerProtocol('quectel', {
 			if (!/^[a-zA-Z0-9\-.]*[a-zA-Z0-9]$/.test(value))
 				return _('Invalid APN provided');
 
-	            	var apn_value = apn.formvalue(section_id);
-	
-	            	if (value === apn_value)
-	                	return _('APN IPv6 must be different from APN');
+			var apn_value = apn.formvalue(section_id);
+
+			if (value.toLowerCase() === apn_value.toLowerCase())
+				return _('APN IPv6 must be different from APN');
 	
 			return true;
 		};
@@ -119,12 +119,26 @@ return network.registerProtocol('quectel', {
 
 		o = s.taboption('advanced', form.Value, 'delay', _('Modem init timeout'),
 			_('Maximum amount of seconds to wait for the modem to become ready'));
-		o.placeholder = '10';
+		o.placeholder = '5';
 		o.datatype    = 'min(1)';
 
 		o = s.taboption('advanced', form.Value, 'mtu', _('Override MTU'));
 		o.placeholder = dev ? (dev.getMTU() || '1500') : '1500';
 		o.datatype    = 'max(9200)';
+
+		o = s.taboption('advanced', form.Value, 'pdnindex', _('PDN index'));
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv4');
+		o.placeholder = '1';
+		o.default = 1;
+		o.datatype = 'and(uinteger,min(1),max(7))';
+
+		o = s.taboption('advanced', form.Value, 'pdnindexv6', _('IPv6 PDN index'));
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv6');
+		o.placeholder = '2';
+		o.default = 2;
+		o.datatype = 'and(uinteger,min(1),max(7))';
 
 		o = s.taboption('general', form.ListValue, 'pdptype', _('PDP Type'));
 		o.value('ipv4v6', 'IPv4/IPv6');

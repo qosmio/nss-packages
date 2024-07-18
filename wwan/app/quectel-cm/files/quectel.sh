@@ -12,6 +12,8 @@ proto_quectel_init_config() {
 	proto_config_add_string "device:device"
 	proto_config_add_string "apn"
 	proto_config_add_string "apnv6"
+	proto_config_add_string "pdnindex"
+	proto_config_add_string "pdnindexv6"
 	proto_config_add_string "auth"
 	proto_config_add_string "username"
 	proto_config_add_string "password"
@@ -28,18 +30,17 @@ proto_quectel_init_config() {
 
 proto_quectel_setup() {
 	local interface="$1"
-	local device apn apnv6 auth username password pincode delay pdptype
+	local device apn apnv6 auth username password pincode delay pdptype pdnindex pdnindexv6
 	local dhcp dhcpv6 sourcefilter delegate mtu $PROTO_DEFAULT_OPTIONS
 	local ip4table ip6table
 	local pid zone
 
-	json_get_vars device apn apnv6 auth username password pincode delay
+	json_get_vars device apn apnv6 auth username password pincode delay pdnindex pdnindexv6
 	json_get_vars pdptype dhcp dhcpv6 sourcefilter delegate ip4table
 	json_get_vars ip6table mtu $PROTO_DEFAULT_OPTIONS
 
-	[ -n "$delay" ] && sleep "$delay"
- 
- sleep 5
+	[ -n "$delay" ] || delay="5"
+	sleep "$delay"
 
 	[ -n "$metric" ] || metric="0"
 	[ -z "$ctl_device" ] || device="$ctl_device"
@@ -72,15 +73,17 @@ proto_quectel_setup() {
 	[ "$pdptype" = "ipv4" -o "$pdptype" = "ipv4v6" ] && ipv4opt="-4"
 	[ "$pdptype" = "ipv6" -o "$pdptype" = "ipv4v6" ] && ipv6opt="-6"
 	[ -n "$auth" ] || auth="none"
+	[ -n "$pdnindex" ] || pdnindex="1"
+	[ -n "$pdnindexv6" ] || pdnindexv6="2"
 
 	quectel-qmi-proxy &
 	sleep 3
 
 	if [ -n "$ipv4opt" ]; then
-		quectel-cm -i "$ifname" $ipv4opt -n 1 -m 1 ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
+		quectel-cm -i "$ifname" $ipv4opt -n $pdnindex -m 1 ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
 	fi
 	if [ -n "$ipv6opt" ]; then
-		quectel-cm -i "$ifname" $ipv6opt -n 4 -m 2 ${pincode:+-p $pincode} -s "$apnv6" "$username" "$password" "$auth" &
+		quectel-cm -i "$ifname" $ipv6opt -n $pdnindexv6 -m 2 ${pincode:+-p $pincode} -s "$apnv6" "$username" "$password" "$auth" &
 	fi
 	sleep 5
 
