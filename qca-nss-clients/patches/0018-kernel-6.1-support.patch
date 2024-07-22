@@ -193,7 +193,7 @@
 @@ -305,9 +305,9 @@ static void nss_pvxlanmgr_dummy_netdev_s
  	dev->priv_destructor = NULL;
  #endif
-
+ 
 -	memcpy(dev->dev_addr, "\x00\x00\x00\x00\x00\x00", dev->addr_len);
 -	memset(dev->broadcast, 0xff, dev->addr_len);
 -	memcpy(dev->perm_addr, dev->dev_addr, dev->addr_len);
@@ -201,7 +201,7 @@
 +	eth_hw_addr_set(dev, mac_addr);
 +	eth_broadcast_addr(dev->broadcast);
  }
-
+ 
  /*
 --- a/clmapmgr/nss_clmapmgr.c
 +++ b/clmapmgr/nss_clmapmgr.c

@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nss-firmware
-PKG_SOURCE_DATE:=2022-07-12
-PKG_SOURCE_VERSION:=ade6bff5
-PKG_MIRROR_HASH:=6652eea8941a0db28f983fa450b28ffaae332e4494c21cb9dbfe4648568db28d
-PKG_RELEASE:=3
+PKG_SOURCE_DATE:=2024-07-22
+PKG_SOURCE_VERSION:=8dceff47ef0ac967d01bf0dacd84d44842774af2
+PKG_MIRROR_HASH:=3334a63d0b2c7afe4f6d4e3c2ac86bc3e2a0d97df17f478eeec7d29936062edf
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/quic/qca-sdk-nss-fw.git
+PKG_SOURCE_URL:=https://github.com/qosmio/qca-sdk-nss-fw.git
 
 PKG_LICENSE_FILES:=LICENSE.md
 
@@ -22,7 +22,7 @@ PKG_MAINTAINER:=Sean K <datapronix@protonmail.com>
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_FIRMWARE_VERSION_11_4 \
-	CONFIG_NSS_FIRMWARE_VERSION_12_1
+	CONFIG_NSS_FIRMWARE_VERSION_12_5
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -68,10 +68,10 @@ define Package/nss-firmware-default/config
 
   choice
     prompt "Version"
-    default NSS_FIRMWARE_VERSION_12_1
+    default NSS_FIRMWARE_VERSION_12_5
 
-    config NSS_FIRMWARE_VERSION_12_1
-          bool "NSS Firmware 12.1 Release 022"
+    config NSS_FIRMWARE_VERSION_12_5
+          bool "NSS Firmware 12.5 Release 210"
           help
                This version does not work with NSS MESH
 
@@ -89,10 +89,10 @@ ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_11_4),)
    NSS_REL:=5
    VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2021.SPF_$(NSS_MAJOR)/CS
 else
-   NSS_MAJOR:=12.0.0
-   NSS_MINOR:=12.1
-   NSS_REL:=022
-   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_$(NSS_MAJOR)/ED1
+   NSS_MAJOR:=12.5
+   NSS_MINOR:=12.5
+   NSS_REL:=210
+   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2024.SPF_$(NSS_MAJOR)/ED1
 endif
 
 define Build/Compile
