@@ -10,6 +10,7 @@ proto_quectel_init_config() {
 	available=1
 	no_device=1
 	proto_config_add_string "device:device"
+	proto_config_add_boolean "multiplexing"
 	proto_config_add_string "apn"
 	proto_config_add_string "apnv6"
 	proto_config_add_string "pdnindex"
@@ -30,12 +31,12 @@ proto_quectel_init_config() {
 
 proto_quectel_setup() {
 	local interface="$1"
-	local device apn apnv6 auth username password pincode delay pdptype pdnindex pdnindexv6
+	local device apn apnv6 auth username password pincode delay pdptype pdnindex pdnindexv6 multiplexing
 	local dhcp dhcpv6 sourcefilter delegate mtu $PROTO_DEFAULT_OPTIONS
 	local ip4table ip6table
 	local pid zone
 
-	json_get_vars device apn apnv6 auth username password pincode delay pdnindex pdnindexv6
+	json_get_vars device apn apnv6 auth username password pincode delay pdnindex pdnindexv6 multiplexing
 	json_get_vars pdptype dhcp dhcpv6 sourcefilter delegate ip4table
 	json_get_vars ip6table mtu $PROTO_DEFAULT_OPTIONS
 
@@ -73,28 +74,39 @@ proto_quectel_setup() {
 	[ "$pdptype" = "ipv4" -o "$pdptype" = "ipv4v6" ] && ipv4opt="-4"
 	[ "$pdptype" = "ipv6" -o "$pdptype" = "ipv4v6" ] && ipv6opt="-6"
 	[ -n "$auth" ] || auth="none"
-	[ -n "$pdnindex" ] || pdnindex="1"
-	[ -n "$pdnindexv6" ] || pdnindexv6="2"
 
 	quectel-qmi-proxy &
 	sleep 3
 
-	if [ -n "$ipv4opt" ]; then
-		quectel-cm -i "$ifname" $ipv4opt -n $pdnindex -m 1 ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
+	if [ "$multiplexing" = 1 ]; then
+		[ -n "$pdnindex" ] || pdnindex="1"
+		[ -n "$pdnindexv6" ] || pdnindexv6="2"
+
+		if [ -n "$ipv4opt" ]; then
+			quectel-cm -i "$ifname" $ipv4opt -n $pdnindex -m 1 ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
+		fi
+		if [ -n "$ipv6opt" ]; then
+			quectel-cm -i "$ifname" $ipv6opt -n $pdnindexv6 -m 2 ${pincode:+-p $pincode} -s "$apnv6" "$username" "$password" "$auth" &
+		fi
+	else
+		quectel-cm -i "$ifname" $ipv4opt $ipv6opt ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
 	fi
-	if [ -n "$ipv6opt" ]; then
-		quectel-cm -i "$ifname" $ipv6opt -n $pdnindexv6 -m 2 ${pincode:+-p $pincode} -s "$apnv6" "$username" "$password" "$auth" &
-	fi
+	
 	sleep 5
 
 	ifconfig "$ifname" up
 	ifconfig "${ifname}_1" &>"/dev/null" && ifname4="${ifname}_1"
-	ifconfig "${ifname}_2" &>"/dev/null" && ifname6="${ifname}_2"
+	
+	if [ "$multiplexing" = 1 ]; then
+		ifconfig "${ifname}_2" &>"/dev/null" && ifname6="${ifname}_2"
+	else
+		ifname6="$ifname4"
+	fi
 
 	if [ -n "$mtu" ]; then
 		echo "Setting MTU to $mtu"
 		/sbin/ip link set dev "$ifname4" mtu "$mtu"
-		/sbin/ip link set dev "$ifname6" mtu "$mtu"
+		[ "$multiplexing" = 1 ] && /sbin/ip link set dev "$ifname6" mtu "$mtu"
 	fi
 
 	echo "Setting up $ifname"
