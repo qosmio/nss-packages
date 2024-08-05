@@ -65,6 +65,9 @@ return network.registerProtocol('quectel', {
 			}, this));
 		};
 
+		o = s.taboption('general', form.Flag, 'multiplexing', _('Use IP Multiplexing'));
+		o.default = o.disabled;
+
 		apn = s.taboption('general', form.Value, 'apn', _('APN'));
 		apn.depends('pdptype', 'ipv4v6');
 		apn.depends('pdptype', 'ipv4');
@@ -79,8 +82,8 @@ return network.registerProtocol('quectel', {
 		};
 
         apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'));
-        apnv6.depends('pdptype', 'ipv4v6');
-		apnv6.depends('pdptype', 'ipv6');
+        apnv6.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+        apnv6.depends({ pdptype: 'ipv6', multiplexing: '1' });
 		apnv6.validate = function(section_id, value) {
 			if (value == null || value == '')
 				return true;
@@ -127,17 +130,15 @@ return network.registerProtocol('quectel', {
 		o.datatype    = 'max(9200)';
 
 		o = s.taboption('advanced', form.Value, 'pdnindex', _('PDN index'));
-		o.depends('pdptype', 'ipv4v6');
-		o.depends('pdptype', 'ipv4');
+		o.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+        o.depends({ pdptype: 'ipv4', multiplexing: '1' });
 		o.placeholder = '1';
-		o.default = 1;
 		o.datatype = 'and(uinteger,min(1),max(7))';
 
 		o = s.taboption('advanced', form.Value, 'pdnindexv6', _('IPv6 PDN index'));
-		o.depends('pdptype', 'ipv4v6');
-		o.depends('pdptype', 'ipv6');
+		o.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+        o.depends({ pdptype: 'ipv6', multiplexing: '1' });
 		o.placeholder = '2';
-		o.default = 2;
 		o.datatype = 'and(uinteger,min(1),max(7))';
 
 		o = s.taboption('general', form.ListValue, 'pdptype', _('PDP Type'));
