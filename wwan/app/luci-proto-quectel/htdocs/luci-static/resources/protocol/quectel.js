@@ -81,9 +81,9 @@ return network.registerProtocol('quectel', {
 			return true;
 		};
 
-        apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'));
-        apnv6.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
-        apnv6.depends({ pdptype: 'ipv6', multiplexing: '1' });
+		apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'));
+		apnv6.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+		apnv6.depends({ pdptype: 'ipv6', multiplexing: '1' });
 		apnv6.validate = function(section_id, value) {
 			if (value == null || value == '')
 				return true;
@@ -131,13 +131,13 @@ return network.registerProtocol('quectel', {
 
 		o = s.taboption('advanced', form.Value, 'pdnindex', _('PDN index'));
 		o.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
-        o.depends({ pdptype: 'ipv4', multiplexing: '1' });
+		o.depends({ pdptype: 'ipv4', multiplexing: '1' });
 		o.placeholder = '1';
 		o.datatype = 'and(uinteger,min(1),max(7))';
 
 		o = s.taboption('advanced', form.Value, 'pdnindexv6', _('IPv6 PDN index'));
 		o.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
-        o.depends({ pdptype: 'ipv6', multiplexing: '1' });
+		o.depends({ pdptype: 'ipv6', multiplexing: '1' });
 		o.placeholder = '2';
 		o.datatype = 'and(uinteger,min(1),max(7))';
 
