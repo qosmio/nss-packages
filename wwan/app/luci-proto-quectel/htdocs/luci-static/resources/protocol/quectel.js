@@ -155,5 +155,30 @@ return network.registerProtocol('quectel', {
 		o.placeholder = '0';
 		o.datatype = 'uinteger';
 		o.depends('defaultroute', '1');
+
+        o = s.taboption('advanced', form.DynamicList, 'cell_lock_4g', _('4G Cell ID Lock'));
+        o.datatype = 'string';
+        o.placeholder = _('<PCI>,<EARFCN>');
+
+		o.validate = function(section_id, value) {
+            if (value === null || value === '')
+                return true;
+
+            var parts = value.split(',');
+            if (parts.length !== 2)
+                return _('Must be two values separated by a comma(,)');
+
+            var isUnsignedInteger = function(str) {
+                return /^\d+$/.test(str);
+            };
+            
+            if (!isUnsignedInteger(parts[0]))
+                return _('Invalid PCI!');
+            
+            if (!isUnsignedInteger(parts[1]))
+                return _('Invalid EARFCN!');
+
+            return true;
+        };
 	}
 });
