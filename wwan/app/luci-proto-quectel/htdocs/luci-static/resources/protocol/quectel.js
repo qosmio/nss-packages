@@ -65,6 +65,9 @@ return network.registerProtocol('quectel', {
 			}, this));
 		};
 
+		o = s.taboption('general', form.Flag, 'multiplexing', _('Use IP Multiplexing'));
+		o.default = o.disabled;
+
 		apn = s.taboption('general', form.Value, 'apn', _('APN'));
 		apn.depends('pdptype', 'ipv4v6');
 		apn.depends('pdptype', 'ipv4');
@@ -78,9 +81,9 @@ return network.registerProtocol('quectel', {
 			return true;
 		};
 
-        apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'));
-        apnv6.depends('pdptype', 'ipv4v6');
-		apnv6.depends('pdptype', 'ipv6');
+		apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'));
+		apnv6.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+		apnv6.depends({ pdptype: 'ipv6', multiplexing: '1' });
 		apnv6.validate = function(section_id, value) {
 			if (value == null || value == '')
 				return true;
@@ -127,17 +130,15 @@ return network.registerProtocol('quectel', {
 		o.datatype    = 'max(9200)';
 
 		o = s.taboption('advanced', form.Value, 'pdnindex', _('PDN index'));
-		o.depends('pdptype', 'ipv4v6');
-		o.depends('pdptype', 'ipv4');
+		o.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+		o.depends({ pdptype: 'ipv4', multiplexing: '1' });
 		o.placeholder = '1';
-		o.default = 1;
 		o.datatype = 'and(uinteger,min(1),max(7))';
 
 		o = s.taboption('advanced', form.Value, 'pdnindexv6', _('IPv6 PDN index'));
-		o.depends('pdptype', 'ipv4v6');
-		o.depends('pdptype', 'ipv6');
+		o.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+		o.depends({ pdptype: 'ipv6', multiplexing: '1' });
 		o.placeholder = '2';
-		o.default = 2;
 		o.datatype = 'and(uinteger,min(1),max(7))';
 
 		o = s.taboption('general', form.ListValue, 'pdptype', _('PDP Type'));
@@ -154,5 +155,30 @@ return network.registerProtocol('quectel', {
 		o.placeholder = '0';
 		o.datatype = 'uinteger';
 		o.depends('defaultroute', '1');
+
+        o = s.taboption('advanced', form.DynamicList, 'cell_lock_4g', _('4G Cell ID Lock'));
+        o.datatype = 'string';
+        o.placeholder = _('<PCI>,<EARFCN>');
+
+		o.validate = function(section_id, value) {
+            if (value === null || value === '')
+                return true;
+
+            var parts = value.split(',');
+            if (parts.length !== 2)
+                return _('Must be two values separated by a comma(,)');
+
+            var isUnsignedInteger = function(str) {
+                return /^\d+$/.test(str);
+            };
+            
+            if (!isUnsignedInteger(parts[0]))
+                return _('Invalid PCI!');
+            
+            if (!isUnsignedInteger(parts[1]))
+                return _('Invalid EARFCN!');
+
+            return true;
+        };
 	}
 });
