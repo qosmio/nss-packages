@@ -5,7 +5,7 @@ comment "Build Options"
 
 choice
   prompt "Memory Profile"
-  default NSS_MEM_PROFILE_MEDIUM
+  default NSS_MEM_PROFILE_HIGH
   help
   	This option allows you to select the memory profile.
   	It should correspond to the total RAM of your board.
@@ -48,7 +48,7 @@ config NSS_DRV_CLMAP_ENABLE
 
 config NSS_DRV_CRYPTO_ENABLE
 	bool
-	default y
+	default n
 	prompt "Enable CRYPTO"
 
 config NSS_DRV_DTLS_ENABLE
@@ -90,7 +90,7 @@ config NSS_DRV_IPV4_REASM_ENABLE
 
 config NSS_DRV_IPV6_ENABLE
 	bool
-	default y
+	default n
 	prompt "Enable IPV6"
 
 config NSS_DRV_IPV6_REASM_ENABLE
@@ -146,7 +146,7 @@ config NSS_DRV_PPPOE_ENABLE
 
 config NSS_DRV_PPTP_ENABLE
 	bool
-	default y
+	default n
 	prompt "Enable PPTP"
 
 config NSS_DRV_PVXLAN_ENABLE
@@ -217,7 +217,7 @@ config NSS_DRV_TUNIPIP6_ENABLE
 
 config NSS_DRV_VIRT_IF_ENABLE
 	bool
-	default y
+	default n
 	prompt "Enable VIRT_IF"
 
 config NSS_DRV_VLAN_ENABLE

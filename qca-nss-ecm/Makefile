@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-ecm
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-nss-ecm.git
 PKG_SOURCE_PROTO:=git
@@ -162,6 +162,10 @@ endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qmi_wwan_q),)
 ECM_MAKE_OPTS+=ECM_INTERFACE_RAWIP_ENABLE=y
+endif
+
+ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_12_5),)
+EXTRA_CFLAGS+=-DNSS_FIRMWARE_VERSION_12_5
 endif
 
 define Build/InstallDev

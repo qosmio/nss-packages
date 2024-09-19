@@ -64,7 +64,7 @@
  };
  
  /**
-@@ -350,7 +350,7 @@ struct nss_wifi_mesh_proxy_path_del_msg
+@@ -353,7 +353,7 @@ struct nss_wifi_mesh_proxy_path_del_msg
  
  /**
   * nss_wifi_mesh_mpath_not_found_msg
@@ -73,7 +73,7 @@
   */
  struct nss_wifi_mesh_mpath_not_found_msg {
  	uint8_t dest_mac_addr[ETH_ALEN];		/**< Destination MAC address. */
-@@ -386,27 +386,27 @@ struct nss_wifi_mesh_path_expiry_msg {
+@@ -389,28 +389,28 @@ struct nss_wifi_mesh_path_expiry_msg {
   *	Encapsulation statistics.
   */
  struct nss_wifi_mesh_encap_stats {
@@ -98,6 +98,7 @@
 -	uint32_t no_headroom;			/* Number of packets dropped because there is no headroom. */
 -	uint32_t path_refresh_sent;		/* Number of times path refresh is sent to host. */
 -	uint32_t linearise_failed;		/* Number of packets dropped because pb_linearise. */
+-	uint32_t mp_exception_event_rl_dropped;	/* Number of packets dropped due to rate limit. */
 +	uint32_t expiry_notify_sent;		/**< Number of times expiry notification sent to host. */
 +	uint32_t mc_count;			/**< Number of multicast packets. */
 +	uint32_t mp_not_found;			/**< Number of times mesh path is not found. */
@@ -119,10 +120,11 @@
 +	uint32_t no_headroom;			/**< Number of packets dropped because there is no headroom. */
 +	uint32_t path_refresh_sent;		/**< Number of times path refresh is sent to host. */
 +	uint32_t linearise_failed;		/**< Number of packets dropped because pb_linearise. */
++	uint32_t mp_exception_event_rl_dropped;	/**< Number of packets dropped due to rate limit. */
  };
  
  /*
-@@ -526,22 +526,22 @@ struct nss_wifi_mesh_path_stats {
+@@ -532,22 +532,22 @@ struct nss_wifi_mesh_path_stats {
   *	Wi-Fi mesh proxy path statistics.
   */
  struct nss_wifi_mesh_proxy_path_stats {
@@ -158,10 +160,10 @@
 +	uint32_t update_requests;			/**< Mesh proxy path updation requests. */
 +	uint32_t mda_updations;				/**< Mesh proxy path mda updations. */
 +	uint32_t flag_updations;			/**< Mesh proxy path flags updations. */
- };
- 
- /**
-@@ -958,7 +958,7 @@ nss_tx_status_t nss_wifi_mesh_tx_msg_ext
+ 	uint32_t mesh_proxy_path_dummy_lookup_success;	/**< Mesh proxy path dummy entry lookup successes. */
+ 	uint32_t mesh_proxy_path_dummy_lookup_failures;	/**< Mesh proxy path dummy entry lookup failures. */
+ 	uint32_t mesh_proxy_path_dummy_add_failures;	/**< Mesh proxy path dummy entry add failures. */
+@@ -975,7 +975,7 @@ nss_tx_status_t nss_wifi_mesh_tx_msg_ext
  
  /**
   * nss_wifi_mesh_verify_if_num
@@ -170,7 +172,7 @@
   *
   * @datatypes
   * interface number \n
-@@ -997,4 +997,9 @@ extern int nss_wifi_mesh_stats_register_
+@@ -1014,4 +1014,9 @@ extern int nss_wifi_mesh_stats_register_
   * 0 on success or non-zero on failure.
   */
  extern int nss_wifi_mesh_stats_unregister_notifier(struct notifier_block *nb);
@@ -180,105 +182,6 @@
 + */
 +
  #endif /* __NSS_WIFI_MESH_H */
---- a/nss_wifi_mesh_strings.c
-+++ b/nss_wifi_mesh_strings.c
-@@ -106,22 +106,22 @@ static ssize_t nss_wifi_mesh_path_stats_
-  * 	Wi-Fi mesh proxy path statistics string.
-  */
- struct nss_stats_info nss_wifi_mesh_strings_proxy_path_stats[NSS_WIFI_MESH_PROXY_PATH_STATS_TYPE_MAX] = {
--	{"alloc_failures",		NSS_STATS_TYPE_SPECIAL},
--	{"entry_exist_failures",	NSS_STATS_TYPE_SPECIAL},
--	{"add_success",			NSS_STATS_TYPE_SPECIAL},
--	{"table_full_errors",		NSS_STATS_TYPE_SPECIAL},
--	{"insert_failures",		NSS_STATS_TYPE_SPECIAL},
--	{"not_found",			NSS_STATS_TYPE_SPECIAL},
--	{"unhashed_errors",		NSS_STATS_TYPE_SPECIAL},
--	{"delete_failures",		NSS_STATS_TYPE_SPECIAL},
--	{"delete_success",		NSS_STATS_TYPE_SPECIAL},
--	{"update_success",		NSS_STATS_TYPE_SPECIAL},
--	{"lookup_success",		NSS_STATS_TYPE_SPECIAL},
--	{"add_requests",		NSS_STATS_TYPE_SPECIAL},
--	{"del_requests",		NSS_STATS_TYPE_SPECIAL},
--	{"update_requests",		NSS_STATS_TYPE_SPECIAL},
--	{"mda_updations",		NSS_STATS_TYPE_SPECIAL},
--	{"flag_updations",		NSS_STATS_TYPE_SPECIAL}
-+	{"alloc_failures",				NSS_STATS_TYPE_SPECIAL},
-+	{"entry_exist_failures",			NSS_STATS_TYPE_SPECIAL},
-+	{"add_success",					NSS_STATS_TYPE_SPECIAL},
-+	{"table_full_errors",				NSS_STATS_TYPE_SPECIAL},
-+	{"insert_failures",				NSS_STATS_TYPE_SPECIAL},
-+	{"not_found",					NSS_STATS_TYPE_SPECIAL},
-+	{"unhashed_errors",				NSS_STATS_TYPE_SPECIAL},
-+	{"delete_failures",				NSS_STATS_TYPE_SPECIAL},
-+	{"delete_success",				NSS_STATS_TYPE_SPECIAL},
-+	{"update_success",				NSS_STATS_TYPE_SPECIAL},
-+	{"lookup_success",				NSS_STATS_TYPE_SPECIAL},
-+	{"add_requests",				NSS_STATS_TYPE_SPECIAL},
-+	{"del_requests",				NSS_STATS_TYPE_SPECIAL},
-+	{"update_requests",				NSS_STATS_TYPE_SPECIAL},
-+	{"mda_updations",				NSS_STATS_TYPE_SPECIAL},
-+	{"flag_updations",				NSS_STATS_TYPE_SPECIAL}
- };
- 
- /*
---- a/exports/nss_wifi.h
-+++ b/exports/nss_wifi.h
-@@ -641,8 +641,8 @@ struct nss_wifi_stats_sync_msg {
-  *	Information for creating a Wi-Fi peer freelist.
-  */
- struct nss_wifi_peer_freelist_append_msg {
--	uint32_t addr;		/**< Starting address of peer freelist pool. */
--	uint32_t length;	/**< Size of peer freelist pool. */
-+	uint32_t addr;		/**< Starting address of the peer freelist pool. */
-+	uint32_t length;	/**< Size of the peer freelist pool. */
- 	uint32_t num_peers;	/**< Maximum peer entries supported in the pool. */
- };
- 
-@@ -709,7 +709,7 @@ struct nss_wifi_peer_ol_stats {
- 	uint32_t tx_mcast;	/**< Number of multicast packets sent. */
- 	uint32_t tx_ucast;	/**< Number of unicast packets sent. */
- 	uint32_t tx_data;	/**< Number data packets sent. */
--	uint32_t tx_bytes;	/**< Number of bytes sent. */
-+	uint32_t tx_bytes;	/**< Number of bytes transmitted. */
- 	uint32_t tx_fail;	/**< Number of failed Tx packets. */
- 	uint32_t thrup_bytes;	/**< Number of throughput bytes. */
- 	uint32_t tx_bcast_pkts;	/**< Number of broadcast packets sent. */
-@@ -742,7 +742,7 @@ struct nss_wifi_ol_stats_msg {
- 
- /**
-  * nss_wifi_sta_kickout_msg
-- *	Station kickout message from NSS Firmware
-+ *	Station kickout message from NSS firmware.
-  */
- struct nss_wifi_sta_kickout_msg {
- 	uint32_t peer_id;	/**< Peer ID. */
-@@ -759,7 +759,7 @@ struct nss_wifi_peer_isolation_msg {
- 
- /**
-  * nss_wifi_wnm_peer_rx_activity_msg
-- *	Rx active state information for the peer.
-+ *	Receive active state information for the peer.
-  */
- struct nss_wifi_wnm_peer_rx_activity_msg {
- 	uint16_t nentries;	/**< Number of entries. */
-@@ -917,7 +917,7 @@ struct nss_wifi_msg {
- 		struct nss_wifi_cmd_msg wcmdm;
- 				/**< Pdev command information. */
- 		struct nss_wifi_enable_ol_statsv2 wesh_msg;
--				/**< Enable version 2 tx/rx stats. */
-+				/**< Enable version 2 transmit/receive statistics. */
- 		struct nss_wifi_ol_peer_time_msg wopt_msg;
- 				/**< Send per peer/TID timestamp statistics to host. */
- 		struct nss_wifi_peer_isolation_msg isolation_msg;
-@@ -927,7 +927,7 @@ struct nss_wifi_msg {
- 
- /**
-  * nss_wifi_get_context
-- *	Gets the Wi-Fi context used in nss_gre_tx.
-+ *	Gets the Wi-Fi context used in NSS GRE transmit.
-  *
-  * @return
-  * Pointer to the NSS core context.
 --- a/exports/nss_c2c_rx.h
 +++ b/exports/nss_c2c_rx.h
 @@ -1,6 +1,6 @@
@@ -918,7 +821,7 @@
   * above copyright notice and this permission notice appear in all copies.
 --- a/exports/nss_wifi_vdev.h
 +++ b/exports/nss_wifi_vdev.h
-@@ -1071,13 +1071,13 @@ struct nss_wifi_vdev_msg {
+@@ -1069,13 +1069,13 @@ struct nss_wifi_vdev_msg {
  		struct nss_wifi_vdev_me_snptbl_deny_grp_add_msg vdev_deny_member_add;
  				/**< Add a snooplist member to the deny list. */
  		struct nss_wifi_vdev_me_hmmc_add_msg vdev_hmmc_member_add;
