@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-crypto
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-crypto.git
 PKG_SOURCE_PROTO:=git
@@ -28,7 +28,7 @@ define KernelPackage/qca-nss-crypto
 	SECTION:=kernel
 	CATEGORY:=Kernel modules
 	SUBMENU:=Cryptographic API modules
-	DEPENDS:=@TARGET_qualcommax +kmod-qca-nss-drv +@NSS_DRV_CRYPTO_ENABLE @BROKEN
+	DEPENDS:=@TARGET_qualcommax +kmod-qca-nss-drv +nss-eip-firmware +@NSS_DRV_CRYPTO_ENABLE
 	TITLE:=Kernel driver for NSS crypto driver
 	FILES:=$(PKG_BUILD_DIR)/$(NSS_CRYPTO_DIR)/src/qca-nss-crypto.ko \
 	$(PKG_BUILD_DIR)/$(NSS_CRYPTO_DIR)/tool/qca-nss-crypto-tool.ko
