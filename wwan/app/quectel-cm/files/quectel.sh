@@ -36,6 +36,7 @@ proto_quectel_setup() {
 	json_get_vars pdptype dhcp dhcpv6 sourcefilter delegate ip4table
 	json_get_vars ip6table mtu $PROTO_DEFAULT_OPTIONS
 
+	echo -ne "AT+CFUN=1\r\n" > /dev/ttyUSB2
 	[ -n "$delay" ] && sleep "$delay"
 
 	[ -n "$metric" ] || metric="0"
@@ -66,7 +67,7 @@ proto_quectel_setup() {
 		return 1
 	}
 
-	[ "$pdptype" = "ip" -o "$pdptype" = "ipv4v6" ] && ipv4opt="-4"
+	[ "$pdptype" = "ipv4" -o "$pdptype" = "ipv4v6" ] && ipv4opt="-4"
 	[ "$pdptype" = "ipv6" -o "$pdptype" = "ipv4v6" ] && ipv6opt="-6"
 	[ -n "$auth" ] || auth="none"
 
@@ -105,7 +106,7 @@ proto_quectel_setup() {
 		ubus call network add_dynamic "$(json_dump)"
 	fi
 
-	if [ "$pdptype" = "ip" ] || [ "$pdptype" = "ipv4v6" ]; then
+	if [ "$pdptype" = "ipv4" ] || [ "$pdptype" = "ipv4v6" ]; then
 		json_init
 		json_add_string name "${interface}_4"
 		json_add_string ifname "@$interface"
