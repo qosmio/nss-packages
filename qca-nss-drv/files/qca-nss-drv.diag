@@ -82,17 +82,18 @@ for i in wan br-lan /sys/class/net/br-lan/brif/*; do
   ethtool -k ${i} | awk -v count=$count -v i=$i -v white=$white -v green=$green -v r=$reset '
   /rx-gro-list/ {
   if(count>0) tab="            "
-  if($2=="on") color=green
+  color=red
+  if($2=="off") color=green
   printf "%s%-11s : %s%s%s\n",tab,i,color,$2,r
   }'
   count=$((count + 1))
 done
 
 echo -e "${reset}"
-echo -ne "${bold}${red} NSS PKGS${reset}: ${white}"
+echo -ne "${bold}${red}  NSS PKGS${reset}: ${white}"
 opkg list-installed | awk -v count=0 '
   /kmod-qca-nss|^nss/ {
-  if(count>0) tab="           "
+  if(count>0) tab="            "
   print tab $0
   count++
 }'
