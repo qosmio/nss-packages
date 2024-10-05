@@ -73,14 +73,14 @@ echo -e "${bold}${red}  IPQ DATE${reset}: ${green}${ipq_date}${reset}"
 echo -e "${bold}${red}    NSS FW${reset}: ${cyan}${nss_version}${reset}"
 echo -e "${bold}${red}  MAC80211${reset}: ${white}${mac80211_version}${reset}${reset}"
 echo -e "${bold}${red} ATH11K FW${reset}: ${cyan}${ath11k_fw}${reset}"
-echo -ne "${bold}${red}       GRO${reset}${white}: "
+echo -ne "${bold}${red}  GRO FRAG${reset}: ${white}"
 
 count=0
 
 for i in wan br-lan /sys/class/net/br-lan/brif/*; do
   i=${i##*\/}
   ethtool -k ${i} | awk -v count=$count -v i=$i -v white=$white -v green=$green -v r=$reset '
-  /generic-receive-offload/ {
+  /rx-gro-list/ {
   if(count>0) tab="            "
   if($2=="on") color=green
   printf "%s%-11s : %s%s%s\n",tab,i,color,$2,r
