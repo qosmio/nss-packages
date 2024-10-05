@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-drv
-PKG_RELEASE:=14
+PKG_RELEASE:=15
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv.git
 PKG_SOURCE_PROTO:=git
@@ -74,9 +74,6 @@ include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
 NSS_CLIENTS_DIR:=$(TOPDIR)/qca/src/qca-nss-clients
-IPQ_BRANCH:=$(shell git -C $(TOPDIR) rev-parse --abbrev-ref HEAD)
-IPQ_DATE:=$(shell git -C $(TOPDIR) log -1 --format=%cd --date=format:%Y-%m-%d)
-IPQ_COMMIT:=$(shell git -C $(TOPDIR) log -1 --format=%h)
 
 define KernelPackage/qca-nss-drv
   SECTION:=kernel
@@ -105,10 +102,6 @@ define KernelPackage/qca-nss-drv/install
 	$(INSTALL_DATA) ./files/qca-nss-drv.uci $(1)/etc/config/nss
 	$(INSTALL_DATA) ./files/qca-nss-drv.hotplug $(1)/etc/hotplug.d/firmware/10-qca-nss-fw
 	$(INSTALL_BIN) ./files/qca-nss-drv.debug $(1)/usr/bin/nss_stats
-	$(INSTALL_BIN) ./files/qca-nss-drv.diag $(1)/usr/bin/nss_diag
-	echo "IPQ_BRANCH=$(IPQ_BRANCH)" > $(1)/etc/ipq_release
-	echo "IPQ_DATE=$(IPQ_DATE)" >> $(1)/etc/ipq_release
-	echo "IPQ_COMMIT=$(IPQ_COMMIT)" >> $(1)/etc/ipq_release
 endef
 
 define KernelPackage/qca-nss-drv/conffiles
