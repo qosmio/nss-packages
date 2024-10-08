@@ -148,7 +148,7 @@ proto_quectel_setup() {
 
 		json_init
 		json_add_string name "${interface}_6"
-		json_add_string device "$ifname6"
+		json_add_string ifname "@$interface"
 		[ "$pdptype" = "ipv4v6" ] && json_add_string iface_464xlat "0"
 		json_add_string proto "dhcpv6"
 		proto_add_dynamic_defaults
@@ -165,7 +165,7 @@ proto_quectel_setup() {
 	if [ "$pdptype" = "ipv4" ] || [ "$pdptype" = "ipv4v6" ]; then
 		json_init
 		json_add_string name "${interface}_4"
-		json_add_string device "$ifname4"
+		json_add_string ifname "@$interface"
 		json_add_string proto "dhcp"
 		[ -z "$ip4table" ] || json_add_string ip4table "$ip4table"
 		proto_add_dynamic_defaults
