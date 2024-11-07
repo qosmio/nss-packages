@@ -122,7 +122,10 @@ proto_quectel_setup() {
 	sleep 5
 
 	ifconfig "$ifname" up
-	
+
+ 	# If $ifname_1 is not a valid device set $ifname4 to base $ifname as fallback
+  	# so modems not using RMNET/QMAP data aggregation still set up properly. QMAP
+   	# can be set via qmap_mode=n parameter during qmi_wwan_q module loading.
  	if [ ifconfig "${ifname}_1" &>"/dev/null" ]; then
  		ifname4="${ifname}_1"
    	else
