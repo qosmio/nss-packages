@@ -16,7 +16,7 @@ PKG_BUILD_PARALLEL:=1
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
-ifneq (, $(findstring $(CONFIG_TARGET_SUBTARGET), "ipq807x" "ipq60xx"))
+ifneq (, $(findstring $(CONFIG_TARGET_SUBTARGET), "ipq807x" "ipq60xx" "ipq50xx"))
 #4.4/5.4 + ipq807x/ipq60xx/ipq50xx
   CFI_OCF_DIR:=ocf/v2.0
   CFI_CRYPTOAPI_DIR:=cryptoapi/v2.0
