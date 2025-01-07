@@ -126,7 +126,7 @@ define Package/nss-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router0.bin \
-		$(1)/lib/firmware/qca-nss0-retail.bin
+		$(1)/lib/firmware/qca-nss0.bin
 ifeq ($(NSS_SOC),HK)
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router1.bin \
