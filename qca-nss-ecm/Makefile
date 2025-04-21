@@ -32,6 +32,7 @@ define KernelPackage/qca-nss-ecm
 		   +PACKAGE_kmod-bonding:kmod-bonding \
 		   +PACKAGE_kmod-vxlan:kmod-vxlan \
 		   +PACKAGE_kmod-nat46:kmod-nat46 \
+	           +PACKAGE_kmod-ppp:kmod-ppp \
 		   +PACKAGE_kmod-pppoe:kmod-pppoe \
 		   +PACKAGE_kmod-pppoe:kmod-pptp \
 		   +PACKAGE_kmod-pppoe:kmod-pppol2tp \
