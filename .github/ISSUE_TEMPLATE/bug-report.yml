@@ -1,30 +1,65 @@
 ---
 name: NSS Build Support Request
-description: Use this template to provide the required details when seeking support
-  for building NSS packages.
+description: Use this template to report issues or request support for building NSS packages.
 body:
   - type: markdown
     attributes:
       value: |
-        ### Please answer the following questions:
+        ### What is the issue?
+        Please provide a clear and concise description of the issue or the problem you are encountering.
+
+  - type: textarea
+    id: issue_description
+    attributes:
+      label: "Issue Description"
+      description: "Briefly describe the issue or the problem you are trying to solve."
+      placeholder: "e.g., Error encountered during build, missing package, etc."
+      validations:
+        required: true
+
+  - type: dropdown
+    id: openwrt_fork
+    attributes:
+      label: "1. Which OpenWrt NSS fork are you using?"
+      description: "Select the OpenWrt NSS fork you are building from."
+      options:
+        - "qosmio/openwrt-ipq"
+        - "other"
+
+  - type: conditional
+    attributes:
+      if:
+        field: openwrt_fork
+        equals: "qosmio/openwrt-ipq"
+      then:
+        - type: dropdown
+          id: branch
+          attributes:
+            label: "What branch are you building from?"
+            description: "Select the branch you are building from."
+            options:
+              - "main-nss"
+              - "24.10-nss"
+
+  - type: conditional
+    attributes:
+      if:
+        field: openwrt_fork
+        equals: "other"
+      then:
+        - type: input
+          id: custom_repo
+          attributes:
+            label: "What is the full repository?"
+            description: "Enter the full repository in the format `user/repo`."
+            placeholder: "user/repo"
 
   - type: input
-    id: question_1
+    id: device_name
     attributes:
-      label: 1. Are you building from [qosmio/openwrt-ipq](https://github.com/qosmio/openwrt-ipq)?
-      description: Answer with Yes or a link to your fork if different.
-
-  - type: input
-    id: question_2
-    attributes:
-      label: 2. What is the exact device you are building for?
-      description: Provide the specific device name.
-
-  - type: input
-    id: question_3
-    attributes:
-      label: 3. What `openwrt-ipq` branch are you building from?
-      description: Provide the branch name.
+      label: "2. What is the exact device you are building for?"
+      description: "Provide the specific device name according to CONFIG_TARGET_PROFILE."
+      placeholder: "e.g., DEVICE_linksys_mr7500"
 
   - type: markdown
     attributes:
