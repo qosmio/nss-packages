@@ -1,0 +1,37 @@
+---
+name: NSS Build Support Request
+description: Use this template to provide the required details when seeking support
+  for building NSS packages.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Please answer the following questions:
+
+  - type: input
+    id: question_1
+    attributes:
+      label: 1. Are you building from [qosmio/openwrt-ipq](https://github.com/qosmio/openwrt-ipq)?
+      description: Answer with Yes or a link to your fork if different.
+
+  - type: input
+    id: question_2
+    attributes:
+      label: 2. What is the exact device you are building for?
+      description: Provide the specific device name.
+
+  - type: input
+    id: question_3
+    attributes:
+      label: 3. What `openwrt-ipq` branch are you building from?
+      description: Provide the branch name.
+
+  - type: markdown
+    attributes:
+      value: |-
+        ### Attach the `.config` output:
+        Run the following command and attach the output below. Use triple backticks (```) before and after the pasted content for proper formatting.
+
+        ```bash
+        grep -Pi 'NSS_(?!DRV)|^(?!#)CONFIG_TARGET_(SUBTARGET|PROFILE|qualcommax)|^(?!#)CONFIG_(PACKAGE_kmod-qca-)|MEM_PROFILE' .config
+        ```
