@@ -14,6 +14,8 @@ body:
       label: "Issue Description"
       description: "Briefly describe the issue or the problem you are trying to solve."
       placeholder: "e.g., Error encountered during build, missing package, etc."
+    validations:
+      required: true
 
   - type: dropdown
     id: openwrt_fork
@@ -23,6 +25,8 @@ body:
       options:
         - "qosmio/openwrt-ipq"
         - "other"
+    validations:
+      required: true
 
   - type: dropdown
     id: branch
@@ -46,13 +50,22 @@ body:
       label: "4. What is the exact device you are building for?"
       description: "Provide the specific device name according to CONFIG_TARGET_PROFILE."
       placeholder: "e.g., DEVICE_linksys_mr7500"
+    validations:
+      required: true
 
   - type: markdown
     attributes:
       value: |-
         ### Attach the `.config` output:
-        Run the following command and attach the output below. Use triple backticks (```) before and after the pasted content for proper formatting.
-
+        Run the following command and attach the output below
         ```bash
         grep -Pi 'NSS_(?!DRV)|^(?!#)CONFIG_TARGET_(SUBTARGET|PROFILE|qualcommax)|^(?!#)CONFIG_(PACKAGE_kmod-qca-)|MEM_PROFILE' .config
         ```
+        
+  - type: textarea
+    id: config_output
+    attributes:
+      label: ".config output"
+      render: ini
+    validations:
+      required: true
