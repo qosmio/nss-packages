@@ -56,16 +56,17 @@ body:
   - type: markdown
     attributes:
       value: |-
-        ### Attach the `.config` output:
+        ### 5. Attach your `.config` output:
+
         Run the following command and attach the output below
         ```bash
         grep -Pi 'NSS_(?!DRV)|^(?!#)CONFIG_TARGET_(SUBTARGET|PROFILE|qualcommax)|^(?!#)CONFIG_(PACKAGE_kmod-qca-)|MEM_PROFILE' .config
         ```
-        
+
   - type: textarea
     id: config_output
     attributes:
-      label: ".config output"
+      label: ".config"
       render: ini
     validations:
       required: true
