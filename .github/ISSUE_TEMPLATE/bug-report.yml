@@ -14,8 +14,6 @@ body:
       label: "Issue Description"
       description: "Briefly describe the issue or the problem you are trying to solve."
       placeholder: "e.g., Error encountered during build, missing package, etc."
-      validations:
-        required: true
 
   - type: dropdown
     id: openwrt_fork
@@ -26,38 +24,26 @@ body:
         - "qosmio/openwrt-ipq"
         - "other"
 
-  - type: conditional
+  - type: dropdown
+    id: branch
     attributes:
-      if:
-        field: openwrt_fork
-        equals: "qosmio/openwrt-ipq"
-      then:
-        - type: dropdown
-          id: branch
-          attributes:
-            label: "What branch are you building from?"
-            description: "Select the branch you are building from."
-            options:
-              - "main-nss"
-              - "24.10-nss"
+      label: "2. If you selected 'qosmio/openwrt-ipq', what branch are you building from?"
+      description: "If you selected 'other', you can skip this."
+      options:
+        - "main-nss"
+        - "24.10-nss"
 
-  - type: conditional
+  - type: input
+    id: custom_repo
     attributes:
-      if:
-        field: openwrt_fork
-        equals: "other"
-      then:
-        - type: input
-          id: custom_repo
-          attributes:
-            label: "What is the full repository?"
-            description: "Enter the full repository in the format `user/repo`."
-            placeholder: "user/repo"
+      label: "3. If you selected 'other', what is the full repository?"
+      description: "Enter the full repository in the format `user/repo`. If you selected 'qosmio/openwrt-ipq', you can skip this."
+      placeholder: "user/repo"
 
   - type: input
     id: device_name
     attributes:
-      label: "2. What is the exact device you are building for?"
+      label: "4. What is the exact device you are building for?"
       description: "Provide the specific device name according to CONFIG_TARGET_PROFILE."
       placeholder: "e.g., DEVICE_linksys_mr7500"
 
