@@ -2544,9 +2544,17 @@ static const struct usb_device_id products[] = {
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0296, 4, mdm9x07) },  /* Quectel BG96 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0435, 4, mdm9x07) },  /* Quectel AG35 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0620, 4, mdm9x40) },  /* Quectel EG20 */
+	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0316, 3, mdm9x40) },  /* Quectel RG255 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0800, 4, sdx55) },  /* Quectel RG500 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0801, 4, sdx55) },  /* Quectel RG520 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0122, 4, sdx55) },  /* Quectel RG650 */
+	{ QMI_FIXED_RAWIP_INTF(0x05c6, 0x90d5, 3, sdx55) },  /* Foxconn T99W240T00 */
+	{ QMI_FIXED_RAWIP_INTF(0x05c6, 0x90db, 2, sdx55) },  /* SIM8200 */
+	{ QMI_FIXED_RAWIP_INTF(0x02dee, 0x4d22, 5, sdx55) }, /* Meige SRM815 */
+	{ QMI_FIXED_RAWIP_INTF(0x305a, 0x1421, 3, sdx55) },  /* gm800 */
+	{ QMI_FIXED_RAWIP_INTF(0x305a, 0x1403, 3, sdx55) },  /* gm800 */
+	{ QMI_FIXED_RAWIP_INTF(0x05C6, 0x9025, 4, sdx55) },
+	{ QMI_FIXED_RAWIP_INTF(0x05C6, 0x9091, 2, sdx55) },
 	{ }					/* END */
 };
 MODULE_DEVICE_TABLE(usb, products);
