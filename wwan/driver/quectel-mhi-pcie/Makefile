@@ -1,25 +1,27 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=qmi_wwan_q
-PKG_VERSION:=1.2.9
-PKG_RELEASE:=2
+PKG_NAME:=quectel-mhi-pcie
+PKG_VERSION:=1.3.8
+PKG_RELEASE:=3
 
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
 PKG_BUILD_PARALLEL:=1
 
-define KernelPackage/qmi_wwan_q
-  SUBMENU:=WWAN Support
-  TITLE:=Quectel Linux USB QMI WWAN Driver
+define KernelPackage/mhi-pcie
+  SUBMENU:=Network Devices
+  TITLE:=Kernel PCIe driver for MHI device
   DEPENDS:=@(TARGET_qualcommax_ipq807x||TARGET_qualcommax_ipq50xx) \
-	    +kmod-usb-net \
-	    +kmod-usb-wdm \
+	    @PCI_SUPPORT \
 	    +PACKAGE_kmod-rmnet-nss:kmod-rmnet-nss
-  FILES:=$(PKG_BUILD_DIR)/qmi_wwan_q.ko
-  AUTOLOAD:=$(call AutoLoad,81,qmi_wwan_q)
+  FILES:=$(PKG_BUILD_DIR)/pcie_mhi.ko
+  AUTOLOAD:=$(call AutoLoad,90,pcie_mhi)
 endef
 
+define KernelPackage/mhi-pcie/description
+  Kernel module for register a custom pciemhi platform device.
+endef
 
 EXTRA_CFLAGS+= \
 	-Wno-unused-function \
@@ -36,4 +38,4 @@ define Build/Compile
 		modules
 endef
 
-$(eval $(call KernelPackage,qmi_wwan_q))
+$(eval $(call KernelPackage,mhi-pcie))
