@@ -1,4 +1,4 @@
-obj-m += rmnet_nss.o qmi_wwan_q.o
+obj-m += qmi_wwan_q.o
 
 PWD := $(shell pwd)
 
