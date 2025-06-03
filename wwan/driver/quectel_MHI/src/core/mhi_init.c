@@ -644,7 +644,11 @@ static int mon_text_release(struct inode *inode, struct file *file)
 static const struct file_operations mon_fops_text_u = {
 	.owner =	THIS_MODULE,
 	.open =		mon_text_open,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0))
 	.llseek =	no_llseek,
+#else
+	.llseek =	noop_llseek,
+#endif
 	.read =		mon_text_read_u,
 	.release =	mon_text_release,
 };
@@ -2369,7 +2373,11 @@ void mhi_unprepare_after_power_down(struct mhi_controller *mhi_cntrl)
 }
 
 /* match dev to drv */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int mhi_match(struct device *dev, struct device_driver *drv)
+#else
+static int mhi_match(struct device *dev, const struct device_driver *drv)
+#endif
 {
 	struct mhi_device *mhi_dev = to_mhi_device(dev);
 	struct mhi_driver *mhi_drv = to_mhi_driver(drv);
@@ -2691,7 +2699,7 @@ static int __init mhi_cntrl_init(void)
 	return 0;
 }
 
-void mhi_cntrl_exit(void)
+static void mhi_cntrl_exit(void)
 {
 	class_destroy(mhi_cntrl_drv.class);
 	unregister_chrdev(mhi_cntrl_drv.major, MHI_CNTRL_DRIVER_NAME);

@@ -486,7 +486,7 @@ static int mhi_netdev_ioctl_extended(struct net_device *dev, struct ifreq *ifr)
 		ext_cmd.u.data = 0;
 		break;
 	case RMNET_IOCTL_GET_DRIVER_NAME:
-		strlcpy(ext_cmd.u.if_name, mhi_netdev->interface_name,
+		strscpy(ext_cmd.u.if_name, mhi_netdev->interface_name,
 			sizeof(ext_cmd.u.if_name));
 		break;
 	case RMNET_IOCTL_SET_SLEEP_STATE:
@@ -560,8 +560,8 @@ static void mhi_netdev_get_drvinfo (struct net_device *ndev, struct ethtool_drvi
 {
 	//struct mhi_netdev *mhi_netdev = ndev_to_mhi(ndev);
 
-	strlcpy (info->driver, "pcie_mhi", sizeof info->driver);
-	strlcpy (info->version, PCIE_MHI_DRIVER_VERSION, sizeof info->version);
+	strscpy (info->driver, "pcie_mhi", sizeof info->driver);
+	strscpy (info->version, PCIE_MHI_DRIVER_VERSION, sizeof info->version);
 }
 
 static const struct ethtool_ops mhi_netdev_ethtool_ops = {
