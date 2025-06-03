@@ -33,6 +33,8 @@
 #include <linux/usb/usbnet.h>
 #include <linux/usb/cdc-wdm.h>
 
+#include "rmnet_nss.h"
+
 #ifndef ETH_P_MAP
 #define ETH_P_MAP 0xDA1A
 #endif
@@ -51,13 +53,6 @@
 //#define CONFIG_QCA_NSS_PACKET_FILTER
 #endif
 
-#define _RMNET_NSS_H_
-#define _RMENT_NSS_H_
-struct rmnet_nss_cb {
-        int (*nss_create)(struct net_device *dev);
-        int (*nss_free)(struct net_device *dev);
-        int (*nss_tx)(struct sk_buff *skb);
-};
 static struct rmnet_nss_cb __read_mostly *nss_cb = NULL;
 #if defined(CONFIG_PINCTRL_IPQ807x) || defined(CONFIG_PINCTRL_IPQ5018) || defined(CONFIG_PINCTRL_IPQ8074)
 //#ifdef CONFIG_RMNET_DATA //spf12.x none, not effect for spf11.x

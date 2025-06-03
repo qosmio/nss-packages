@@ -22,24 +22,15 @@
 #include <linux/version.h>
 #include <nss_api_if.h>
 
-#ifndef _RMNET_NSS_H_
-#define _RMENT_NSS_H_
-
-struct rmnet_nss_cb {
-        int (*nss_create)(struct net_device *dev);
-        int (*nss_free)(struct net_device *dev);
-        int (*nss_tx)(struct sk_buff *skb);
-};
-
-extern struct rmnet_nss_cb *rmnet_nss_callbacks;
-
-#endif
+#include "rmnet_nss.h"
 
 #define RMNET_NSS_HASH_BITS 8
 #define hash_add_ptr(table, node, key) \
 	hlist_add_head(node, &table[hash_ptr(key, HASH_BITS(table))])
 
 static DEFINE_HASHTABLE(rmnet_nss_ctx_hashtable, RMNET_NSS_HASH_BITS);
+
+struct rmnet_nss_cb *rmnet_nss_callbacks;
 
 struct rmnet_nss_ctx {
 	struct hlist_node hnode;
