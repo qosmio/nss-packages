@@ -157,6 +157,7 @@ static int rmnet_nss_ethhdr_pull(struct sk_buff *skb)
 	rmnet_nss_inc_stat(RMNET_NSS_RX_NON_ETH);
 	return -1;
 }
+
 static int rmnet_nss_handle_non_zero_headlen(struct sk_buff *skb)
 {
 	struct iphdr *iph;
@@ -259,7 +260,9 @@ static int rmnet_nss_adjust_header(struct sk_buff *skb)
 
 	/* subtract to account for skb_push */
 	skb->len -= bytes;
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0))
+	frag->offset += bytes;
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
 	frag->bv_offset += bytes;
 #else
 	frag->page_offset += bytes;
@@ -277,7 +280,7 @@ static int rmnet_nss_adjust_header(struct sk_buff *skb)
  * handle it. Remove the ethernet header and pass it onward to the stack
  * if possible.
  */
-void rmnet_nss_receive(struct net_device *dev, struct sk_buff *skb,
+static void rmnet_nss_receive(struct net_device *dev, struct sk_buff *skb,
 		       struct napi_struct *napi)
 {
 	rmnet_nss_inc_stat(RMNET_NSS_EXCEPTIONS);
@@ -331,7 +334,7 @@ drop:
  * we add a dummy ethernet header with the approriate protocol field set,
  * the pass the packet off to NSS for hardware acceleration.
  */
-int rmnet_nss_tx(struct sk_buff *skb)
+static int rmnet_nss_tx(struct sk_buff *skb)
 {
 	struct ethhdr *eth;
 	struct rmnet_nss_ctx *ctx;
@@ -356,7 +359,8 @@ int rmnet_nss_tx(struct sk_buff *skb)
 	}
 
 	eth = (struct ethhdr *)skb_push(skb, sizeof(*eth));
-	memset(&eth->h_dest, 0, ETH_ALEN * 2);
+	memset(eth->h_dest, 0, ETH_ALEN);
+	memset(eth->h_source, 0, ETH_ALEN);
 	if (version == 4) {
 		eth->h_proto = htons(ETH_P_IP);
 	} else if (version == 6) {
@@ -401,7 +405,7 @@ fail:
  * We need to pull the header off and invoke our ndo_start_xmit function
  * to handle transmitting the packet to the network stack.
  */
-void rmnet_nss_xmit(struct net_device *dev, struct sk_buff *skb)
+static void rmnet_nss_xmit(struct net_device *dev, struct sk_buff *skb)
 {
 	int rc;
 
@@ -431,7 +435,7 @@ void rmnet_nss_xmit(struct net_device *dev, struct sk_buff *skb)
 }
 
 /* Create and register an NSS context for an rmnet_data device */
-int rmnet_nss_create_vnd(struct net_device *dev)
+static int rmnet_nss_create_vnd(struct net_device *dev)
 {
 	struct rmnet_nss_ctx *ctx;
 
@@ -453,7 +457,7 @@ int rmnet_nss_create_vnd(struct net_device *dev)
 }
 
 /* Unregister and destroy the NSS context for an rmnet_data device */
-int rmnet_nss_free_vnd(struct net_device *dev)
+static int rmnet_nss_free_vnd(struct net_device *dev)
 {
 	struct rmnet_nss_ctx *ctx;
 
@@ -469,15 +473,15 @@ static const struct rmnet_nss_cb rmnet_nss = {
 	.nss_tx = rmnet_nss_tx,
 };
 
-int __init rmnet_nss_init(void)
+static int __init rmnet_nss_init(void)
 {
 	pr_err("%s(): initializing rmnet_nss\n", __func__);
-	RCU_INIT_POINTER(rmnet_nss_callbacks, &rmnet_nss);
+	RCU_INIT_POINTER(rmnet_nss_callbacks, (struct rmnet_nss_cb *)&rmnet_nss);
 	rmnet_mark_skb = symbol_get(qmi_rmnet_mark_skb);
 	return 0;
 }
 
-void __exit rmnet_nss_exit(void)
+static void __exit rmnet_nss_exit(void)
 {
 	struct hlist_node *tmp;
 	struct rmnet_nss_ctx *ctx;
@@ -490,7 +494,7 @@ void __exit rmnet_nss_exit(void)
 
 	/* Tear down all NSS contexts */
 	hash_for_each_safe(rmnet_nss_ctx_hashtable, bkt, tmp, ctx, hnode)
-		rmnet_nss_free_ctx(ctx);
+	rmnet_nss_free_ctx(ctx);
 }
 
 MODULE_LICENSE("GPL v2");
