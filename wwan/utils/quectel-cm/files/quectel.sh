@@ -41,7 +41,7 @@ proto_quectel_setup() {
 	json_get_vars pdptype dhcp dhcpv6 sourcefilter delegate ip4table
 	json_get_vars ip6table mtu $PROTO_DEFAULT_OPTIONS
 
-	echo -ne "AT+CFUN=1\r\n" > /dev/ttyUSB2
+	echo -ne "AT+CFUN=1\r\n" >/dev/ttyUSB2
 
 	[ -n "$delay" ] || delay="5"
 	sleep "$delay"
@@ -52,22 +52,21 @@ proto_quectel_setup() {
 		idx=1
 		cell_ids=""
 
-		while json_is_a ${idx} string
-		do
+		while json_is_a ${idx} string; do
 			json_get_var cell_lock $idx
 			pci=$(echo $cell_lock | cut -d',' -f1)
 			earfcn=$(echo $cell_lock | cut -d',' -f2)
-			cell_ids="$cell_ids,$earfcn,$pci" 
-			idx=$(( idx + 1 ))
+			cell_ids="$cell_ids,$earfcn,$pci"
+			idx=$((idx + 1))
 		done
-		idx=$(( idx - 1 ))
+		idx=$((idx - 1))
 
 		if [ "$idx" -gt 0 ]; then
 			cell_ids="${idx}${cell_ids}"
 			echo -e "AT+QNWLOCK=\"COMMON/4G\",${cell_ids}" | atinout - /dev/ttyUSB2 -
 		fi
 	else
-		echo -e "AT+QNWLOCK=\"COMMON/4G\",0" | atinout - /dev/ttyUSB2 -
+		echo -e 'AT+QNWLOCK="COMMON/4G",0' | atinout - /dev/ttyUSB2 -
 	fi
 
 	[ -n "$metric" ] || metric="0"
@@ -118,20 +117,20 @@ proto_quectel_setup() {
 	else
 		quectel-cm -i "$ifname" $ipv4opt $ipv6opt ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
 	fi
-	
+
 	sleep 5
 
 	ifconfig "$ifname" up
 
- 	# If $ifname_1 is not a valid device set $ifname4 to base $ifname as fallback
-  	# so modems not using RMNET/QMAP data aggregation still set up properly. QMAP
-   	# can be set via qmap_mode=n parameter during qmi_wwan_q module loading.
- 	if [ ifconfig "${ifname}_1" &>"/dev/null" ]; then
- 		ifname4="${ifname}_1"
-   	else
-    		ifname4="$ifname"
-      	fi
-	
+	# If $ifname_1 is not a valid device set $ifname4 to base $ifname as fallback
+	# so modems not using RMNET/QMAP data aggregation still set up properly. QMAP
+	# can be set via qmap_mode=n parameter during qmi_wwan_q module loading.
+	if [ ifconfig "${ifname}_1" ] &>"/dev/null"; then
+		ifname4="${ifname}_1"
+	else
+		ifname4="$ifname"
+	fi
+
 	if [ "$multiplexing" = 1 ]; then
 		ifconfig "${ifname}_2" &>"/dev/null" && ifname6="${ifname}_2"
 	else
