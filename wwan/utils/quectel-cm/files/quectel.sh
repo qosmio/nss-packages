@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck shell=busybox disable=3043,2166,3037,3036
+# shellcheck shell=busybox disable=1091,3043,2166,3037,3036
 
 [ -n "$INCLUDE_ONLY" ] || {
 	. /lib/functions.sh
@@ -93,7 +93,8 @@ proto_quectel_setup() {
 
 	devname="$(basename "$device")"
 	devpath="$(readlink -f "/sys/class/usbmisc/$devname/device/")"
-	ifname="$(ls "$devpath/net" 2>"/dev/null")"
+	# shellcheck disable=2012
+	ifname="$(ls "$devpath/net" 2>"/dev/null" | head -n 1)"
 	[ -n "$ifname" ] || {
 		echo "The interface could not be found."
 		proto_notify_error "$interface" NO_IFACE
@@ -124,27 +125,25 @@ proto_quectel_setup() {
 
 	sleep 5
 
-	ifconfig "$ifname" up
+	ip link set "$ifname" up
+
+	ifname4="$ifname"
 
 	# If $ifname_1 is not a valid device set $ifname4 to base $ifname as fallback
 	# so modems not using RMNET/QMAP data aggregation still set up properly. QMAP
 	# can be set via qmap_mode=n parameter during qmi_wwan_q module loading.
-	if  ifconfig "${ifname}_1"  &>"/dev/null"; then
-		ifname4="${ifname}_1"
-	else
-		ifname4="$ifname"
-	fi
+	[ -r "/sys/class/net/${ifname}_1" ] && ifname4="${ifname}_1"
 
-	if [ "$multiplexing" = 1 ]; then
-		ifconfig "${ifname}_2" &>"/dev/null" && ifname6="${ifname}_2"
-	else
-		ifname6="$ifname4"
+	ifname6="$ifname4"
+
+	if [ "$multiplexing" = 1 ] && [ -r "/sys/class/net/${ifname}_2" ]; then
+		ifname6="${ifname}_2"
 	fi
 
 	if [ -n "$mtu" ]; then
 		echo "Setting MTU to $mtu"
-		/sbin/ip link set dev "$ifname4" mtu "$mtu"
-		[ "$multiplexing" = 1 ] && /sbin/ip link set dev "$ifname6" mtu "$mtu"
+		ip link set dev "$ifname4" mtu "$mtu"
+		[ "$multiplexing" = 1 ] && ip link set dev "$ifname6" mtu "$mtu"
 	fi
 
 	echo "Setting up $ifname"
