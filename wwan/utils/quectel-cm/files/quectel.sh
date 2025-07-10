@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck shell=busybox disable=3043,2166,3037,3036
 
 [ -n "$INCLUDE_ONLY" ] || {
 	. /lib/functions.sh
@@ -32,13 +33,15 @@ proto_quectel_init_config() {
 
 proto_quectel_setup() {
 	local interface="$1"
-	local device apn apnv6 auth username password pincode delay pdptype pdnindex pdnindexv6 multiplexing cell_lock_4g
-	local dhcp dhcpv6 sourcefilter delegate mtu $PROTO_DEFAULT_OPTIONS
+	local device apn apnv6 auth username password pincode delay pdptype pdnindex pdnindexv6 multiplexing
+	# shellcheck disable=2034,2086 # allow unused and word splitting
+	local cell_lock_4g dhcp dhcpv6 sourcefilter delegate mtu $PROTO_DEFAULT_OPTIONS
 	local ip4table ip6table
-	local pid zone
+	local zone
 
 	json_get_vars device apn apnv6 auth username password pincode delay pdnindex pdnindexv6 multiplexing
 	json_get_vars pdptype dhcp dhcpv6 sourcefilter delegate ip4table
+	# shellcheck disable=2086 # allow word splitting
 	json_get_vars ip6table mtu $PROTO_DEFAULT_OPTIONS
 
 	echo -ne "AT+CFUN=1\r\n" >/dev/ttyUSB2
@@ -54,8 +57,9 @@ proto_quectel_setup() {
 
 		while json_is_a ${idx} string; do
 			json_get_var cell_lock $idx
-			pci=$(echo $cell_lock | cut -d',' -f1)
-			earfcn=$(echo $cell_lock | cut -d',' -f2)
+			# shellcheck disable=2154 # cell_lock is assined and used
+			pci=$(echo "$cell_lock" | cut -d',' -f1)
+			earfcn=$(echo "$cell_lock" | cut -d',' -f2)
 			cell_ids="$cell_ids,$earfcn,$pci"
 			idx=$((idx + 1))
 		done
@@ -109,13 +113,13 @@ proto_quectel_setup() {
 		[ -n "$pdnindexv6" ] || pdnindexv6="2"
 
 		if [ -n "$ipv4opt" ]; then
-			quectel-cm -i "$ifname" $ipv4opt -n $pdnindex -m 1 ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
+			quectel-cm -i "$ifname" "$ipv4opt" -n $pdnindex -m 1 ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
 		fi
 		if [ -n "$ipv6opt" ]; then
-			quectel-cm -i "$ifname" $ipv6opt -n $pdnindexv6 -m 2 ${pincode:+-p $pincode} -s "$apnv6" "$username" "$password" "$auth" &
+			quectel-cm -i "$ifname" "$ipv6opt" -n $pdnindexv6 -m 2 ${pincode:+-p $pincode} -s "$apnv6" "$username" "$password" "$auth" &
 		fi
 	else
-		quectel-cm -i "$ifname" $ipv4opt $ipv6opt ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
+		quectel-cm -i "$ifname" "$ipv4opt" "$ipv6opt" ${pincode:+-p $pincode} -s "$apn" "$username" "$password" "$auth" &
 	fi
 
 	sleep 5
@@ -125,7 +129,7 @@ proto_quectel_setup() {
 	# If $ifname_1 is not a valid device set $ifname4 to base $ifname as fallback
 	# so modems not using RMNET/QMAP data aggregation still set up properly. QMAP
 	# can be set via qmap_mode=n parameter during qmi_wwan_q module loading.
-	if [ ifconfig "${ifname}_1" ] &>"/dev/null"; then
+	if  ifconfig "${ifname}_1"  &>"/dev/null"; then
 		ifname4="${ifname}_1"
 	else
 		ifname4="$ifname"
@@ -151,7 +155,7 @@ proto_quectel_setup() {
 	zone="$(fw3 -q network "$interface" 2>/dev/null)"
 
 	if [ "$pdptype" = "ipv6" ] || [ "$pdptype" = "ipv4v6" ]; then
-		ip -6 addr flush dev $ifname6
+		ip -6 addr flush dev "$ifname6"
 
 		json_init
 		json_add_string name "${interface}_6"
