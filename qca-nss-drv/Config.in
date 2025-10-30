@@ -177,7 +177,7 @@ config NSS_DRV_QVPN_ENABLE
 
 config NSS_DRV_RMNET_ENABLE
 	bool
-	default n
+    default y if PACKAGE_kmod-qmi_wwan_q
 	prompt "Enable RMNET"
 	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq50xx
 

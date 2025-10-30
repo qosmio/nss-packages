@@ -165,7 +165,9 @@ ECM_MAKE_OPTS+=ECM_INTERFACE_BOND_ENABLE=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qmi_wwan_q),)
+ifneq (, $(findstring $(CONFIG_TARGET_SUBTARGET), "ipq807x" "ipq50xx"))
 ECM_MAKE_OPTS+=ECM_INTERFACE_RAWIP_ENABLE=y
+endif
 endif
 
 ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_12_5),)
