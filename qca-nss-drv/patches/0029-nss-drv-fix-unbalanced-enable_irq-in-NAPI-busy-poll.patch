@@ -1,0 +1,55 @@
+--- a/nss_core.c
++++ b/nss_core.c
+@@ -2379,12 +2379,12 @@
+
+ 	if (int_ctx->cause == 0) {
+-		napi_complete(napi);
+-
+ 		/*
+-		 * Re-enable any further interrupt from this IRQ
++		 * Re-enable interrupt only if NAPI was in scheduled state.
++		 * napi_complete_done() returns false during busy polling,
++		 * when the IRQ was never disabled.
+ 		 */
+-		nss_hal_enable_interrupt(nss_ctx, int_ctx->shift_factor, NSS_HAL_SUPPORTED_INTERRUPTS);
++		if (napi_complete_done(napi, count)) {
++			nss_hal_enable_interrupt(nss_ctx, int_ctx->shift_factor, NSS_HAL_SUPPORTED_INTERRUPTS);
++		}
+ 	}
+
+ 	return count;
+@@ -2419,8 +2419,9 @@
+ 		ctrl->consumer[0].dispatch.fp(ctrl->consumer[0].arg.kp);
+
+ #if !defined(NSS_HAL_IPQ806X_SUPPORT)
+-	napi_complete(napi);
+-	enable_irq(int_ctx->irq);
++	if (napi_complete_done(napi, 0)) {
++		enable_irq(int_ctx->irq);
++	}
+ #endif
+ 	return 0;
+ }
+@@ -2435,8 +2436,9 @@
+
+ 	processed = nss_core_handle_cause_queue(int_ctx, int_ctx->cause, budget);
+ 	if (processed < budget) {
+-		napi_complete(napi);
+-		enable_irq(int_ctx->irq);
++		if (napi_complete_done(napi, processed)) {
++			enable_irq(int_ctx->irq);
++		}
+ 	}
+
+ 	return processed;
+@@ -2452,8 +2454,9 @@
+ 	struct int_ctx_instance *int_ctx = container_of(napi, struct int_ctx_instance, napi);
+
+ 	nss_core_handle_cause_nonqueue(int_ctx, int_ctx->cause, 0);
+-	napi_complete(napi);
+-	enable_irq(int_ctx->irq);
++	if (napi_complete_done(napi, 0)) {
++		enable_irq(int_ctx->irq);
++	}
+ 	return 0;
+ }
