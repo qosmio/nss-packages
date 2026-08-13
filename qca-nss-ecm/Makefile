@@ -164,7 +164,11 @@ ifneq ($(CONFIG_PACKAGE_kmod-bonding),)
 ECM_MAKE_OPTS+=ECM_INTERFACE_BOND_ENABLE=y
 endif
 
-ifneq ($(CONFIG_PACKAGE_kmod-qmi_wwan_q),)
+# The WWAN data netdevs are ARPHRD_RAWIP; without this ECM classifies them as
+# UNKNOWN and refuses to accelerate, pushing all modem traffic to the slow path.
+# kmod-rmnet-nss is the common dependency of every driver that creates them
+# (kmod-qmi_wwan_q, kmod-qmi_wwan_q_nss, kmod-pcie_mhi_nss).
+ifneq ($(CONFIG_PACKAGE_kmod-qmi_wwan_q)$(CONFIG_PACKAGE_kmod-rmnet-nss),)
 ECM_MAKE_OPTS+=ECM_INTERFACE_RAWIP_ENABLE=y
 endif
 

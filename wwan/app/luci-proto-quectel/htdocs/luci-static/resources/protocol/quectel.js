@@ -17,6 +17,20 @@ var callFileList = rpc.declare({
 	}
 });
 
+var callTtyList = rpc.declare({
+	object: 'file',
+	method: 'list',
+	params: [ 'path' ],
+	expect: { entries: [] },
+	filter: function(list, params) {
+		var rv = [];
+		for (var i = 0; i < list.length; i++)
+			if (list[i].name.match(/^tty(USB|ACM)/))
+				rv.push(params.path + list[i].name);
+		return rv.sort();
+	}
+});
+
 network.registerPatternVirtual(/^quectel-.+$/);
 network.registerErrorCode('CALL_FAILED', _('Call failed'));
 network.registerErrorCode('NO_CID',      _('Unable to obtain client ID'));
@@ -120,9 +134,24 @@ return network.registerProtocol('quectel', {
 		o.depends('auth', 'mschapv2');
 		o.password = true;
 
+		o = s.taboption('advanced', form.Value, 'atdevice', _('AT device'),
+			_('Serial port used to send AT commands to the modem. Left empty the port is probed.'));
+		o.load = function(section_id) {
+			return callTtyList('/dev/').then(L.bind(function(devices) {
+				for (var i = 0; i < devices.length; i++)
+					this.value(devices[i]);
+				return form.Value.prototype.load.apply(this, [section_id]);
+			}, this));
+		};
+
 		o = s.taboption('advanced', form.Value, 'delay', _('Modem init timeout'),
 			_('Maximum amount of seconds to wait for the modem to become ready'));
 		o.placeholder = '5';
+		o.datatype    = 'min(1)';
+
+		o = s.taboption('advanced', form.Value, 'timeout', _('Data call timeout'),
+			_('Maximum amount of seconds to wait for the modem to establish the data call'));
+		o.placeholder = '60';
 		o.datatype    = 'min(1)';
 
 		o = s.taboption('advanced', form.Value, 'mtu', _('Override MTU'));
@@ -155,6 +184,22 @@ return network.registerProtocol('quectel', {
 		o.placeholder = '0';
 		o.datatype = 'uinteger';
 		o.depends('defaultroute', '1');
+
+		o = s.taboption('advanced', form.Flag, 'peerdns', _('Use DNS servers advertised by peer'),
+			_('If unchecked, the DNS servers reported by the modem are ignored'));
+		o.default = o.enabled;
+
+		o = s.taboption('advanced', form.Flag, 'sourcefilter', _('IPv6 source routing'),
+			_('Restrict the IPv6 default route to the delegated prefix. Uncheck if the router itself has to reach IPv6 hosts.'));
+		o.default = o.enabled;
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv6');
+
+		o = s.taboption('advanced', form.Flag, 'delegate', _('Delegate IPv6 prefix'),
+			_('Hand the prefix assigned by the carrier on to downstream interfaces'));
+		o.default = o.enabled;
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv6');
 
         o = s.taboption('advanced', form.DynamicList, 'cell_lock_4g', _('4G Cell ID Lock'));
         o.datatype = 'string';

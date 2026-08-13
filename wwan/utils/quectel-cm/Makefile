@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=quectel-cm
 PKG_VERSION:=1.6.5
-PKG_RELEASE:=4
+PKG_RELEASE:=8
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -16,7 +16,8 @@ define Package/quectel-cm
     +kmod-usb-net-cdc-mbim \
     +kmod-usb-net-qmi-wwan \
     +kmod-usb-net-qmi-wwan-quectel \
-    +kmod-usb-serial-option
+    +kmod-usb-serial-option \
+    +sms-tool
 endef
 
 define Package/quectel-cm/install
@@ -26,6 +27,9 @@ define Package/quectel-cm/install
 
 	$(INSTALL_DIR) $(1)/lib/netifd/proto
 	$(INSTALL_BIN) ./files/quectel.sh $(1)/lib/netifd/proto/
+
+	$(INSTALL_DIR) $(1)/usr/share/quectel
+	$(INSTALL_BIN) ./files/quectel-monitor.sh $(1)/usr/share/quectel/quectel-monitor
 
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/net
 	$(INSTALL_BIN) ./files/smp-affinity-mhi-pcie.sh $(1)/etc/hotplug.d/net/21-smp-affinity-mhi-pcie
