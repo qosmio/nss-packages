@@ -484,12 +484,15 @@ static void ql_openwrt_setup_wan6(const char *ifname, const IPV6_T *ipv6) {
 //printf call of its own. Written through a temporary name, because the reader
 //polls for the file and must never see a half written one.
 static void ql_write_ipcfg(PROFILE_T *profile, const char *ifname) {
+    static unsigned generation = 0;
     char tmpfile[256];
     FILE *fp;
     unsigned prefix, n;
 
     if (!profile->ipcfg_file)
         return;
+
+    generation++;
 
     snprintf(tmpfile, sizeof(tmpfile), "%s.tmp", profile->ipcfg_file);
 
@@ -500,6 +503,9 @@ static void ql_write_ipcfg(PROFILE_T *profile, const char *ifname) {
     }
 
     fprintf(fp, "IFNAME='%s'\n", ifname);
+    //counts the data calls of this process, so that a call re-established on
+    //exactly the same address still reads as a new one to whoever polls this
+    fprintf(fp, "GENERATION='%u'\n", generation);
 
     if (profile->ipv4.Address) {
         prefix = 0;
@@ -560,7 +566,9 @@ void udhcpc_start(PROFILE_T *profile) {
 
     if (strcmp(ifname, profile->usbnet_adapter)) {
         ifc_set_state(profile->usbnet_adapter, 1);
-        if (ifc_get_flags(ifname)&IFF_UP) {
+        //bouncing the qmap netcard takes every route on it down with it, which
+        //a network manager that was never told has no way to put back
+        if (!profile->no_ipcfg && (ifc_get_flags(ifname)&IFF_UP)) {
             ifc_set_state(ifname, 0);
         }
     }
@@ -817,6 +825,15 @@ void udhcpc_stop(PROFILE_T *profile) {
     }
 
     profile->udhcpc_ip = 0;
+
+    //the network manager owns the addresses of this netcard. Flushing them here
+    //would strip a configuration it still believes is installed, and taking the
+    //netcard down would take its routes with it, so a data call that comes back
+    //a second later would return to an interface that has neither. Dropping the
+    //carrier above is all it needs to see that the call went away.
+    if (profile->no_ipcfg)
+        return;
+
 //it seems when call netif_carrier_on(), and netcard 's IP is "0.0.0.0", will cause netif_queue_stopped()
     if (!access("/sbin/ip", X_OK))
         snprintf(shell_cmd, sizeof(shell_cmd), "ip addr flush dev %s", ifname);

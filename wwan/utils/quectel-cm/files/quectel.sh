@@ -150,8 +150,11 @@ quectel_send_ipcfg() {
 	[ -f "$ipcfg" ] || return 1
 	. "$ipcfg"
 
+	# Deliberately no proto_set_keep here. This runs again for every data call
+	# the modem re-establishes, and "keep" tells netifd to hold on to what it
+	# configured last time, so a handover would leave the address and the routes
+	# of every previous call behind instead of replacing them.
 	proto_init_update "$ifname" 1
-	proto_set_keep 1
 
 	[ -n "$IPV4_ADDRESS" ] && {
 		proto_add_ipv4_address "$IPV4_ADDRESS" "$IPV4_PREFIX"
@@ -168,14 +171,18 @@ quectel_send_ipcfg() {
 		proto_add_ipv6_prefix "$IPV6_ADDRESS/$IPV6_PREFIX"
 		proto_add_ipv6_route "$IPV6_GATEWAY" 128
 		[ "$defaultroute" = 0 ] || {
-			# Restricting the default route to the delegated prefix keeps a
-			# second wan from picking it up, at the cost of the router itself
-			# no longer finding a route when it has not bound a source yet.
-			if [ "$sourcefilter" = 0 ]; then
-				proto_add_ipv6_route "::" 0 "$IPV6_GATEWAY"
-			else
+			# A default route restricted to the delegated prefix is one the
+			# router cannot use itself: the route lookup of a socket that has
+			# not bound a source yet matches nothing and fails outright with
+			# "network unreachable", even though the link is perfectly fine.
+			# The modem is normally the only way off this box, so restrict the
+			# route only when asked, for setups where a second wan needs the
+			# source prefix to decide which uplink a packet leaves by.
+			if [ "$sourcefilter" = 1 ]; then
 				proto_add_ipv6_route "::" 0 "$IPV6_GATEWAY" "" "" \
 					"$IPV6_ADDRESS/$IPV6_PREFIX"
+			else
+				proto_add_ipv6_route "::" 0 "$IPV6_GATEWAY"
 			fi
 		}
 		[ "$peerdns" = 0 ] || for dns in $IPV6_DNS; do proto_add_dns_server "$dns"; done

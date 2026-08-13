@@ -22,7 +22,10 @@ seen="$(cat "$ipcfg" 2>/dev/null)"
 lost=0
 
 while :; do
-	sleep 5
+	# A handover replaces the settings in well under a second, so poll tightly
+	# enough that the window in which netifd still holds the previous address
+	# stays short.
+	sleep 2
 
 	[ -d "/proc/$cm_pid" ] || {
 		echo "quectel-cm for $interface is gone"
@@ -35,7 +38,7 @@ while :; do
 		# A dropped data call normally comes back within seconds, and sitting it
 		# out is far cheaper than having netifd rebuild the interface and the
 		# modem session, so only give up once it stays away.
-		lost=$((lost + 5))
+		lost=$((lost + 2))
 		[ "$lost" -lt "$grace" ] && continue
 
 		echo "The data call of $interface stayed down for ${lost}s"

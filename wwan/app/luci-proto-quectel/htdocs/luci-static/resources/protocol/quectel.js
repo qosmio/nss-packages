@@ -190,8 +190,8 @@ return network.registerProtocol('quectel', {
 		o.default = o.enabled;
 
 		o = s.taboption('advanced', form.Flag, 'sourcefilter', _('IPv6 source routing'),
-			_('Restrict the IPv6 default route to the delegated prefix. Uncheck if the router itself has to reach IPv6 hosts.'));
-		o.default = o.enabled;
+			_('Restrict the IPv6 default route to the delegated prefix. Only useful with a second IPv6 WAN, and it stops the router itself from reaching IPv6 hosts.'));
+		o.default = o.disabled;
 		o.depends('pdptype', 'ipv4v6');
 		o.depends('pdptype', 'ipv6');
 
