@@ -195,6 +195,13 @@ return network.registerProtocol('quectel', {
 		o.depends('pdptype', 'ipv4v6');
 		o.depends('pdptype', 'ipv6');
 
+		o = s.taboption('advanced', form.Value, 'prefixlifetime', _('IPv6 prefix lifetime'),
+			_('Seconds the delegated prefix is announced as valid. The carrier issues a new prefix on every reconnect, and each retired one stays on the LAN this long, so keep it short.'));
+		o.placeholder = '1800';
+		o.datatype    = 'min(120)';
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv6');
+
 		o = s.taboption('advanced', form.Flag, 'delegate', _('Delegate IPv6 prefix'),
 			_('Hand the prefix assigned by the carrier on to downstream interfaces'));
 		o.default = o.enabled;

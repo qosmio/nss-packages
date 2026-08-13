@@ -17,6 +17,7 @@ grace="$5"
 defaultroute="$6"
 peerdns="$7"
 sourcefilter="$8"
+prefixlifetime="$9"
 
 seen="$(cat "$ipcfg" 2>/dev/null)"
 lost=0

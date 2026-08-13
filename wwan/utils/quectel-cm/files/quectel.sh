@@ -167,8 +167,21 @@ quectel_send_ipcfg() {
 
 	[ -n "$IPV6_ADDRESS" ] && {
 		proto_add_ipv6_address "$IPV6_ADDRESS" 128
-		# RFC 7278: hand the /64 the modem got on to the LAN
-		proto_add_ipv6_prefix "$IPV6_ADDRESS/$IPV6_PREFIX"
+		# RFC 7278: hand the /64 the modem got on to the LAN.
+		#
+		# The carrier issues a fresh /64 for every data call, and a prefix that
+		# stops being advertised is kept alive for the rest of its valid
+		# lifetime so that clients can migrate off it gracefully. Announcing the
+		# multi-hour default for a prefix that only lasts until the next
+		# handover therefore parks one deprecated prefix per reconnect on the
+		# LAN, so announce only what a link that renumbers this often can
+		# actually promise.
+		#
+		# proto_add_ipv6_prefix names its two lifetimes "valid" then
+		# "preferred", but the string it builds is read back as
+		# addr/length,preferred,valid, so the shorter one goes first.
+		proto_add_ipv6_prefix "$IPV6_ADDRESS/$IPV6_PREFIX" \
+			"$((prefixlifetime / 2))" "$prefixlifetime"
 		proto_add_ipv6_route "$IPV6_GATEWAY" 128
 		[ "$defaultroute" = 0 ] || {
 			# A default route restricted to the delegated prefix is one the
@@ -209,6 +222,7 @@ proto_quectel_init_config() {
 	proto_config_add_int "timeout"
 	proto_config_add_string "pdptype"
 	proto_config_add_boolean "sourcefilter"
+	proto_config_add_int "prefixlifetime"
 	proto_config_add_boolean "delegate"
 	proto_config_add_int "mtu"
 	proto_config_add_array 'cell_lock_4g:list(string)'
@@ -218,7 +232,7 @@ proto_quectel_init_config() {
 proto_quectel_setup() {
 	local interface="$1"
 	local device atdevice apn apnv6 auth username password pincode delay timeout
-	local pdptype pdnindex pdnindexv6 multiplexing
+	local pdptype pdnindex pdnindexv6 multiplexing prefixlifetime
 	# shellcheck disable=2034,2086 # allow unused and word splitting
 	local cell_lock_4g sourcefilter delegate mtu $PROTO_DEFAULT_OPTIONS
 	local ip6table zone
@@ -228,13 +242,14 @@ proto_quectel_setup() {
 
 	json_get_vars device atdevice apn apnv6 auth username password pincode delay timeout
 	json_get_vars pdnindex pdnindexv6 multiplexing
-	json_get_vars pdptype sourcefilter delegate ip6table
+	json_get_vars pdptype sourcefilter delegate ip6table prefixlifetime
 	# shellcheck disable=2086 # allow word splitting
 	json_get_vars mtu $PROTO_DEFAULT_OPTIONS
 
 	[ -n "$delay" ] || delay="5"
 	[ -n "$timeout" ] || timeout="60"
 	[ -n "$auth" ] || auth="none"
+	[ -n "$prefixlifetime" ] || prefixlifetime="1800"
 	[ -z "$ctl_device" ] || device="$ctl_device"
 
 	# LuCI leaves out an option that still holds its form default, so an empty
@@ -405,7 +420,7 @@ proto_quectel_setup() {
 	# netifd own the watcher means its exit drives the teardown and the retry.
 	proto_run_command "$interface" /usr/share/quectel/quectel-monitor \
 		"$interface" "$link_ifname" "$ipcfg" "$link_pid" "$timeout" \
-		"$defaultroute" "$peerdns" "$sourcefilter"
+		"$defaultroute" "$peerdns" "$sourcefilter" "$prefixlifetime"
 
 	# A netifd interface has exactly one l3 device, so the second data call of a
 	# multiplexed setup, which lands on its own QMAP channel, still needs an
