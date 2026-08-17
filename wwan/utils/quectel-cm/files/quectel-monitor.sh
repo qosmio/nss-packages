@@ -18,6 +18,8 @@ defaultroute="$6"
 peerdns="$7"
 sourcefilter="$8"
 prefixlifetime="$9"
+# ${10} onwards, not $10: that is $1 followed by a literal zero.
+passthrough="${10}"
 
 seen="$(cat "$ipcfg" 2>/dev/null)"
 lost=0
@@ -51,5 +53,5 @@ while :; do
 	seen="$current"
 
 	echo "Reconfiguring $interface, the network handed out new settings"
-	quectel_send_ipcfg "$interface" "$ifname" "$ipcfg"
+	quectel_send_ipcfg "$interface" "$ifname" "$ipcfg" "$passthrough"
 done

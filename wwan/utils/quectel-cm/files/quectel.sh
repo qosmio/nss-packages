@@ -138,17 +138,72 @@ quectel_wait_ipcfg() {
 	return 1
 }
 
+# ------------------------------------------------------------- passthrough ---
+#
+# The carrier's single address belongs to the one host behind the modem, not to
+# this router. It is handed over by *routing* it to the host rather than bridging:
+# a raw-IP cellular link has no ethernet to be transparent about, so nothing is
+# really lost, and the QMAP netcard keeps the raw-IP form that the rmnet-nss fast
+# path requires - which a Linux bridge would have taken away from it.
+
+# Rebuilding the passthrough - a dhcp server that hands the host this address,
+# and whatever has to happen to the port it sits on - is not this package's
+# business, and hardcoding the name of the thing that does it would be worse.
+# Announce that there is something to rebuild and let whoever subscribed do it.
+quectel_notify() {
+	local action="$1" interface="$2" datadev="$3" ipcfg="$4"
+
+	[ -x /sbin/hotplug-call ] || return 0
+
+	ACTION="$action" INTERFACE="$interface" DEVICE="$datadev" IPCFG="$ipcfg" \
+		/sbin/hotplug-call quectel
+}
+
+# The one thing that must not happen is assigning the address here. It belongs to
+# the host; put it on this interface as well and the kernel delivers packets for it
+# locally instead of forwarding them on, which looks like the passthrough silently
+# swallowing all inbound traffic.
+quectel_send_passthrough() {
+	local interface="$1" datadev="$2" ipcfg="$3" address="$4"
+
+	[ -n "$address" ] || {
+		echo "The data call came up without an IPv4 address, so there is nothing to pass through"
+		return 1
+	}
+
+	echo "Passing $address through to the host, routed"
+
+	proto_init_update "$datadev" 1
+
+	# No gateway: the modem link is raw IP with no L2 and the netcard is NOARP, so
+	# the device *is* the next hop. And no dns, because with no address of its own
+	# this router cannot originate traffic anyway - the host resolves for itself
+	# from the servers the dhcp server hands it.
+	[ "$defaultroute" = 0 ] || proto_add_ipv4_route "0.0.0.0" 0
+
+	proto_send_update "$interface"
+
+	quectel_notify passthrough "$interface" "$datadev" "$ipcfg"
+}
+
 # Apply what the modem negotiated to the interface itself. Everything lands on
 # the one netifd interface, so ifstatus, the firewall and the routing metric all
 # refer to the same thing instead of to a dynamically spawned side interface.
 quectel_send_ipcfg() {
-	local interface="$1" ifname="$2" ipcfg="$3"
+	local interface="$1" ifname="$2" ipcfg="$3" passthrough="$4"
 	local IFNAME IPV4_ADDRESS IPV4_NETMASK IPV4_PREFIX IPV4_GATEWAY IPV4_MTU IPV4_DNS
 	local IPV6_ADDRESS IPV6_PREFIX IPV6_GATEWAY IPV6_MTU IPV6_DNS
 	local dns
 
 	[ -f "$ipcfg" ] || return 1
 	. "$ipcfg"
+
+	# Both the first setup and every handover after it come through here, so the
+	# passthrough only has to be taught once.
+	[ "$passthrough" = 1 ] && {
+		quectel_send_passthrough "$interface" "$ifname" "$ipcfg" "$IPV4_ADDRESS"
+		return $?
+	}
 
 	# Deliberately no proto_set_keep here. This runs again for every data call
 	# the modem re-establishes, and "keep" tells netifd to hold on to what it
@@ -221,6 +276,7 @@ proto_quectel_init_config() {
 	proto_config_add_int "delay"
 	proto_config_add_int "timeout"
 	proto_config_add_string "pdptype"
+	proto_config_add_boolean "passthrough"
 	proto_config_add_boolean "sourcefilter"
 	proto_config_add_int "prefixlifetime"
 	proto_config_add_boolean "delegate"
@@ -232,7 +288,7 @@ proto_quectel_init_config() {
 proto_quectel_setup() {
 	local interface="$1"
 	local device atdevice apn apnv6 auth username password pincode delay timeout
-	local pdptype pdnindex pdnindexv6 multiplexing prefixlifetime
+	local pdptype pdnindex pdnindexv6 multiplexing prefixlifetime passthrough
 	# shellcheck disable=2034,2086 # allow unused and word splitting
 	local cell_lock_4g sourcefilter delegate mtu $PROTO_DEFAULT_OPTIONS
 	local ip6table zone
@@ -242,7 +298,7 @@ proto_quectel_setup() {
 
 	json_get_vars device atdevice apn apnv6 auth username password pincode delay timeout
 	json_get_vars pdnindex pdnindexv6 multiplexing
-	json_get_vars pdptype sourcefilter delegate ip6table prefixlifetime
+	json_get_vars pdptype passthrough sourcefilter delegate ip6table prefixlifetime
 	# shellcheck disable=2086 # allow word splitting
 	json_get_vars mtu $PROTO_DEFAULT_OPTIONS
 
@@ -256,6 +312,27 @@ proto_quectel_setup() {
 	# pdptype is the "IPv4/IPv6" the user selected, not an unconfigured modem.
 	# Treating it as neither used to leave the interface without any address.
 	[ -n "$pdptype" ] || pdptype="ipv4v6"
+
+	# IPv4 only, for now, because that is all the routed passthrough hands over: the
+	# host route, the /32 and the dhcp offer are all v4. Unlike the old bridge mode
+	# this is a limit of *this code* rather than of the hardware - the carrier's /64
+	# could be delegated to the host's port the way the proto already delegates it
+	# to the LAN - so ask the network for one family rather than dialling a second
+	# call whose address nothing would yet use.
+	if [ "$passthrough" = 1 ]; then
+		[ "$pdptype" = "ipv4" ] || {
+			echo "The passthrough is IPv4 only; asking for an IPv4 data call"
+			pdptype="ipv4"
+		}
+
+		# One address, one host, one channel: a second data call would land on a
+		# netcard the passthrough does not route to, so it would come up and carry
+		# nothing.
+		[ "$multiplexing" = 1 ] && {
+			echo "The passthrough drives the first QMAP channel only; ignoring IP multiplexing"
+			multiplexing=0
+		}
+	fi
 
 	[ -n "$device" ] || {
 		echo "No control device specified"
@@ -407,7 +484,7 @@ proto_quectel_setup() {
 	fi
 
 	echo "Setting up $link_ifname"
-	quectel_send_ipcfg "$interface" "$link_ifname" "$ipcfg" || {
+	quectel_send_ipcfg "$interface" "$link_ifname" "$ipcfg" "$passthrough" || {
 		echo "The modem reported no usable settings"
 		quectel_stop_instances "$interface"
 		proto_notify_error "$interface" CALL_FAILED
@@ -420,7 +497,8 @@ proto_quectel_setup() {
 	# netifd own the watcher means its exit drives the teardown and the retry.
 	proto_run_command "$interface" /usr/share/quectel/quectel-monitor \
 		"$interface" "$link_ifname" "$ipcfg" "$link_pid" "$timeout" \
-		"$defaultroute" "$peerdns" "$sourcefilter" "$prefixlifetime"
+		"$defaultroute" "$peerdns" "$sourcefilter" "$prefixlifetime" \
+		"$passthrough"
 
 	# A netifd interface has exactly one l3 device, so the second data call of a
 	# multiplexed setup, which lands on its own QMAP channel, still needs an
