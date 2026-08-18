@@ -17,6 +17,20 @@ var callFileList = rpc.declare({
 	}
 });
 
+var callTtyList = rpc.declare({
+	object: 'file',
+	method: 'list',
+	params: [ 'path' ],
+	expect: { entries: [] },
+	filter: function(list, params) {
+		var rv = [];
+		for (var i = 0; i < list.length; i++)
+			if (list[i].name.match(/^tty(USB|ACM)/))
+				rv.push(params.path + list[i].name);
+		return rv.sort();
+	}
+});
+
 network.registerPatternVirtual(/^quectel-.+$/);
 network.registerErrorCode('CALL_FAILED', _('Call failed'));
 network.registerErrorCode('NO_CID',      _('Unable to obtain client ID'));
@@ -52,7 +66,7 @@ return network.registerProtocol('quectel', {
 	},
 
 	renderFormOptions: function(s) {
-		var dev = this.getL3Device() || this.getDevice(), o, apn, apnv6;
+		var dev = this.getL3Device() || this.getDevice(), o, apn, apnv6, mux;
 
 		o = s.taboption('general', form.Value, '_modem_device', _('Modem device'));
 		o.ucioption = 'device';
@@ -65,12 +79,14 @@ return network.registerProtocol('quectel', {
 			}, this));
 		};
 
-		o = s.taboption('general', form.Flag, 'multiplexing', _('Use IP Multiplexing'));
-		o.default = o.disabled;
+		mux = s.taboption('general', form.Flag, 'multiplexing', _('Use IP Multiplexing'),
+			_('Dial a second data call on a QMAP channel of its own, so each family can have a context and an APN to itself. Needs the driver loaded with qmap_mode=2 or higher.'));
+		mux.default = mux.disabled;
 
 		apn = s.taboption('general', form.Value, 'apn', _('APN'));
 		apn.depends('pdptype', 'ipv4v6');
 		apn.depends('pdptype', 'ipv4');
+		apn.depends('pdptype', 'ipv6');
 		apn.validate = function(section_id, value) {
 			if (value == null || value == '')
 				return true;
@@ -81,9 +97,10 @@ return network.registerProtocol('quectel', {
 			return true;
 		};
 
-		apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'));
+		apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'),
+			_('The APN IPv6 is dialled with. With IP multiplexing that is the second PDP context, on a channel of its own; on an IPv6-only PDP type there is a single context and this is the APN it uses, falling back to the one above when it is empty.'));
 		apnv6.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
-		apnv6.depends({ pdptype: 'ipv6', multiplexing: '1' });
+		apnv6.depends('pdptype', 'ipv6');
 		apnv6.validate = function(section_id, value) {
 			if (value == null || value == '')
 				return true;
@@ -91,11 +108,18 @@ return network.registerProtocol('quectel', {
 			if (!/^[a-zA-Z0-9\-.]*[a-zA-Z0-9]$/.test(value))
 				return _('Invalid APN provided');
 
-			var apn_value = apn.formvalue(section_id);
+			/* Only where there are two contexts. With one, this IS the APN the
+			 * call dials, and being told it may not equal the IPv4 one is
+			 * nonsense - a carrier whose IPv6-only APN is the same string as its
+			 * dual-stack one is perfectly ordinary. */
+			if (mux.formvalue(section_id) != '1')
+				return true;
+
+			var apn_value = apn.formvalue(section_id) || '';
 
 			if (value.toLowerCase() === apn_value.toLowerCase())
 				return _('APN IPv6 must be different from APN');
-	
+
 			return true;
 		};
 
@@ -120,9 +144,29 @@ return network.registerProtocol('quectel', {
 		o.depends('auth', 'mschapv2');
 		o.password = true;
 
+		o = s.taboption('advanced', form.Value, 'atdevice', _('AT device'),
+			_('Serial port used to send AT commands to the modem. Left empty the port is probed.'));
+		o.load = function(section_id) {
+			return callTtyList('/dev/').then(L.bind(function(devices) {
+				for (var i = 0; i < devices.length; i++)
+					this.value(devices[i]);
+				return form.Value.prototype.load.apply(this, [section_id]);
+			}, this));
+		};
+
 		o = s.taboption('advanced', form.Value, 'delay', _('Modem init timeout'),
 			_('Maximum amount of seconds to wait for the modem to become ready'));
 		o.placeholder = '5';
+		o.datatype    = 'min(1)';
+
+		o = s.taboption('advanced', form.Value, 'devicetimeout', _('Modem detection timeout'),
+			_('Maximum amount of seconds to wait for the modem to appear. A modem that reboots, resets or is power cycled is off the bus for the better part of a minute, and this is how long the interface waits for it before giving up and trying again.'));
+		o.placeholder = '40';
+		o.datatype    = 'min(1)';
+
+		o = s.taboption('advanced', form.Value, 'timeout', _('Data call timeout'),
+			_('Maximum amount of seconds to wait for the modem to establish the data call'));
+		o.placeholder = '60';
 		o.datatype    = 'min(1)';
 
 		o = s.taboption('advanced', form.Value, 'mtu', _('Override MTU'));
@@ -141,7 +185,8 @@ return network.registerProtocol('quectel', {
 		o.placeholder = '2';
 		o.datatype = 'and(uinteger,min(1),max(7))';
 
-		o = s.taboption('general', form.ListValue, 'pdptype', _('PDP Type'));
+		o = s.taboption('general', form.ListValue, 'pdptype', _('PDP Type'),
+			_('Which families the data call asks the network for. With IP multiplexing and the two APNs above this is the whole arrangement: one context carrying both, a context for each, or IPv6 alone with IPv4 reaching the internet through the carrier\'s NAT64. Where luci-app-aw1000-modem is installed, Modem -> Profiles -> IPv6 writes these as a set and reverts them if the uplink does not come back.'));
 		o.value('ipv4v6', 'IPv4/IPv6');
 		o.value('ipv4', 'IPv4');
 		o.value('ipv6', 'IPv6');
@@ -155,6 +200,47 @@ return network.registerProtocol('quectel', {
 		o.placeholder = '0';
 		o.datatype = 'uinteger';
 		o.depends('defaultroute', '1');
+
+		o = s.taboption('advanced', form.Flag, 'peerdns', _('Use DNS servers advertised by peer'),
+			_('If unchecked, the DNS servers reported by the modem are ignored'));
+		o.default = o.enabled;
+
+		o = s.taboption('advanced', form.Flag, 'sourcefilter', _('IPv6 source routing'),
+			_('Restrict the IPv6 default route to the delegated prefix. Only useful with a second IPv6 WAN, and it stops the router itself from reaching IPv6 hosts.'));
+		o.default = o.disabled;
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv6');
+
+		o = s.taboption('advanced', form.Value, 'prefixlifetime', _('IPv6 prefix lifetime'),
+			_('Seconds the delegated prefix is announced as valid. The carrier issues a new prefix on every reconnect, and each retired one stays on the LAN this long, so keep it short.'));
+		o.placeholder = '1800';
+		o.datatype    = 'min(120)';
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv6');
+
+		o = s.taboption('advanced', form.Flag, 'delegate', _('Delegate IPv6 prefix'),
+			_('Hand the prefix assigned by the carrier on to downstream interfaces'));
+		o.default = o.enabled;
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv6');
+
+		o = s.taboption('advanced', form.ListValue, 'nat64', _('Announce NAT64 prefix'),
+			_('On an IPv6-only APN, IPv4 reaches the internet through the carrier\'s NAT64. Announcing its prefix in the router advertisements (RFC 8781) lets clients switch on the translator they already ship with, so IPv4 applications keep working without this router translating anything. Requires odhcpd to be serving RAs on the LAN.'));
+		o.value('auto', _('Automatic (only when the call has no IPv4 address)'));
+		o.value('1', _('Always'));
+		o.value('0', _('Never'));
+		o.default = 'auto';
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv6');
+
+		o = s.taboption('advanced', form.Value, 'nat64prefix', _('NAT64 prefix'),
+			_('Left empty the prefix is discovered from the carrier\'s DNS64 (RFC 7050), falling back to the well-known 64:ff9b::/96. Set it for a carrier that uses a prefix out of its own space, or one shorter than /96.'));
+		o.placeholder = '64:ff9b::/96';
+		o.datatype = 'cidr6';
+		o.depends({ pdptype: 'ipv4v6', nat64: 'auto' });
+		o.depends({ pdptype: 'ipv4v6', nat64: '1' });
+		o.depends({ pdptype: 'ipv6', nat64: 'auto' });
+		o.depends({ pdptype: 'ipv6', nat64: '1' });
 
         o = s.taboption('advanced', form.DynamicList, 'cell_lock_4g', _('4G Cell ID Lock'));
         o.datatype = 'string';

@@ -323,6 +323,7 @@ define KernelPackage/qca-nss-drv-capwapmgr
 	   +kmod-qca-nss-drv \
 	   +kmod-qca-nss-drv-dtlsmgr \
 	   +@NSS_DRV_TRUSTSEC_ENABLE \
+	   +@NSS_DRV_CAPWAP_ENABLE \
 	   @BROKEN
   FILES:=$(PKG_BUILD_DIR)/capwapmgr/qca-nss-capwapmgr.ko
 endef
@@ -457,6 +458,10 @@ endef
 
 define KernelPackage/qca-nss-drv-netlink/Description
 Kernel module for NSS netlink manager
+endef
+
+define KernelPackage/qca-nss-drv-netlink/config
+	source "$(SOURCE)/Config.in"
 endef
 
 define KernelPackage/qca-nss-drv-ovpn-mgr
@@ -755,11 +760,40 @@ endif
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-netlink),)
 NSS_CLIENTS_MAKE_OPTS+=netlink=y
 
+ifdef CONFIG_NSS_DRV_C2C_ENABLE
+NSS_CLIENTS_MAKE_OPTS+=CONFIG_NSS_NLC2C=y
+endif
+
+ifdef CONFIG_NSS_DRV_UDP_ST_ENABLE
+NSS_CLIENTS_MAKE_OPTS+=CONFIG_NSS_NLUDP_ST=y
+endif
+
+ifdef CONFIG_NSS_DRV_QRFS_ENABLE
+NSS_CLIENTS_MAKE_OPTS+=CONFIG_NSS_NLQRFS=y
+endif
+
+ifdef CONFIG_NSS_DRV_GRE_REDIR_ENABLE
+NSS_CLIENTS_MAKE_OPTS+=CONFIG_NSS_NLGRE_REDIR_FAMILY=y
+endif
+
+ifdef CONFIG_NSS_DRV_IPV4_REASM_ENABLE
+NSS_CLIENTS_MAKE_OPTS+=CONFIG_NSS_NLIPV4_REASM=y
+endif
+
+ifdef CONFIG_NSS_DRV_IPV6_REASM_ENABLE
+NSS_CLIENTS_MAKE_OPTS+=CONFIG_NSS_NLIPV6_REASM=y
+endif
+
+ifdef CONFIG_NSS_DRV_LSO_RX_ENABLE
+NSS_CLIENTS_MAKE_OPTS+=CONFIG_NSS_NLLSO_RX=y
+endif
+
 ifeq ($(CONFIG_KERNEL_IPQ_MEM_PROFILE),256)
 EXTRA_CFLAGS+= -DNSS_NETLINK_UDP_ST_NO_RMNET_SUPPORT
 else ifeq ($(CONFIG_LOWMEM_FLASH),y)
 EXTRA_CFLAGS+= -DNSS_NETLINK_UDP_ST_NO_RMNET_SUPPORT
 endif
+
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-ovpn-mgr),)
@@ -840,10 +874,10 @@ $(eval $(call KernelPackage,qca-nss-drv-map-t))
 $(eval $(call KernelPackage,qca-nss-drv-tunipip6))
 $(eval $(call KernelPackage,qca-nss-drv-qdisc))
 $(eval $(call KernelPackage,qca-nss-drv-igs))
-# $(eval $(call KernelPackage,qca-nss-drv-netlink))
-# $(eval $(call KernelPackage,qca-nss-drv-ipsecmgr))
-# $(eval $(call KernelPackage,qca-nss-drv-ipsecmgr-klips))
-# $(eval $(call KernelPackage,qca-nss-drv-ipsecmgr-xfrm))
+$(eval $(call KernelPackage,qca-nss-drv-netlink))
+$(eval $(call KernelPackage,qca-nss-drv-ipsecmgr))
+$(eval $(call KernelPackage,qca-nss-drv-ipsecmgr-klips))
+$(eval $(call KernelPackage,qca-nss-drv-ipsecmgr-xfrm))
 $(eval $(call KernelPackage,qca-nss-drv-bridge-mgr))
 $(eval $(call KernelPackage,qca-nss-drv-vlan-mgr))
 $(eval $(call KernelPackage,qca-nss-drv-lag-mgr))

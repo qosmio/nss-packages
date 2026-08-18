@@ -251,6 +251,10 @@ static int usage(const char *progname) {
     dbg_time("-b                                     Enable network interface bridge function (default 0)");
     dbg_time("-v                                     Verbose log mode, for debug purpose.");
     dbg_time("-d                                     Obtain the IP address and dns through qmi");
+    dbg_time("-N                                     Do not configure the host (no IP/route/dns/dhcp), only bring the data call and netcard carrier up.");
+    dbg_time("                                       Use when an external network manager (e.g. OpenWrt netifd) owns the L3 configuration.");
+    dbg_time("-w filename                            Write the negotiated IP settings to file whenever the data call comes up,");
+    dbg_time("                                       and remove it again when it goes down. Pairs with -N.");
     dbg_time("[Examples]");
     dbg_time("Example 1: %s ", progname);
     dbg_time("Example 2: %s -s 3gnet ", progname);
@@ -885,6 +889,15 @@ static int parse_user_input(int argc, char **argv, PROFILE_T *profile) {
 
             case 'd':
                 profile->no_dhcp = 1;
+            break;
+
+            case 'N':
+                profile->no_ipcfg = 1;
+            break;
+
+            case 'w':
+                if (has_more_argv())
+                    profile->ipcfg_file = argv[opt++];
             break;
 
             case 'u':

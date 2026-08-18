@@ -21,6 +21,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <endian.h>
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "util.h"
 #include "QMIThread.h"
@@ -475,6 +479,78 @@ static void ql_openwrt_setup_wan6(const char *ifname, const IPV6_T *ipv6) {
 }
 #endif
 
+//Dump what the network negotiated so that an external network manager can apply
+//it itself. ipv4Str()/ipv6Str() share one static buffer, so every value needs a
+//printf call of its own. Written through a temporary name, because the reader
+//polls for the file and must never see a half written one.
+static void ql_write_ipcfg(PROFILE_T *profile, const char *ifname) {
+    static unsigned generation = 0;
+    char tmpfile[256];
+    FILE *fp;
+    unsigned prefix, n;
+
+    if (!profile->ipcfg_file)
+        return;
+
+    generation++;
+
+    snprintf(tmpfile, sizeof(tmpfile), "%s.tmp", profile->ipcfg_file);
+
+    fp = fopen(tmpfile, "w");
+    if (fp == NULL) {
+        dbg_time("fail to open %s, errno: %d (%s)", tmpfile, errno, strerror(errno));
+        return;
+    }
+
+    fprintf(fp, "IFNAME='%s'\n", ifname);
+    //counts the data calls of this process, so that a call re-established on
+    //exactly the same address still reads as a new one to whoever polls this
+    fprintf(fp, "GENERATION='%u'\n", generation);
+
+    if (profile->ipv4.Address) {
+        prefix = 0;
+        for (n = 0; n < 32; n++) {
+            if (profile->ipv4.SubnetMask & ((unsigned)1 << n))
+                prefix++;
+        }
+
+        fprintf(fp, "IPV4_ADDRESS='%s'\n", ipv4Str(profile->ipv4.Address));
+        fprintf(fp, "IPV4_NETMASK='%s'\n", ipv4Str(profile->ipv4.SubnetMask));
+        fprintf(fp, "IPV4_PREFIX='%u'\n", prefix);
+        fprintf(fp, "IPV4_GATEWAY='%s'\n", ipv4Str(profile->ipv4.Gateway));
+        fprintf(fp, "IPV4_MTU='%u'\n", profile->ipv4.Mtu);
+        fprintf(fp, "IPV4_DNS='");
+        if (profile->ipv4.DnsPrimary)
+            fprintf(fp, "%s", ipv4Str(profile->ipv4.DnsPrimary));
+        if (profile->ipv4.DnsSecondary && profile->ipv4.DnsSecondary != profile->ipv4.DnsPrimary)
+            fprintf(fp, " %s", ipv4Str(profile->ipv4.DnsSecondary));
+        fprintf(fp, "'\n");
+    }
+
+    if (profile->ipv6.Address[0] && profile->ipv6.PrefixLengthIPAddr) {
+        fprintf(fp, "IPV6_ADDRESS='%s'\n", ipv6Str(profile->ipv6.Address));
+        fprintf(fp, "IPV6_PREFIX='%u'\n", profile->ipv6.PrefixLengthIPAddr);
+        fprintf(fp, "IPV6_GATEWAY='%s'\n", ipv6Str(profile->ipv6.Gateway));
+        fprintf(fp, "IPV6_MTU='%u'\n", profile->ipv6.Mtu);
+        fprintf(fp, "IPV6_DNS='");
+        if (profile->ipv6.DnsPrimary[0])
+            fprintf(fp, "%s", ipv6Str(profile->ipv6.DnsPrimary));
+        if (profile->ipv6.DnsSecondary[0])
+            fprintf(fp, " %s", ipv6Str(profile->ipv6.DnsSecondary));
+        fprintf(fp, "'\n");
+    }
+
+    fclose(fp);
+
+    if (rename(tmpfile, profile->ipcfg_file)) {
+        dbg_time("fail to rename %s, errno: %d (%s)", tmpfile, errno, strerror(errno));
+        unlink(tmpfile);
+        return;
+    }
+
+    dbg_time("wrote the negotiated settings of %s to %s", ifname, profile->ipcfg_file);
+}
+
 void udhcpc_start(PROFILE_T *profile) {
     char *ifname = profile->usbnet_adapter;
 
@@ -484,13 +560,29 @@ void udhcpc_start(PROFILE_T *profile) {
         ifname = profile->qmapnet_adapter;
     }
 
-    if (profile->rawIP && profile->ipv4.Address && profile->ipv4.Mtu) {
-        ql_set_mtu(ifname, (profile->ipv4.Mtu));
+    //An IPv6 only data call used to leave the netcard at the driver default,
+    //because only the IPv4 MTU was ever applied. Carriers hand out well under
+    //1500 for IPv6, so everything large blackholed - and on an IPv6 only APN,
+    //where IPv4 reaches the internet through the carrier's NAT64, that reads as
+    //IPv4 being broken rather than as an MTU problem. Keep IPv4 first when both
+    //families are up, which is what dual stack has always done here.
+    if (profile->rawIP) {
+        unsigned mtu = 0;
+
+        if (profile->ipv4.Address && profile->ipv4.Mtu)
+            mtu = profile->ipv4.Mtu;
+        else if (profile->ipv6.Address[0] && profile->ipv6.PrefixLengthIPAddr && profile->ipv6.Mtu)
+            mtu = profile->ipv6.Mtu;
+
+        if (mtu)
+            ql_set_mtu(ifname, mtu);
     }
 
     if (strcmp(ifname, profile->usbnet_adapter)) {
         ifc_set_state(profile->usbnet_adapter, 1);
-        if (ifc_get_flags(ifname)&IFF_UP) {
+        //bouncing the qmap netcard takes every route on it down with it, which
+        //a network manager that was never told has no way to put back
+        if (!profile->no_ipcfg && (ifc_get_flags(ifname)&IFF_UP)) {
             ifc_set_state(ifname, 0);
         }
     }
@@ -508,6 +600,18 @@ void udhcpc_start(PROFILE_T *profile) {
             dbg_time("pcscf1: %s", ipv6Str(profile->PCSCFIpv6Addr1));
         if (profile->PCSCFIpv6Addr2[0])
             dbg_time("pcscf2: %s", ipv6Str(profile->PCSCFIpv6Addr2));
+    }
+
+    ql_write_ipcfg(profile, ifname);
+
+    //an external network manager (OpenWrt netifd, ...) owns the L3 configuration of
+    //this netcard. The data call and the carrier are up at this point, which is all
+    //it needs to run its own dhcp client and install addresses/routes/dns itself.
+    //Doing it here as well only installs a duplicate, untracked address and default
+    //route that the network manager can neither see nor clean up.
+    if (profile->no_ipcfg) {
+        dbg_time("no host configuration requested, leaving IP setup of %s to the network manager", ifname);
+        return;
     }
 
 #if 1 //for bridge mode, only one public IP, so do udhcpc manually
@@ -712,6 +816,11 @@ void udhcpc_stop(PROFILE_T *profile) {
     char *ifname = profile->usbnet_adapter;
     char shell_cmd[128];
 
+    //drop the settings first: their absence is how the network manager learns
+    //that the data call is gone and the addresses it installed are now stale.
+    if (profile->ipcfg_file)
+        unlink(profile->ipcfg_file);
+
     ql_set_driver_link_state(profile, 0);
 
     if (profile->qmapnet_adapter[0]) {
@@ -730,6 +839,15 @@ void udhcpc_stop(PROFILE_T *profile) {
     }
 
     profile->udhcpc_ip = 0;
+
+    //the network manager owns the addresses of this netcard. Flushing them here
+    //would strip a configuration it still believes is installed, and taking the
+    //netcard down would take its routes with it, so a data call that comes back
+    //a second later would return to an interface that has neither. Dropping the
+    //carrier above is all it needs to see that the call went away.
+    if (profile->no_ipcfg)
+        return;
+
 //it seems when call netif_carrier_on(), and netcard 's IP is "0.0.0.0", will cause netif_queue_stopped()
     if (!access("/sbin/ip", X_OK))
         snprintf(shell_cmd, sizeof(shell_cmd), "ip addr flush dev %s", ifname);
