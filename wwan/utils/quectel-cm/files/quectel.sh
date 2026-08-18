@@ -296,6 +296,44 @@ quectel_wait_qmap() {
 	return 1
 }
 
+# The firewall zone a netifd interface sits in, by zone name.
+#
+# Asked for on behalf of the dynamic interface the second data call of a
+# multiplexed setup needs: netifd carries a zone as an attribute of the interface
+# rather than reading it from anywhere, so it has to be handed the answer.
+#
+# This used to be "fw3 -q network", full stop, and on an fw4 build that is not a
+# command at all - firewall3 is not installed beside firewall4, the substitution
+# produced nothing, and the dynamic interface came up in no zone. Which forwards
+# nowhere. It failed silently in the worst way available, because an empty answer
+# is also exactly what "this interface really is in no zone" looks like, so there
+# was nothing to distinguish the two.
+#
+# fw4 answers the same question with the same syntax and the same contract - the
+# zone name on stdout, exit 1 and silence when there is none - and resolves it by
+# netifd interface name, which is what is being passed. fw3 is still tried after
+# it, for a build that has one and not the other.
+#
+# Both read the firewall's own state, so both want it started. That is not a race
+# worth coding around here: the firewall is START=19 and netifd START=20, so no
+# proto script runs before the state file exists. A box with the firewall
+# deliberately stopped gets no zone, which is the truthful answer.
+quectel_zone_of() {
+	local iface="$1"
+
+	command -v fw4 >/dev/null && {
+		fw4 -q network "$iface" 2>/dev/null
+		return 0
+	}
+
+	command -v fw3 >/dev/null && {
+		fw3 -q network "$iface" 2>/dev/null
+		return 0
+	}
+
+	return 0
+}
+
 # quectel-cm parses the operands of -s positionally and bails out with its usage
 # screen on an empty argument, so append only what is actually configured and
 # keep -s last so its operands stay contiguous.
@@ -342,6 +380,21 @@ quectel_wait_ipcfg() {
 # a raw-IP cellular link has no ethernet to be transparent about, so nothing is
 # really lost, and the QMAP netcard keeps the raw-IP form that the rmnet-nss fast
 # path requires - which a Linux bridge would have taken away from it.
+#
+# The two families pass through on completely different terms, and the difference
+# is the whole reason this is not one code path:
+#
+#   IPv4 is scarce. There is exactly one address and the host is to hold it, so
+#         this interface must be given none - see quectel_send_ipcfg below.
+#   IPv6 is not. The network assigns this interface an address and delegates a
+#         /64 with it (RFC 7278), so the host takes its addresses out of the
+#         prefix while this router keeps the one the network gave it. Nothing has
+#         to be withheld, and so nothing about the IPv6 half of a passthrough
+#         differs from the IPv6 half of ordinary routing.
+#
+# Which is why a passthrough has no IPv4 of its own and still has working IPv6:
+# ntp, opkg and dns all work over it, and only the v4-literal parts of the world
+# are out of reach.
 
 # Rebuilding the passthrough - a dhcp server that hands the host this address,
 # and whatever has to happen to the port it sits on - is not this package's
@@ -356,33 +409,6 @@ quectel_notify() {
 		PREFIX="$prefix" /sbin/hotplug-call quectel
 }
 
-# The one thing that must not happen is assigning the address here. It belongs to
-# the host; put it on this interface as well and the kernel delivers packets for it
-# locally instead of forwarding them on, which looks like the passthrough silently
-# swallowing all inbound traffic.
-quectel_send_passthrough() {
-	local interface="$1" datadev="$2" ipcfg="$3" address="$4"
-
-	[ -n "$address" ] || {
-		echo "The data call came up without an IPv4 address, so there is nothing to pass through"
-		return 1
-	}
-
-	echo "Passing $address through to the host, routed"
-
-	proto_init_update "$datadev" 1
-
-	# No gateway: the modem link is raw IP with no L2 and the netcard is NOARP, so
-	# the device *is* the next hop. And no dns, because with no address of its own
-	# this router cannot originate traffic anyway - the host resolves for itself
-	# from the servers the dhcp server hands it.
-	[ "$defaultroute" = 0 ] || proto_add_ipv4_route "0.0.0.0" 0
-
-	proto_send_update "$interface"
-
-	quectel_notify passthrough "$interface" "$datadev" "$ipcfg"
-}
-
 # Apply what the modem negotiated to the interface itself. Everything lands on
 # the one netifd interface, so ifstatus, the firewall and the routing metric all
 # refer to the same thing instead of to a dynamically spawned side interface.
@@ -395,11 +421,12 @@ quectel_send_ipcfg() {
 	[ -f "$ipcfg" ] || return 1
 	. "$ipcfg"
 
-	# Both the first setup and every handover after it come through here, so the
-	# passthrough only has to be taught once.
-	[ "$passthrough" = 1 ] && {
-		quectel_send_passthrough "$interface" "$ifname" "$ipcfg" "$IPV4_ADDRESS"
-		return $?
+	# A call that granted neither family is one there is nothing to apply for, and
+	# reporting that is what makes netifd tear it down and dial again. Checked here
+	# rather than per family, because a single stack call is a perfectly good call.
+	[ -n "$IPV4_ADDRESS$IPV6_ADDRESS" ] || {
+		echo "The data call came up with an address in neither family"
+		return 1
 	}
 
 	# Deliberately no proto_set_keep here. This runs again for every data call
@@ -408,18 +435,44 @@ quectel_send_ipcfg() {
 	# of every previous call behind instead of replacing them.
 	proto_init_update "$ifname" 1
 
-	[ -n "$IPV4_ADDRESS" ] && {
+	if [ "$passthrough" = 1 ]; then
+		# The one thing that must not happen is assigning the IPv4 address here.
+		# It belongs to the host; put it on this interface as well and the kernel
+		# delivers packets for it locally instead of forwarding them on, which
+		# looks like the passthrough silently swallowing all inbound traffic.
+		if [ -n "$IPV4_ADDRESS" ]; then
+			echo "Passing $IPV4_ADDRESS through to the host, routed"
+
+			# No gateway: the modem link is raw IP with no L2 and the netcard is
+			# NOARP, so the device *is* the next hop. And no dns, because with no
+			# address of its own this router cannot originate IPv4 anyway - the
+			# host resolves for itself from the servers the dhcp server hands it.
+			[ "$defaultroute" = 0 ] || proto_add_ipv4_route "0.0.0.0" 0
+		else
+			# Not a failure any more: an IPv6 passthrough has a /64 to hand over
+			# and needs no IPv4 at all. Whoever serves the host is told either
+			# way, further down, so that it takes a stale IPv4 offer back down.
+			echo "The data call came up without an IPv4 address; passing IPv6 through only"
+		fi
+	elif [ -n "$IPV4_ADDRESS" ]; then
 		proto_add_ipv4_address "$IPV4_ADDRESS" "$IPV4_PREFIX"
 		# Carriers routinely place the gateway outside the assigned subnet, so
 		# give it a host route of its own before relying on it as the next hop.
 		proto_add_ipv4_route "$IPV4_GATEWAY" 32
 		[ "$defaultroute" = 0 ] || proto_add_ipv4_route "0.0.0.0" 0 "$IPV4_GATEWAY"
 		[ "$peerdns" = 0 ] || for dns in $IPV4_DNS; do proto_add_dns_server "$dns"; done
-	}
+	fi
 
+	# Not in the "if" above: the IPv6 half is identical in both modes, and that is
+	# the design rather than a coincidence. Nothing has to be withheld from a
+	# family the carrier hands out a whole prefix of, so a passthrough delegates
+	# the /64 exactly as routing does - the only difference is which link asks for
+	# it, and that is a matter for whoever owns the downstream, not for this proto.
 	[ -n "$IPV6_ADDRESS" ] && {
 		proto_add_ipv6_address "$IPV6_ADDRESS" 128
-		# RFC 7278: hand the /64 the modem got on to the LAN.
+		# RFC 7278: hand the /64 the modem got on to whichever link is configured
+		# to take a delegation - the LAN when this router routes, the passthrough
+		# port when it does not.
 		#
 		# The carrier issues a fresh /64 for every data call, and a prefix that
 		# stops being advertised is kept alive for the rest of its valid
@@ -454,6 +507,15 @@ quectel_send_ipcfg() {
 	}
 
 	proto_send_update "$interface"
+
+	# After the update, and unconditionally for a passthrough: a call that came
+	# back without the IPv4 address it had before is exactly the case where the
+	# thing serving the host has to hear about it, so that it stops offering an
+	# address that no longer routes anywhere.
+	[ "$passthrough" = 1 ] &&
+		quectel_notify passthrough "$interface" "$ifname" "$ipcfg"
+
+	return 0
 }
 
 # ------------------------------------------------------------------ nat64 ---
@@ -607,8 +669,10 @@ quectel_nat64_update() {
 
 	# The default is not a preference but a fact about the data call: one that
 	# came up without an IPv4 address is one whose IPv4 goes through NAT64, and
-	# one holding an address of its own needs none of this. It also takes the
-	# passthrough out of the picture by itself, since that dials IPv4.
+	# one holding an address of its own needs none of this. That reading covers a
+	# passthrough too, now that one can dial IPv6 only: there is then no IPv4 to
+	# hand the host, and the prefix is announced on the port it is passed through
+	# on, because the handler writes it wherever router advertisements are sent.
 	case "$nat64" in
 	0) ;;
 	1) wanted=1 ;;
@@ -714,21 +778,17 @@ proto_quectel_setup() {
 	# Treating it as neither used to leave the interface without any address.
 	[ -n "$pdptype" ] || pdptype="ipv4v6"
 
-	# IPv4 only, for now, because that is all the routed passthrough hands over: the
-	# host route, the /32 and the dhcp offer are all v4. Unlike the old bridge mode
-	# this is a limit of *this code* rather than of the hardware - the carrier's /64
-	# could be delegated to the host's port the way the proto already delegates it
-	# to the LAN - so ask the network for one family rather than dialling a second
-	# call whose address nothing would yet use.
+	# A passthrough dials whatever pdptype asks for. It used to be forced to ipv4,
+	# because the host route, the /32 and the dhcp offer that hand the address over
+	# are all v4 - but IPv6 needs none of those. The carrier delegates a /64 and
+	# the downstream link takes its addresses out of it, so the only thing the
+	# passthrough has to do about IPv6 is ask for it.
 	if [ "$passthrough" = 1 ]; then
-		[ "$pdptype" = "ipv4" ] || {
-			echo "The passthrough is IPv4 only; asking for an IPv4 data call"
-			pdptype="ipv4"
-		}
-
-		# One address, one host, one channel: a second data call would land on a
-		# netcard the passthrough does not route to, so it would come up and carry
-		# nothing.
+		# One host, one channel, still. A split arrangement puts the second family
+		# on a second QMAP netcard, and netifd carries that on an interface of its
+		# own in the modem's own zone - which is not the interface the passthrough
+		# routes out of, so the family that landed there would come up and reach
+		# nobody. Both families on the one channel is what a passthrough can pass.
 		[ "$multiplexing" = 1 ] && {
 			echo "The passthrough drives the first QMAP channel only; ignoring IP multiplexing"
 			multiplexing=0
@@ -952,7 +1012,7 @@ proto_quectel_setup() {
 	# multiplexed setup, which lands on its own QMAP channel, still needs an
 	# interface of its own to carry its addresses.
 	[ "$multiplexing" = 1 ] && [ "$want_v4" = 1 ] && [ "$want_v6" = 1 ] && {
-		zone="$(fw3 -q network "$interface" 2>/dev/null)"
+		zone="$(quectel_zone_of "$interface")"
 
 		json_init
 		json_add_string name "${interface}_6"
