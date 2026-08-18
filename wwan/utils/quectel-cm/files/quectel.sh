@@ -896,11 +896,17 @@ proto_quectel_setup() {
 		[ "$want_v4" = 1 ] && set -- "$@" -4
 		[ "$want_v6" = 1 ] && set -- "$@" -6
 
-		# One context, so one APN. Falling back to apnv6 for an IPv6-only call is
-		# for the configurations this proto used to force: with no APN field of
-		# its own, the only way to name an IPv6-only APN was to turn multiplexing
-		# on and fill in the IPv6 one, and that has to keep working.
-		[ "$want_v4" = 1 ] && callapn="$apn" || callapn="${apn:-$apnv6}"
+		# One context, so one APN - and for an IPv6-only call the IPv6 one is
+		# what it dials wherever it is set. A configuration that names an IPv6
+		# APN and then watches the interface dial the IPv4 one is not a reading
+		# anybody intends, and it is what an IPv6 profile written from outside
+		# depends on: it owns apnv6 and leaves apn to whoever owns that.
+		#
+		# With no apnv6 it falls back to apn, which is the configuration this
+		# proto used to force - with no APN field of its own, the only way to
+		# name an IPv6-only APN was to turn multiplexing on and fill in the IPv6
+		# one, and that has to keep working.
+		[ "$want_v4" = 1 ] && callapn="$apn" || callapn="${apnv6:-$apn}"
 
 		quectel_start_cm "$interface" "$callapn" "$@" -w "$ipcfg"
 		link_pid="$QUECTEL_CM_PID"
