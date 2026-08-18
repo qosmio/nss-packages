@@ -66,7 +66,7 @@ return network.registerProtocol('quectel', {
 	},
 
 	renderFormOptions: function(s) {
-		var dev = this.getL3Device() || this.getDevice(), o, apn, apnv6;
+		var dev = this.getL3Device() || this.getDevice(), o, apn, apnv6, mux;
 
 		o = s.taboption('general', form.Value, '_modem_device', _('Modem device'));
 		o.ucioption = 'device';
@@ -79,8 +79,9 @@ return network.registerProtocol('quectel', {
 			}, this));
 		};
 
-		o = s.taboption('general', form.Flag, 'multiplexing', _('Use IP Multiplexing'));
-		o.default = o.disabled;
+		mux = s.taboption('general', form.Flag, 'multiplexing', _('Use IP Multiplexing'),
+			_('Dial a second data call on a QMAP channel of its own, so each family can have a context and an APN to itself. Needs the driver loaded with qmap_mode=2 or higher.'));
+		mux.default = mux.disabled;
 
 		apn = s.taboption('general', form.Value, 'apn', _('APN'));
 		apn.depends('pdptype', 'ipv4v6');
@@ -97,9 +98,9 @@ return network.registerProtocol('quectel', {
 		};
 
 		apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'),
-			_('APN of the second PDP context, which IP multiplexing dials for IPv6 on a channel of its own. Without multiplexing there is a single context and the APN above is the one it uses.'));
+			_('The APN IPv6 is dialled with. With IP multiplexing that is the second PDP context, on a channel of its own; on an IPv6-only PDP type there is a single context and this is the APN it uses, falling back to the one above when it is empty.'));
 		apnv6.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
-		apnv6.depends({ pdptype: 'ipv6', multiplexing: '1' });
+		apnv6.depends('pdptype', 'ipv6');
 		apnv6.validate = function(section_id, value) {
 			if (value == null || value == '')
 				return true;
@@ -107,11 +108,18 @@ return network.registerProtocol('quectel', {
 			if (!/^[a-zA-Z0-9\-.]*[a-zA-Z0-9]$/.test(value))
 				return _('Invalid APN provided');
 
+			/* Only where there are two contexts. With one, this IS the APN the
+			 * call dials, and being told it may not equal the IPv4 one is
+			 * nonsense - a carrier whose IPv6-only APN is the same string as its
+			 * dual-stack one is perfectly ordinary. */
+			if (mux.formvalue(section_id) != '1')
+				return true;
+
 			var apn_value = apn.formvalue(section_id) || '';
 
 			if (value.toLowerCase() === apn_value.toLowerCase())
 				return _('APN IPv6 must be different from APN');
-	
+
 			return true;
 		};
 
@@ -177,7 +185,8 @@ return network.registerProtocol('quectel', {
 		o.placeholder = '2';
 		o.datatype = 'and(uinteger,min(1),max(7))';
 
-		o = s.taboption('general', form.ListValue, 'pdptype', _('PDP Type'));
+		o = s.taboption('general', form.ListValue, 'pdptype', _('PDP Type'),
+			_('Which families the data call asks the network for. With IP multiplexing and the two APNs above this is the whole arrangement: one context carrying both, a context for each, or IPv6 alone with IPv4 reaching the internet through the carrier\'s NAT64. Where luci-app-aw1000-modem is installed, Modem -> Profiles -> IPv6 writes these as a set and reverts them if the uplink does not come back.'));
 		o.value('ipv4v6', 'IPv4/IPv6');
 		o.value('ipv4', 'IPv4');
 		o.value('ipv6', 'IPv6');
