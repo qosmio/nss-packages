@@ -85,6 +85,7 @@ return network.registerProtocol('quectel', {
 		apn = s.taboption('general', form.Value, 'apn', _('APN'));
 		apn.depends('pdptype', 'ipv4v6');
 		apn.depends('pdptype', 'ipv4');
+		apn.depends('pdptype', 'ipv6');
 		apn.validate = function(section_id, value) {
 			if (value == null || value == '')
 				return true;
@@ -95,7 +96,8 @@ return network.registerProtocol('quectel', {
 			return true;
 		};
 
-		apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'));
+		apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'),
+			_('APN of the second PDP context, which IP multiplexing dials for IPv6 on a channel of its own. Without multiplexing there is a single context and the APN above is the one it uses.'));
 		apnv6.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
 		apnv6.depends({ pdptype: 'ipv6', multiplexing: '1' });
 		apnv6.validate = function(section_id, value) {
@@ -105,7 +107,7 @@ return network.registerProtocol('quectel', {
 			if (!/^[a-zA-Z0-9\-.]*[a-zA-Z0-9]$/.test(value))
 				return _('Invalid APN provided');
 
-			var apn_value = apn.formvalue(section_id);
+			var apn_value = apn.formvalue(section_id) || '';
 
 			if (value.toLowerCase() === apn_value.toLowerCase())
 				return _('APN IPv6 must be different from APN');
@@ -212,6 +214,24 @@ return network.registerProtocol('quectel', {
 		o.default = o.enabled;
 		o.depends('pdptype', 'ipv4v6');
 		o.depends('pdptype', 'ipv6');
+
+		o = s.taboption('advanced', form.ListValue, 'nat64', _('Announce NAT64 prefix'),
+			_('On an IPv6-only APN, IPv4 reaches the internet through the carrier\'s NAT64. Announcing its prefix in the router advertisements (RFC 8781) lets clients switch on the translator they already ship with, so IPv4 applications keep working without this router translating anything. Requires odhcpd to be serving RAs on the LAN.'));
+		o.value('auto', _('Automatic (only when the call has no IPv4 address)'));
+		o.value('1', _('Always'));
+		o.value('0', _('Never'));
+		o.default = 'auto';
+		o.depends('pdptype', 'ipv4v6');
+		o.depends('pdptype', 'ipv6');
+
+		o = s.taboption('advanced', form.Value, 'nat64prefix', _('NAT64 prefix'),
+			_('Left empty the prefix is discovered from the carrier\'s DNS64 (RFC 7050), falling back to the well-known 64:ff9b::/96. Set it for a carrier that uses a prefix out of its own space, or one shorter than /96.'));
+		o.placeholder = '64:ff9b::/96';
+		o.datatype = 'cidr6';
+		o.depends({ pdptype: 'ipv4v6', nat64: 'auto' });
+		o.depends({ pdptype: 'ipv4v6', nat64: '1' });
+		o.depends({ pdptype: 'ipv6', nat64: 'auto' });
+		o.depends({ pdptype: 'ipv6', nat64: '1' });
 
         o = s.taboption('advanced', form.DynamicList, 'cell_lock_4g', _('4G Cell ID Lock'));
         o.datatype = 'string';
