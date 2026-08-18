@@ -21,6 +21,8 @@ prefixlifetime="$9"
 # ${10} onwards, not $10: that is $1 followed by a literal zero.
 passthrough="${10}"
 device="${11}"
+nat64="${12}"
+nat64prefix="${13}"
 
 seen="$(cat "$ipcfg" 2>/dev/null)"
 lost=0
@@ -65,4 +67,9 @@ while :; do
 
 	echo "Reconfiguring $interface, the network handed out new settings"
 	quectel_send_ipcfg "$interface" "$ifname" "$ipcfg" "$passthrough"
+
+	# A re-established data call can land on a different network, so the prefix
+	# its IPv4 has to be translated to is worth asking about again rather than
+	# assuming it survived the handover.
+	quectel_nat64_update "$interface" "$ifname" "$ipcfg" "$nat64" "$nat64prefix"
 done

@@ -348,12 +348,12 @@ quectel_wait_ipcfg() {
 # business, and hardcoding the name of the thing that does it would be worse.
 # Announce that there is something to rebuild and let whoever subscribed do it.
 quectel_notify() {
-	local action="$1" interface="$2" datadev="$3" ipcfg="$4"
+	local action="$1" interface="$2" datadev="$3" ipcfg="$4" prefix="$5"
 
 	[ -x /sbin/hotplug-call ] || return 0
 
 	ACTION="$action" INTERFACE="$interface" DEVICE="$datadev" IPCFG="$ipcfg" \
-		/sbin/hotplug-call quectel
+		PREFIX="$prefix" /sbin/hotplug-call quectel
 }
 
 # The one thing that must not happen is assigning the address here. It belongs to
@@ -456,6 +456,204 @@ quectel_send_ipcfg() {
 	proto_send_update "$interface"
 }
 
+# ------------------------------------------------------------------ nat64 ---
+#
+# An IPv6 only APN reaches IPv4 hosts through the carrier's NAT64, and names
+# resolve straight to it because the carrier's DNS64 servers are the ones handed
+# to the LAN. What that leaves is IPv4 literals and sockets that only ever speak
+# IPv4, and those need a translator on the host that opens them.
+#
+# Every current client OS ships one and switches it on as soon as it learns the
+# NAT64 prefix, so announcing the prefix is all there is to do. Nothing is
+# translated on this router and nothing is inserted into the datapath, which is
+# what keeps the NSS fast path carrying this traffic exactly as it did before -
+# the reason for not running a CLAT here.
+
+# The prefix reserved for NAT64 (RFC 6052), used by carriers that have not put
+# one of their own in DNS.
+QUECTEL_NAT64_WELL_KNOWN="64:ff9b::/96"
+
+# Expand an address to its eight four digit groups, so that the bits of it can be
+# sliced and compared without having to reason about "::" at every step.
+quectel_expand_ipv6() {
+	local addr="$1" head tail group out="" tailout="" n=0
+
+	case "$addr" in
+	*::*::*) return 1 ;;
+	*::*)
+		head="${addr%%::*}"
+		tail="${addr##*::}"
+		;;
+	*)
+		head="$addr"
+		tail=""
+		;;
+	esac
+
+	for group in $(echo "$head:$tail" | tr ':' ' '); do
+		case "$group" in
+		*[!0-9a-fA-F]*) return 1 ;;
+		esac
+		[ "${#group}" -le 4 ] || return 1
+		n=$((n + 1))
+	done
+
+	for group in $(echo "$head" | tr ':' ' '); do
+		out="$out:$(printf '%04x' "0x$group")"
+	done
+
+	for group in $(echo "$tail" | tr ':' ' '); do
+		tailout="$tailout:$(printf '%04x' "0x$group")"
+	done
+
+	case "$addr" in
+	*::*)
+		[ "$n" -lt 8 ] || return 1
+		while [ "$n" -lt 8 ]; do
+			out="$out:0000"
+			n=$((n + 1))
+		done
+		;;
+	*)
+		[ "$n" = 8 ] || return 1
+		;;
+	esac
+
+	echo "${out#:}$tailout"
+}
+
+# Write the six leading groups as the shortest form of the prefix they stand for,
+# so what lands in the configuration reads like the prefix a carrier documents
+# rather than like a fully padded address.
+quectel_nat64_format() {
+	local groups="$1" group out="" zeros=""
+
+	for group in $(echo "$groups" | tr ':' ' '); do
+		while [ "${#group}" -gt 1 ]; do
+			case "$group" in
+			0*) group="${group#0}" ;;
+			*) break ;;
+			esac
+		done
+
+		# A run of zero groups is only what "::" stands for once something
+		# non-zero proves the run is not the whole rest of the prefix.
+		if [ "$group" = 0 ]; then
+			zeros="$zeros:0"
+			continue
+		fi
+
+		out="$out$zeros:$group"
+		zeros=""
+	done
+
+	# All zeroes is ::/96, which is not a prefix anyone translates through.
+	[ -n "$out" ] || return 1
+
+	echo "${out#:}::/96"
+}
+
+# RFC 7050. A DNS64 resolver synthesises AAAA records for ipv4only.arpa, a name
+# whose only real records are the A records 192.0.0.170 and 192.0.0.171. The
+# answer is therefore the NAT64 prefix with a known value embedded in it, which
+# is at once how the prefix is found and how the answer is told apart from some
+# host that merely happens to carry that name.
+quectel_nat64_discover() {
+	local server="$1" addr expanded embedded
+
+	command -v nslookup >/dev/null || return 1
+
+	for addr in $(nslookup -type=aaaa -retry=1 -timeout=2 ipv4only.arpa "$server" 2>/dev/null |
+		sed -n 's/^Address:[[:space:]]*//p'); do
+
+		expanded="$(quectel_expand_ipv6 "$addr")" || continue
+
+		# Only the /96 form is recognised. RFC 6052 allows /32 through /64 too,
+		# where the address is embedded around the zero octet at bits 64-71, and
+		# a single answer cannot be told apart from a /96 one with any
+		# confidence - so leave those to be named outright with nat64prefix
+		# rather than guessing a length and advertising it to the whole LAN.
+		embedded="${expanded#*:*:*:*:*:*:}"
+		case "$embedded" in
+		c000:00aa | c000:00ab) ;;
+		*) continue ;;
+		esac
+
+		quectel_nat64_format "${expanded%:*:*}" && return 0
+	done
+
+	return 1
+}
+
+quectel_nat64_stop() {
+	local interface="$1"
+	local statefile="$QUECTEL_RUN_DIR/$interface.nat64"
+
+	[ -f "$statefile" ] || return 0
+
+	rm -f "$statefile"
+	echo "Withdrawing the NAT64 prefix of $interface"
+	quectel_notify nat64_stop "$interface"
+}
+
+quectel_nat64_update() {
+	local interface="$1" datadev="$2" ipcfg="$3" nat64="$4" configured="$5"
+	local statefile="$QUECTEL_RUN_DIR/$interface.nat64"
+	local IFNAME IPV4_ADDRESS IPV4_NETMASK IPV4_PREFIX IPV4_GATEWAY IPV4_MTU IPV4_DNS
+	local IPV6_ADDRESS IPV6_PREFIX IPV6_GATEWAY IPV6_MTU IPV6_DNS
+	local wanted="" prefix server round=0
+
+	[ -f "$ipcfg" ] && . "$ipcfg"
+
+	# The default is not a preference but a fact about the data call: one that
+	# came up without an IPv4 address is one whose IPv4 goes through NAT64, and
+	# one holding an address of its own needs none of this. It also takes the
+	# passthrough out of the picture by itself, since that dials IPv4.
+	case "$nat64" in
+	0) ;;
+	1) wanted=1 ;;
+	*) [ -n "$IPV6_ADDRESS" ] && [ -z "$IPV4_ADDRESS" ] && wanted=1 ;;
+	esac
+
+	[ -n "$wanted" ] || {
+		quectel_nat64_stop "$interface"
+		return 0
+	}
+
+	if [ -n "$configured" ]; then
+		prefix="$configured"
+	else
+		# netifd installs the address and the route this query needs after the
+		# update it was handed, so the first attempts can land before there is
+		# any way to reach the resolver at all. The interface is up and carrying
+		# traffic throughout - the update has already been sent - so the only
+		# thing these seconds hold up is the watcher started further down.
+		while [ -n "$IPV6_DNS$IPV4_DNS" ]; do
+			for server in $IPV6_DNS $IPV4_DNS; do
+				prefix="$(quectel_nat64_discover "$server")" && break
+			done
+
+			[ -n "$prefix" ] && break
+			[ "$round" -lt 2 ] || break
+
+			round=$((round + 1))
+			sleep 2
+		done
+
+		[ -n "$prefix" ] || {
+			prefix="$QUECTEL_NAT64_WELL_KNOWN"
+			echo "No NAT64 prefix in DNS, falling back to the well known $prefix"
+		}
+	fi
+
+	[ "$(cat "$statefile" 2>/dev/null)" = "$prefix" ] && return 0
+
+	mkdir -p "$QUECTEL_RUN_DIR"
+	echo "$prefix" >"$statefile"
+	echo "Announcing NAT64 prefix $prefix for $interface"
+	quectel_notify nat64 "$interface" "$datadev" "$ipcfg" "$prefix"
+}
+
 proto_quectel_init_config() {
 	available=1
 	no_device=1
@@ -475,6 +673,8 @@ proto_quectel_init_config() {
 	proto_config_add_int "timeout"
 	proto_config_add_string "pdptype"
 	proto_config_add_boolean "passthrough"
+	proto_config_add_string "nat64"
+	proto_config_add_string "nat64prefix"
 	proto_config_add_boolean "sourcefilter"
 	proto_config_add_int "prefixlifetime"
 	proto_config_add_boolean "delegate"
@@ -489,20 +689,22 @@ proto_quectel_setup() {
 	local pdptype pdnindex pdnindexv6 multiplexing prefixlifetime passthrough
 	# shellcheck disable=2034,2086 # allow unused and word splitting
 	local cell_lock_4g sourcefilter delegate mtu $PROTO_DEFAULT_OPTIONS
-	local ip6table zone devicetimeout
-	local ifname ifname4 ifname6 moved
+	local ip6table zone devicetimeout nat64 nat64prefix
+	local ifname ifname4 ifname6 moved callapn
 	local want_v4 want_v6 ipcfg ipcfg6 link_ifname link_pid
 	local idx cell_lock cell_ids pci earfcn
 
 	json_get_vars device atdevice apn apnv6 auth username password pincode delay timeout
 	json_get_vars pdnindex pdnindexv6 multiplexing devicetimeout
 	json_get_vars pdptype passthrough sourcefilter delegate ip6table prefixlifetime
+	json_get_vars nat64 nat64prefix
 	# shellcheck disable=2086 # allow word splitting
 	json_get_vars mtu $PROTO_DEFAULT_OPTIONS
 
 	[ -n "$delay" ] || delay="5"
 	[ -n "$timeout" ] || timeout="60"
 	[ -n "$devicetimeout" ] || devicetimeout="40"
+	[ -n "$nat64" ] || nat64="auto"
 	[ -n "$auth" ] || auth="none"
 	[ -n "$prefixlifetime" ] || prefixlifetime="1800"
 	[ -z "$ctl_device" ] || device="$ctl_device"
@@ -694,7 +896,13 @@ proto_quectel_setup() {
 		[ "$want_v4" = 1 ] && set -- "$@" -4
 		[ "$want_v6" = 1 ] && set -- "$@" -6
 
-		quectel_start_cm "$interface" "$apn" "$@" -w "$ipcfg"
+		# One context, so one APN. Falling back to apnv6 for an IPv6-only call is
+		# for the configurations this proto used to force: with no APN field of
+		# its own, the only way to name an IPv6-only APN was to turn multiplexing
+		# on and fill in the IPv6 one, and that has to keep working.
+		[ "$want_v4" = 1 ] && callapn="$apn" || callapn="${apn:-$apnv6}"
+
+		quectel_start_cm "$interface" "$callapn" "$@" -w "$ipcfg"
 		link_pid="$QUECTEL_CM_PID"
 		[ "$want_v4" = 1 ] && link_ifname="$ifname4" || link_ifname="$ifname6"
 	fi
@@ -720,6 +928,11 @@ proto_quectel_setup() {
 		return 1
 	}
 
+	# After the update, not before it: finding the prefix means asking the
+	# carrier's resolver, and the address and route that takes are the ones
+	# netifd has only just been handed.
+	quectel_nat64_update "$interface" "$link_ifname" "$ipcfg" "$nat64" "$nat64prefix"
+
 	# Hand netifd a proto task that watches for further changes. Without a dhcp
 	# client of its own on this interface there is nothing else that would
 	# notice a data call re-established on a different address, and letting
@@ -727,7 +940,7 @@ proto_quectel_setup() {
 	proto_run_command "$interface" /usr/share/quectel/quectel-monitor \
 		"$interface" "$link_ifname" "$ipcfg" "$link_pid" "$timeout" \
 		"$defaultroute" "$peerdns" "$sourcefilter" "$prefixlifetime" \
-		"$passthrough" "$device"
+		"$passthrough" "$device" "$nat64" "$nat64prefix"
 
 	# A netifd interface has exactly one l3 device, so the second data call of a
 	# multiplexed setup, which lands on its own QMAP channel, still needs an
@@ -760,6 +973,11 @@ proto_quectel_teardown() {
 	[ -e "$device" ] && device="$(readlink -f "$device")"
 
 	echo "Stopping network $interface"
+
+	# Before anything else. A NAT64 prefix that outlives the data call it was
+	# found on has clients translating towards a router that can no longer carry
+	# the result, which is worse than clients with no IPv4 at all.
+	quectel_nat64_stop "$interface"
 
 	# netifd has already stopped the monitor it owns by the time it gets here.
 	# This waits for quectel-cm to be gone rather than just signalled.

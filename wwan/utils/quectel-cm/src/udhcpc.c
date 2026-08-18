@@ -560,8 +560,22 @@ void udhcpc_start(PROFILE_T *profile) {
         ifname = profile->qmapnet_adapter;
     }
 
-    if (profile->rawIP && profile->ipv4.Address && profile->ipv4.Mtu) {
-        ql_set_mtu(ifname, (profile->ipv4.Mtu));
+    //An IPv6 only data call used to leave the netcard at the driver default,
+    //because only the IPv4 MTU was ever applied. Carriers hand out well under
+    //1500 for IPv6, so everything large blackholed - and on an IPv6 only APN,
+    //where IPv4 reaches the internet through the carrier's NAT64, that reads as
+    //IPv4 being broken rather than as an MTU problem. Keep IPv4 first when both
+    //families are up, which is what dual stack has always done here.
+    if (profile->rawIP) {
+        unsigned mtu = 0;
+
+        if (profile->ipv4.Address && profile->ipv4.Mtu)
+            mtu = profile->ipv4.Mtu;
+        else if (profile->ipv6.Address[0] && profile->ipv6.PrefixLengthIPAddr && profile->ipv6.Mtu)
+            mtu = profile->ipv6.Mtu;
+
+        if (mtu)
+            ql_set_mtu(ifname, mtu);
     }
 
     if (strcmp(ifname, profile->usbnet_adapter)) {

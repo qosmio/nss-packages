@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=quectel-cm
 PKG_VERSION:=1.6.5
-PKG_RELEASE:=16
+PKG_RELEASE:=17
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -30,6 +30,9 @@ define Package/quectel-cm/install
 
 	$(INSTALL_DIR) $(1)/usr/share/quectel
 	$(INSTALL_BIN) ./files/quectel-monitor.sh $(1)/usr/share/quectel/quectel-monitor
+
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/quectel
+	$(INSTALL_BIN) ./files/nat64-pref64.sh $(1)/etc/hotplug.d/quectel/10-nat64-pref64
 
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/net
 	$(INSTALL_BIN) ./files/smp-affinity-mhi-pcie.sh $(1)/etc/hotplug.d/net/21-smp-affinity-mhi-pcie
