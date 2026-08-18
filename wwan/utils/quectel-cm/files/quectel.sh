@@ -9,6 +9,8 @@
 
 QUECTEL_CM="/usr/bin/quectel-cm"
 QUECTEL_QMI_PROXY="/usr/bin/quectel-qmi-proxy"
+# The control device quectel-qmi-proxy opens when it is not told which one to use.
+QUECTEL_QMI_PROXY_DEV="/dev/cdc-wdm0"
 QUECTEL_RUN_DIR="/var/run/quectel"
 
 # Send a single AT command, discarding the response. sms_tool enforces its own
@@ -29,47 +31,110 @@ quectel_at() {
 # The AT port cannot be derived from the QMI control device, so probe the ports
 # in the order Quectel modules usually expose them. Without sms_tool there is no
 # way to read a reply, so fall back to the port AT sits on for nearly all of them.
+#
+# A modem that has just come back from a reset exposes its ports before its
+# firmware answers on them, so a single sweep finds nothing and the initialisation
+# below is skipped on exactly the run that needs it most. Keep sweeping until one
+# of them replies. Each unanswered port costs a read timeout of its own, so the
+# deadline is measured rather than counted in iterations.
 quectel_find_at_device() {
-	local atdevice
+	local timeout="$1" atdevice deadline
 
 	command -v sms_tool >/dev/null || {
 		[ -c /dev/ttyUSB2 ] && echo "/dev/ttyUSB2"
 		return
 	}
 
-	for atdevice in /dev/ttyUSB2 /dev/ttyUSB3 /dev/ttyUSB1 /dev/ttyUSB0 /dev/ttyACM0; do
-		[ -c "$atdevice" ] || continue
-		quectel_at "$atdevice" "AT" && {
-			echo "$atdevice"
-			return 0
-		}
+	deadline="$(($(date +%s) + timeout))"
+
+	while :; do
+		for atdevice in /dev/ttyUSB2 /dev/ttyUSB3 /dev/ttyUSB1 /dev/ttyUSB0 /dev/ttyACM0; do
+			[ -c "$atdevice" ] || continue
+			quectel_at "$atdevice" "AT" && {
+				echo "$atdevice"
+				return 0
+			}
+		done
+
+		[ "$(date +%s)" -lt "$deadline" ] || return 1
+		sleep 1
+	done
+}
+
+# Same for a port named in the configuration: it is gone for as long as the modem
+# is, and it accepts commands later still.
+quectel_wait_at_device() {
+	local atdevice="$1" timeout="$2" deadline
+
+	deadline="$(($(date +%s) + timeout))"
+
+	while :; do
+		[ -c "$atdevice" ] && quectel_at "$atdevice" "AT" && return 0
+		[ "$(date +%s)" -lt "$deadline" ] || return 1
+		sleep 1
+	done
+}
+
+# quectel-cm reaches the proxy over an abstract socket named after the last
+# character of the control device, so the instance that serves this modem is the
+# one holding *this* node - not just any quectel-qmi-proxy that happens to run.
+quectel_proxy_holds() {
+	local pid="$1" device="$2" fd
+
+	for fd in "/proc/$pid/fd/"*; do
+		[ "$(readlink -f "$fd" 2>/dev/null)" = "$device" ] && return 0
 	done
 
 	return 1
 }
 
-# quectel-cm locates the proxy by scanning /proc for the process holding the
-# cdc-wdm descriptor, so the proxy has to own the device before it is started.
 quectel_proxy_ready() {
-	local device="$1" pid fd
+	local device="$1" pid
 
 	for pid in $(pidof quectel-qmi-proxy 2>/dev/null); do
-		for fd in "/proc/$pid/fd/"*; do
-			[ "$(readlink -f "$fd" 2>/dev/null)" = "$device" ] && return 0
-		done
+		quectel_proxy_holds "$pid" "$device" && return 0
 	done
 
 	return 1
 }
 
+# An instance left from before a reset keeps reopening the node it was given every
+# few seconds and keeps serving the socket name derived from it, so it both holds
+# the device away from its replacement and answers under its name. It has to go.
+# An instance driving a second modem has a device of its own and is left alone.
+quectel_stop_proxy() {
+	local device="$1" pid args
+
+	for pid in $(pidof quectel-qmi-proxy 2>/dev/null); do
+		args=" $(tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null)"
+
+		case "$args" in
+		*" -d $device "*) ;;
+		*" -d "*) quectel_proxy_holds "$pid" "$device" || continue ;;
+		# Started without -d, so it is on the built-in default: what older
+		# versions of this script left running, and still this modem's proxy
+		# when this modem is the one that default names.
+		*)
+			[ "$device" = "$QUECTEL_QMI_PROXY_DEV" ] ||
+				quectel_proxy_holds "$pid" "$device" || continue
+			;;
+		esac
+
+		kill "$pid" 2>/dev/null
+	done
+}
+
+# Name the device explicitly. Started without it the proxy opens /dev/cdc-wdm0
+# whatever this modem actually is, so a second modem - or a first one that came
+# back from a reset on a different node - was served under a socket name
+# quectel-cm never looks for, and setup waited out its timeout and failed.
 quectel_start_proxy() {
 	local device="$1" waited=0
 
 	quectel_proxy_ready "$device" && return 0
 
-	if ! pidof quectel-qmi-proxy >/dev/null; then
-		"$QUECTEL_QMI_PROXY" &
-	fi
+	quectel_stop_proxy "$device"
+	"$QUECTEL_QMI_PROXY" -d "$device" &
 
 	while [ "$waited" -lt 10 ]; do
 		sleep 1
@@ -82,21 +147,153 @@ quectel_start_proxy() {
 
 # Only touch the processes started for this interface: a second modem, driven by
 # another interface, has its own quectel-cm that has to keep running.
+#
+# Wait for them to be gone rather than merely signalled. The kernel hands a
+# cdc-wdm minor back only once the last descriptor on it is closed, so a
+# quectel-cm that outlives the modem's reset keeps the old node allocated and the
+# modem returns as the *next* one up - leaving the node named in the
+# configuration missing for good. One that lost its modem mid-transaction is also
+# the one most likely to take its time going, so do not let it take forever.
 quectel_stop_instances() {
 	local interface="$1"
-	local pidfile="$QUECTEL_RUN_DIR/$interface.pids" pid
+	local pidfile="$QUECTEL_RUN_DIR/$interface.pids" pids="" pid alive waited=0
 
 	[ -f "$pidfile" ] && {
 		for pid in $(cat "$pidfile"); do
 			[ "$(readlink "/proc/$pid/exe" 2>/dev/null)" = "$QUECTEL_CM" ] || continue
 			kill "$pid" 2>/dev/null
+			pids="$pids $pid"
 		done
 		rm -f "$pidfile"
 	}
 
+	while [ "$waited" -lt 5 ]; do
+		alive=""
+		for pid in $pids; do
+			[ -d "/proc/$pid" ] && alive=1
+		done
+		[ -n "$alive" ] || break
+
+		sleep 1
+		waited=$((waited + 1))
+	done
+
+	for pid in $pids; do
+		[ -d "/proc/$pid" ] && {
+			echo "quectel-cm ($pid) did not stop, killing it"
+			kill -9 "$pid" 2>/dev/null
+		}
+	done
+
 	rm -f "$QUECTEL_RUN_DIR/$interface".ipcfg*
 
 	return 0
+}
+
+# ------------------------------------------------------------ modem probing ---
+
+# The netcard is a sibling of the control device - both hang off the same USB
+# interface - so walk up from the node rather than guessing a name. Going through
+# whichever class the node belongs to rather than through /sys/class/usbmisc also
+# covers the GobiQMI nodes of the out-of-tree driver.
+quectel_netdev() {
+	local device="$1" devname sysdev netdev
+
+	devname="$(basename "$device")"
+
+	for sysdev in "/sys/class/"*"/$devname/device"; do
+		[ -e "$sysdev" ] || continue
+
+		# shellcheck disable=2012 # ls is what busybox has for reading a dir
+		netdev="$(ls "$(readlink -f "$sysdev")/net" 2>/dev/null | head -n 1)"
+		[ -n "$netdev" ] || continue
+
+		echo "$netdev"
+		return 0
+	done
+
+	return 1
+}
+
+# A reset - "AT+CFUN=1,1", a firmware crash, the modem being power cycled - takes
+# the device off the bus and puts it back the better part of a minute later.
+# netifd runs setup again as soon as the interface goes down, which is long before
+# that, so this is what decides whether a reset is a reconnect or a dead
+# interface. Both the control node and the netcard appear when the driver binds,
+# but not necessarily in the same instant, so wait for the pair.
+quectel_wait_modem() {
+	local device="$1" timeout="$2" waited=0 ifname
+
+	while :; do
+		ifname="$(quectel_netdev "$device")" && [ -c "$device" ] && {
+			echo "$ifname"
+			return 0
+		}
+
+		[ "$waited" -lt "$timeout" ] || return 1
+		[ "$waited" = 0 ] &&
+			echo "Waiting up to ${timeout}s for the modem on $device" >&2
+
+		sleep 1
+		waited=$((waited + 1))
+	done
+}
+
+# The kernel hands out the lowest free cdc-wdm minor, so as long as nothing holds
+# the old node open the modem comes back as the same one, and everything this
+# proto starts is stopped before the wait for exactly that reason. It cannot do
+# anything about the rest of the system though, and a node held by something else
+# moves the modem one along, leaving the configured name pointing at nothing.
+# Recognise that rather than reporting a modem that is plainly there as missing -
+# but only when there is a single candidate, because with two modems on the box
+# guessing would attach this interface to the wrong one.
+quectel_find_control_device() {
+	local candidate found=""
+
+	for candidate in /dev/cdc-wdm*; do
+		[ -c "$candidate" ] || continue
+		quectel_netdev "$candidate" >/dev/null || continue
+		[ -n "$found" ] && return 1
+		found="$candidate"
+	done
+
+	[ -n "$found" ] || return 1
+
+	echo "$found"
+}
+
+# With data aggregation on, the data call lands on a QMAP child of the netcard,
+# and the driver creates it a moment after the parent. Deciding before it is there
+# sends the call to the base netdev, where it comes up and carries nothing, so ask
+# the driver whether there is a child to wait for at all.
+quectel_wait_qmap() {
+	local ifname="$1" timeout="$2" param mode waited=0
+
+	for param in \
+		"/sys/class/net/$ifname/qmap_mode" \
+		"/sys/class/net/$ifname/device/driver/module/parameters/qmap_mode"; do
+		[ -r "$param" ] && break
+	done
+
+	# No such knob: a driver that does not aggregate, so the base netdev is where
+	# the call lands and there is nothing to wait for.
+	[ -r "$param" ] || return 1
+
+	mode="$(cat "$param" 2>/dev/null)"
+	case "$mode" in
+	"" | 0 | *[!0-9]*) return 1 ;;
+	esac
+
+	while [ "$waited" -lt "$timeout" ]; do
+		[ -r "/sys/class/net/${ifname}_1" ] && return 0
+
+		sleep 1
+		waited=$((waited + 1))
+	done
+
+	echo "The driver aggregates data but never created ${ifname}_1"
+
+	return 1
 }
 
 # quectel-cm parses the operands of -s positionally and bails out with its usage
@@ -274,6 +471,7 @@ proto_quectel_init_config() {
 	proto_config_add_string "password"
 	proto_config_add_string "pincode"
 	proto_config_add_int "delay"
+	proto_config_add_int "devicetimeout"
 	proto_config_add_int "timeout"
 	proto_config_add_string "pdptype"
 	proto_config_add_boolean "passthrough"
@@ -291,19 +489,20 @@ proto_quectel_setup() {
 	local pdptype pdnindex pdnindexv6 multiplexing prefixlifetime passthrough
 	# shellcheck disable=2034,2086 # allow unused and word splitting
 	local cell_lock_4g sourcefilter delegate mtu $PROTO_DEFAULT_OPTIONS
-	local ip6table zone
-	local devname devpath ifname ifname4 ifname6
+	local ip6table zone devicetimeout
+	local ifname ifname4 ifname6 moved
 	local want_v4 want_v6 ipcfg ipcfg6 link_ifname link_pid
 	local idx cell_lock cell_ids pci earfcn
 
 	json_get_vars device atdevice apn apnv6 auth username password pincode delay timeout
-	json_get_vars pdnindex pdnindexv6 multiplexing
+	json_get_vars pdnindex pdnindexv6 multiplexing devicetimeout
 	json_get_vars pdptype passthrough sourcefilter delegate ip6table prefixlifetime
 	# shellcheck disable=2086 # allow word splitting
 	json_get_vars mtu $PROTO_DEFAULT_OPTIONS
 
 	[ -n "$delay" ] || delay="5"
 	[ -n "$timeout" ] || timeout="60"
+	[ -n "$devicetimeout" ] || devicetimeout="40"
 	[ -n "$auth" ] || auth="none"
 	[ -n "$prefixlifetime" ] || prefixlifetime="1800"
 	[ -z "$ctl_device" ] || device="$ctl_device"
@@ -334,6 +533,13 @@ proto_quectel_setup() {
 		}
 	fi
 
+	# The one genuinely unrecoverable case: nothing was configured, so there is
+	# nothing to wait for and no event that could ever make this interface work.
+	# Everything below is instead a modem that is on its way back, and marking the
+	# interface unavailable for one of those is what turned a reset into a dead
+	# interface: netifd refuses to set up an unavailable interface, and with
+	# no_device=1 nothing ever marks it available again, so not even "ifup" got
+	# the modem back - only reloading the network configuration did.
 	[ -n "$device" ] || {
 		echo "No control device specified"
 		proto_notify_error "$interface" NO_DEVICE
@@ -341,28 +547,49 @@ proto_quectel_setup() {
 		return 1
 	}
 
-	device="$(readlink -f "$device")"
-	[ -c "$device" ] || {
-		echo "The specified control device does not exist"
-		proto_notify_error "$interface" NO_DEVICE
-		proto_set_available "$interface" 0
-		return 1
+	# Not with -f: the node is routinely absent at this point, and canonicalising
+	# a path that is not there fails and yields nothing at all.
+	[ -e "$device" ] && device="$(readlink -f "$device")"
+
+	mkdir -p "$QUECTEL_RUN_DIR"
+
+	# Before waiting, not after: while one of these still holds the old node open
+	# the kernel cannot hand its minor back, and the modem returns as the next
+	# node up instead of as the one named in the configuration.
+	quectel_stop_instances "$interface"
+
+	ifname="$(quectel_wait_modem "$device" "$devicetimeout")"
+
+	# The configured node never came back. Before reporting the modem missing,
+	# check whether it is on the box under a different one.
+	[ -n "$ifname" ] || {
+		moved="$(quectel_find_control_device)"
+		[ -n "$moved" ] && ifname="$(quectel_netdev "$moved")"
+
+		[ -n "$ifname" ] && {
+			echo "The modem came back as $moved, not as the configured $device"
+			device="$moved"
+		}
 	}
 
-	devname="$(basename "$device")"
-	devpath="$(readlink -f "/sys/class/usbmisc/$devname/device/")"
-	# shellcheck disable=2012
-	ifname="$(ls "$devpath/net" 2>"/dev/null" | head -n 1)"
+	# Return without marking the interface unavailable: netifd sets an interface
+	# whose setup failed up again, so this is what retries, at the pace of the
+	# wait above, until the modem is back.
 	[ -n "$ifname" ] || {
-		echo "The interface could not be found."
-		proto_notify_error "$interface" NO_IFACE
-		proto_set_available "$interface" 0
+		echo "No modem on $device after ${devicetimeout}s"
+		proto_notify_error "$interface" NO_DEVICE
 		return 1
 	}
 
 	sleep "$delay"
 
-	[ -n "$atdevice" ] || atdevice="$(quectel_find_at_device)"
+	if [ -n "$atdevice" ]; then
+		quectel_wait_at_device "$atdevice" "$delay" ||
+			echo "The configured AT port $atdevice is not answering"
+	else
+		atdevice="$(quectel_find_at_device "$delay")"
+	fi
+
 	if [ -c "$atdevice" ]; then
 		quectel_at "$atdevice" "AT+CFUN=1"
 	else
@@ -401,9 +628,13 @@ proto_quectel_setup() {
 	esac
 
 	# The data call lands on the QMAP/RMNET child when data aggregation is on.
-	# Modems running without it (qmap_mode=0) carry it on the base netdev.
+	# Modems running without it (qmap_mode=0) carry it on the base netdev. The
+	# child is created a moment after its parent, so ask the driver whether one is
+	# coming rather than reading the answer off a directory that is still filling
+	# up - which after a reset gave the base netdev and a data call that came up
+	# on a device carrying nothing.
 	ifname4="$ifname"
-	[ -r "/sys/class/net/${ifname}_1" ] && ifname4="${ifname}_1"
+	quectel_wait_qmap "$ifname" 10 && ifname4="${ifname}_1"
 	ifname6="$ifname4"
 
 	if [ "$multiplexing" = 1 ]; then
@@ -422,8 +653,6 @@ proto_quectel_setup() {
 		return 1
 	}
 
-	quectel_stop_instances "$interface"
-	mkdir -p "$QUECTEL_RUN_DIR"
 	ipcfg="$QUECTEL_RUN_DIR/$interface.ipcfg"
 	ipcfg6="$QUECTEL_RUN_DIR/$interface.ipcfg6"
 
@@ -498,7 +727,7 @@ proto_quectel_setup() {
 	proto_run_command "$interface" /usr/share/quectel/quectel-monitor \
 		"$interface" "$link_ifname" "$ipcfg" "$link_pid" "$timeout" \
 		"$defaultroute" "$peerdns" "$sourcefilter" "$prefixlifetime" \
-		"$passthrough"
+		"$passthrough" "$device"
 
 	# A netifd interface has exactly one l3 device, so the second data call of a
 	# multiplexed setup, which lands on its own QMAP channel, still needs an
@@ -525,24 +754,27 @@ proto_quectel_setup() {
 
 proto_quectel_teardown() {
 	local interface="$1"
-	local waited=0
+	local device
+
+	json_get_vars device
+	[ -e "$device" ] && device="$(readlink -f "$device")"
 
 	echo "Stopping network $interface"
 
-	# netifd has already stopped the monitor it owns by the time it gets here
+	# netifd has already stopped the monitor it owns by the time it gets here.
+	# This waits for quectel-cm to be gone rather than just signalled.
 	quectel_stop_instances "$interface"
 
 	proto_init_update "*" 0
 	proto_send_update "$interface"
 
-	while [ "$waited" -lt 5 ] && pidof quectel-cm >/dev/null; do
-		sleep 1
-		waited=$((waited + 1))
-	done
-
-	# The proxy is shared by every modem on the box, so it may only be stopped
-	# once the last quectel-cm that could be using it is gone.
-	pidof quectel-cm >/dev/null || killall quectel-qmi-proxy 2>/dev/null
+	# Release the control device here rather than leaving it to whoever comes
+	# next. A teardown is most often a modem that has just reset, and the kernel
+	# hands a cdc-wdm minor back only once the last descriptor on it is closed -
+	# so a proxy still holding it makes the modem reappear one node along, under a
+	# name no configuration mentions. The proxy is per device, so a second modem
+	# keeps the instance serving its own node.
+	[ -n "$device" ] && quectel_stop_proxy "$device"
 
 	return 0
 }

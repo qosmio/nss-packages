@@ -149,6 +149,11 @@ return network.registerProtocol('quectel', {
 		o.placeholder = '5';
 		o.datatype    = 'min(1)';
 
+		o = s.taboption('advanced', form.Value, 'devicetimeout', _('Modem detection timeout'),
+			_('Maximum amount of seconds to wait for the modem to appear. A modem that reboots, resets or is power cycled is off the bus for the better part of a minute, and this is how long the interface waits for it before giving up and trying again.'));
+		o.placeholder = '40';
+		o.datatype    = 'min(1)';
+
 		o = s.taboption('advanced', form.Value, 'timeout', _('Data call timeout'),
 			_('Maximum amount of seconds to wait for the modem to establish the data call'));
 		o.placeholder = '60';

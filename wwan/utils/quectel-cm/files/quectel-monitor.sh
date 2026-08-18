@@ -20,6 +20,7 @@ sourcefilter="$8"
 prefixlifetime="$9"
 # ${10} onwards, not $10: that is $1 followed by a literal zero.
 passthrough="${10}"
+device="${11}"
 
 seen="$(cat "$ipcfg" 2>/dev/null)"
 lost=0
@@ -32,6 +33,16 @@ while :; do
 
 	[ -d "/proc/$cm_pid" ] || {
 		echo "quectel-cm for $interface is gone"
+		exit 1
+	}
+
+	# quectel-cm survives some resets on its own, waiting for the modem to come
+	# back and dialling again, so the grace period below is what a reset would
+	# otherwise cost before netifd rebuilds the interface. The control device
+	# leaving the bus is not a data call that might return in a moment - it is the
+	# whole modem gone - so hand it straight back to netifd instead.
+	[ -z "$device" ] || [ -c "$device" ] || {
+		echo "The control device of $interface is gone"
 		exit 1
 	}
 
