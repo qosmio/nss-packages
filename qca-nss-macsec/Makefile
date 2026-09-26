@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-macsec
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-macsec
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_DATE:=2023-10-16
 PKG_SOURCE_VERSION:=b94e22d
-PKG_MIRROR_HASH:=cd46607ecfcb4997d4ff783ed4baf08f6ba02ad126cd479beb4f21179145dfb7
+PKG_MIRROR_HASH:=083dba530091b0a6000c7889f123e477c84789bca647bf6eb03b688bff0882b8
 QSDK_VERSION:=12.4.5
 PKG_VERSION:=$(QSDK_VERSION).$(subst -,.,$(PKG_SOURCE_DATE))~$(PKG_SOURCE_VERSION)
 
@@ -32,11 +32,15 @@ define KernelPackage/qca-nss-macsec/Description
 This package contains a MACSEC driver for QCA chipset
 endef
 
+EXTRA_CFLAGS+= \
+	-Wno-missing-prototypes \
+	-Wno-missing-declarations
+
 QCA_NSS_MACSEC_CONFIG_OPTS+= TOOL_PATH=$(TOOLCHAIN_DIR)/bin/ \
                 SYS_PATH=$(LINUX_DIR) \
                 TOOLPREFIX=$(TARGET_CROSS) \
                 KVER=$(LINUX_VERSION) \
-                CFLAGS="$(TARGET_CFLAGS)" \
+                CFLAGS="$(TARGET_CFLAGS) $(EXTRA_CFLAGS)" \
                 LDFLAGS="$(TARGET_LDFLAGS)" \
                 ARCH=$(LINUX_KARCH)
 
@@ -65,6 +69,7 @@ define Build/Compile
 	+$(KERNEL_MAKE) \
 		M="$(PKG_BUILD_DIR)" \
 		SoC="$(subtarget)" \
+		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 		$(PKG_JOBS) \
 		modules
 	+$(MAKE) -C $(PKG_BUILD_DIR) $(strip $(QCA_NSS_MACSEC_CONFIG_OPTS)) $(PKG_JOBS) -f Makefile.shell
