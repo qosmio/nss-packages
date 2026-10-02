@@ -1,0 +1,20 @@
+From: Andrei-Alexandru Bleortu <me@andrei-z.com>
+Subject: [PATCH] nss-drv: terminate the of_device_id table
+
+of_match_device() walks nss_dt_ids[] until an empty entry; without one it
+reads past the array (modpost rejects the module on 6.12).
+
+Signed-off-by: Andrei-Alexandru Bleortu <me@andrei-z.com>
+---
+diff --git a/nss_init.c b/nss_init.c
+index c234862..2243120 100644
+--- a/nss_init.c
++++ b/nss_init.c
+@@ -143,6 +143,7 @@ struct of_device_id nss_dt_ids[] = {
+ 	{ .compatible = "qcom,nss" },
+ 	{ .compatible = "qcom,nss0" },
+ 	{ .compatible = "qcom,nss1" },
++	{},
+ };
+ MODULE_DEVICE_TABLE(of, nss_dt_ids);
+ #endif
