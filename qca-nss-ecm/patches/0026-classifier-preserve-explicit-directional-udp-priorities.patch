@@ -1,0 +1,41 @@
+From: ZyPulse <121911521+ZyPulse-zy@users.noreply.github.com>
+Subject: [PATCH RFC] classifier: preserve explicit directional UDP priorities
+
+The UDP fallback copies skb->priority across directions even when both
+conntrack PRIO fields are already valid. Prefer that explicit pair and use
+the same sender/conntrack mapping as the TCP and IGS paths. Keep the existing
+acceleration delay, DSCP, mark and IGS behavior; do not guess an unseen
+direction if either PRIO flag is absent.
+
+This is a source proposal with extracted-statement regression coverage.
+No firmware or air-interface behavior is claimed.
+---
+--- a/ecm_classifier_dscp.c
++++ b/ecm_classifier_dscp.c
+@@ -550,6 +550,26 @@
+ 		}
+ 	}
+ done:
++	/*
++	 * Explicit priorities are stored in conntrack direction, while ECM
++	 * direction follows the sender. Do not replace a valid pair with the
++	 * first UDP packet's priority. Zero is valid when PRIO is set.
++	 */
++	if ((protocol == IPPROTO_UDP) &&
++	    (dscpcte->flow_set_flags & NF_CT_DSCPREMARK_EXT_PRIO) &&
++	    (dscpcte->return_set_flags & NF_CT_DSCPREMARK_EXT_PRIO)) {
++		if (((sender == ECM_TRACKER_SENDER_TYPE_SRC) &&
++		     (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL)) ||
++		    ((sender == ECM_TRACKER_SENDER_TYPE_DEST) &&
++		     (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY))) {
++			cdscpi->process_response.flow_qos_tag = dscpcte->flow_priority;
++			cdscpi->process_response.return_qos_tag = dscpcte->reply_priority;
++		} else {
++			cdscpi->process_response.flow_qos_tag = dscpcte->reply_priority;
++			cdscpi->process_response.return_qos_tag = dscpcte->flow_priority;
++		}
++	}
++
+ 	cdscpi->process_response.process_actions |= ECM_CLASSIFIER_PROCESS_ACTION_QOS_TAG;
+ 	cdscpi->process_response.process_actions |= ECM_CLASSIFIER_PROCESS_ACTION_MARK;
+ 
